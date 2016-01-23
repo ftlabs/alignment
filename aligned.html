@@ -1,16 +1,17 @@
 <h1>Aligned</h1>
 <p>
-	text is "{{.Text}}", from source "{{.Source}}, with SAPI_KEY="{{.SapiKey}}"
+	text is "{{.Text}}", from source "{{.Source}}"
 </p>
-<h2>Body</h2>
 <p>maxIndent = {{.MaxIndent}}</p>
-<p>
-	{{.Body}}
-</p>
 
-<ul>
+<table>
+
 {{range $phrase := .Phrases}}
-	<li>{{ $phrase }}</li>
+	<tr>
+		<td style="text-align:right;  white-space: nowrap">{{ $phrase.Before }}</td>
+		<td style="text-align:center; white-space: nowrap">{{ $phrase.Common }}</td>
+		<td style="text-align:left;   white-space: nowrap">{{ $phrase.After  }}</td>
+	</tr>
 {{ end }}
-</ul>
+</table>
 

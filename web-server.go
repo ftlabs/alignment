@@ -18,13 +18,17 @@ package main
         t.Execute(w, nil)
     }
 
+    type PhraseBits struct {
+        Before string
+        Common string
+        After  string
+    }
+
     type AlignParams struct {
         Text      string
         Source    string
-        SapiKey   string
-        Body      string
         MaxIndent int
-        Phrases   []string
+        Phrases   []PhraseBits
     }
 
     func alignHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,24 +66,24 @@ package main
         firstExcerpt := results[0].(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
         fmt.Println("TypeOf firstExcerpt:", reflect.TypeOf(firstExcerpt))
 
-        phrases := []string{}
+        textLength := len(text)
+        phrases := []PhraseBits{}
         maxIndent := 0
 
         for _,r := range results {
             excerpt := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
             if indent := strings.Index(excerpt, text); indent > -1 {
-                phrases = append( phrases, excerpt )
+                // phrases = append( phrases, excerpt )
+                bits := &PhraseBits{ Before: excerpt[0:indent], Common: text, After: excerpt[indent+textLength:len(excerpt)-1]}
+                phrases = append(phrases, *bits)
+
                 if maxIndent < indent {
                     maxIndent = indent
                 }
             }
         }
 
-        body := phrases[0]
-
-        // body := "testing 123"
-
-        p    := &AlignParams{ Text: text, Source: source, SapiKey: sapiKey, Body: string(body), MaxIndent: maxIndent, Phrases: phrases }
+        p    := &AlignParams{ Text: text, Source: source, MaxIndent: maxIndent, Phrases: phrases }
         t, _ := template.ParseFiles("aligned.html")
         t.Execute(w, p)
     }
