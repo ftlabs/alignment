@@ -105,7 +105,7 @@ package main
                 bits := &PhraseBits{ 
                     Before:      phrase[0:indent], 
                     Common:      text, 
-                    After:       phrase[indent+textLength:len(phrase)-1],
+                    After:       phrase[indent+textLength:len(phrase)],
                     Excerpt:     excerpt,
                     Title:       title,
                     LocationUri: locationUri,

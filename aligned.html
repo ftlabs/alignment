@@ -1,10 +1,10 @@
-<h1>Alignment of {{.Text}}</h1>
+<h1>Alignment of "{{.Text}}" from recent <a href="http://www.ft.com">FT.com articles</a></h1>
 
 <table>
 {{range $phrase := .Phrases}}
 	<tr>
 		<td style="text-align:right;  white-space: nowrap">{{ $phrase.Before }}</td>
-		<td style="text-align:center; white-space: nowrap"><a href="{{$phrase.LocationUri}}">{{ $phrase.Common }}</a></td>
+		<td style="text-align:center; white-space: nowrap"><a href="{{$phrase.LocationUri}}" alt="{{$phrase.Title}}">{{ $phrase.Common }}</a></td>
 		<td style="text-align:left;   white-space: nowrap">{{ $phrase.After  }}</td>
 	</tr>
 {{ end }}
