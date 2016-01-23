@@ -20,9 +20,12 @@ package main
     }
 
     type PhraseBits struct {
-        Before string
-        Common string
-        After  string
+        Before      string
+        Common      string
+        After       string
+        Excerpt     string
+        Title       string
+        LocationUri string
     }
 
     type ByBeforeBit []PhraseBits
@@ -36,7 +39,6 @@ package main
     func (s ByBeforeBit) Less(i, j int) bool {
         return len(s[i].Before) > len(s[j].Before)
     }
-
 
     type AlignParams struct {
         Text      string
@@ -85,10 +87,19 @@ package main
         maxIndent := 0
 
         for _,r := range results {
-            excerpt := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
+            excerpt     := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
+            title       := r.(map[string]interface{})["title"].(map[string]interface{})["title"].(string)
+            locationUri := r.(map[string]interface{})["location"].(map[string]interface{})["uri"].(string)
+
             if indent := strings.Index(excerpt, text); indent > -1 {
-                // phrases = append( phrases, excerpt )
-                bits := &PhraseBits{ Before: excerpt[0:indent], Common: text, After: excerpt[indent+textLength:len(excerpt)-1]}
+                bits := &PhraseBits{ 
+                    Before:      excerpt[0:indent], 
+                    Common:      text, 
+                    After:       excerpt[indent+textLength:len(excerpt)-1],
+                    Excerpt:     excerpt,
+                    Title:       title,
+                    LocationUri: locationUri,
+                }
                 phrases = append(phrases, *bits)
 
                 if maxIndent < indent {

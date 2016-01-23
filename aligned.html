@@ -4,7 +4,7 @@
 {{range $phrase := .Phrases}}
 	<tr>
 		<td style="text-align:right;  white-space: nowrap">{{ $phrase.Before }}</td>
-		<td style="text-align:center; white-space: nowrap">{{ $phrase.Common }}</td>
+		<td style="text-align:center; white-space: nowrap"><a href="{{$phrase.LocationUri}}">{{ $phrase.Common }}</a></td>
 		<td style="text-align:left;   white-space: nowrap">{{ $phrase.After  }}</td>
 	</tr>
 {{ end }}
