@@ -1,5 +1,9 @@
 {
 	"ImportPath": ".",
 	"GoVersion": "go1.5",
-	"Deps": []
+	"Deps": [
+		{
+		"ImportPath": "github.com/joho/godotenv"  
+		}
+	]
 }
