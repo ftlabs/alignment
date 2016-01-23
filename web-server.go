@@ -11,7 +11,8 @@ package main
         "encoding/json"
         "reflect"
         "strings"
-)
+        "sort"
+    )
     
     func alignFormHandler(w http.ResponseWriter, r *http.Request) {
         t, _ := template.ParseFiles("align.html")
@@ -23,6 +24,19 @@ package main
         Common string
         After  string
     }
+
+    type ByBeforeBit []PhraseBits
+
+    func (s ByBeforeBit) Len() int {
+        return len(s)
+    }
+    func (s ByBeforeBit) Swap(i, j int) {
+        s[i], s[j] = s[j], s[i]
+    }
+    func (s ByBeforeBit) Less(i, j int) bool {
+        return len(s[i].Before) > len(s[j].Before)
+    }
+
 
     type AlignParams struct {
         Text      string
@@ -82,6 +96,8 @@ package main
                 }
             }
         }
+
+        sort.Sort( ByBeforeBit(phrases) )
 
         p    := &AlignParams{ Text: text, Source: source, MaxIndent: maxIndent, Phrases: phrases }
         t, _ := template.ParseFiles("aligned.html")
