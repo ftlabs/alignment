@@ -5,7 +5,7 @@ package main
         "html/template"
         "net/http"
         "os"
-        "github.com/joho/godotenv"
+        // "github.com/joho/godotenv"
         "bytes"
         "io/ioutil"
         "encoding/json"
@@ -127,7 +127,7 @@ package main
     }
 
     func main() {
-        godotenv.Load()
+        // godotenv.Load()
 
         http.HandleFunc("/", alignFormHandler)
         http.HandleFunc("/align", alignHandler)
