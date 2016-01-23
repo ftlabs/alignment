@@ -2,7 +2,7 @@
 
 <p>A (very) experimental look at recent articles in <a href="http://www.ft.com">FT.com</a>, exploring the impact of aligning the search results in novel ways. <br>The code has very little error handling, and it can not work for an excitingly wide variety of reasons. <br>The 'key text' is case sensitive, and the whole thing breaks if there are no matching search results, so choose wisely.</p>
 
-<form action="/align" method="POST">
+<form action="/align" method="GET">
 	key text: <input type="text" name="text" value="has its own"><br>
   	<input type="radio" name="source" value="any" checked> any<br>
   	<input type="radio" name="source" value="title-only"> title-only<br>
