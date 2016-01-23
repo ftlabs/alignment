@@ -3,6 +3,14 @@
 	text is "{{.Text}}", from source "{{.Source}}, with SAPI_KEY="{{.SapiKey}}"
 </p>
 <h2>Body</h2>
+<p>maxIndent = {{.MaxIndent}}</p>
 <p>
 	{{.Body}}
 </p>
+
+<ul>
+{{range $phrase := .Phrases}}
+	<li>{{ $phrase }}</li>
+{{ end }}
+</ul>
+

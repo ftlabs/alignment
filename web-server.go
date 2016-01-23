@@ -10,6 +10,7 @@ package main
         "io/ioutil"
         "encoding/json"
         "reflect"
+        "strings"
 )
     
     func alignFormHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,10 +19,12 @@ package main
     }
 
     type AlignParams struct {
-        Text    string
-        Source  string
-        SapiKey string
-        Body    string
+        Text      string
+        Source    string
+        SapiKey   string
+        Body      string
+        MaxIndent int
+        Phrases   []string
     }
 
     func alignHandler(w http.ResponseWriter, r *http.Request) {
@@ -58,11 +61,25 @@ package main
 
         firstExcerpt := results[0].(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
         fmt.Println("TypeOf firstExcerpt:", reflect.TypeOf(firstExcerpt))
-        body := firstExcerpt
+
+        phrases := []string{}
+        maxIndent := 0
+
+        for _,r := range results {
+            excerpt := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
+            if indent := strings.Index(excerpt, text); indent > -1 {
+                phrases = append( phrases, excerpt )
+                if maxIndent < indent {
+                    maxIndent = indent
+                }
+            }
+        }
+
+        body := phrases[0]
 
         // body := "testing 123"
 
-        p    := &AlignParams{ Text: text, Source: source, SapiKey: sapiKey, Body: string(body) }
+        p    := &AlignParams{ Text: text, Source: source, SapiKey: sapiKey, Body: string(body), MaxIndent: maxIndent, Phrases: phrases }
         t, _ := template.ParseFiles("aligned.html")
         t.Execute(w, p)
     }
