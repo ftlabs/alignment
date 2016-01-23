@@ -20,4 +20,5 @@ Mostly an exercise to see if Go is usable (for me) as a Ruby+Sinatra replacement
 
 ## Notes
 
-The article data is taken from the Financial Times' Search API. Its the most recent 100 (max) articles which contain the user-supplied phrase.
+* The article data is taken from the Financial Times' Search API. Its the most recent 100 (max) articles which contain the user-supplied phrase.
+* Error checking? Nope.

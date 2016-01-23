@@ -9,7 +9,7 @@ package main
         "bytes"
         "io/ioutil"
         "encoding/json"
-        "reflect"
+        // "reflect"
         "strings"
         "sort"
     )
@@ -47,16 +47,15 @@ package main
         Phrases   []PhraseBits
     }
 
-    func alignHandler(w http.ResponseWriter, r *http.Request) {
-
-        text    := r.FormValue("text")
-        source  := r.FormValue("source")
+    func getSapiResponseJsonBody(text string, titleOnly bool) []byte {
         sapiKey := os.Getenv("SAPI_KEY")
-
         url := "http://api.ft.com/content/search/v1?apiKey=" + sapiKey
-        fmt.Println("url:", url)
-        var jsonStr = []byte(`{"queryString": "` + text + `","queryContext" : {"curations" : [ "ARTICLES", "BLOGS" ]},  "resultContext" : {"maxResults" : "100", "offset" : "0", "aspects" : [ "title", "location", "summary", "lifecycle", "metadata"], "sortOrder": "DESC", "sortField": "lastPublishDateTime" } } }`)
-        // var jsonStr = []byte(`{"queryString": "`)
+        queryString := `\"` + text + `\"`
+        if titleOnly {
+            queryString = "title:" + queryString
+        }
+
+        var jsonStr = []byte(`{"queryString": "` + queryString + `","queryContext" : {"curations" : [ "ARTICLES", "BLOGS" ]},  "resultContext" : {"maxResults" : "100", "offset" : "0", "aspects" : [ "title", "location", "summary", "lifecycle", "metadata"], "sortOrder": "DESC", "sortField": "lastPublishDateTime" } } }`)
 
         req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
         req.Header.Set("Content-Type", "application/json")
@@ -71,31 +70,42 @@ package main
         fmt.Println("response Headers:", resp.Header)
         jsonBody, _ := ioutil.ReadAll(resp.Body)
 
+        return jsonBody
+    }
+
+    func alignHandler(w http.ResponseWriter, r *http.Request) {
+
+        text    := r.FormValue("text")
+        source  := r.FormValue("source")
+        titleOnly := source == "title-only"
+
+        jsonBody := getSapiResponseJsonBody( text, titleOnly )
+
+        // locate results
         var data interface{}
         json.Unmarshal(jsonBody, &data)
-        fmt.Println("TypeOf data:", reflect.TypeOf(data))
         results := data.(map[string]interface{})[`results`].([]interface{})[0].(map[string]interface{})[`results`].([]interface{})
-        fmt.Println("TypeOf results:", reflect.TypeOf(results))
 
-        // firstExcerpt := results[0].(map[string]interface{})["summary"]
-
-        firstExcerpt := results[0].(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
-        fmt.Println("TypeOf firstExcerpt:", reflect.TypeOf(firstExcerpt))
-
+        // loop over results to pick out relevant fields
         textLength := len(text)
         phrases := []PhraseBits{}
         maxIndent := 0
 
         for _,r := range results {
-            excerpt     := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
-            title       := r.(map[string]interface{})["title"].(map[string]interface{})["title"].(string)
-            locationUri := r.(map[string]interface{})["location"].(map[string]interface{})["uri"].(string)
+            excerpt     := r.(map[string]interface{})["summary" ].(map[string]interface{})["excerpt"].(string)
+            title       := r.(map[string]interface{})["title"   ].(map[string]interface{})["title"  ].(string)
+            locationUri := r.(map[string]interface{})["location"].(map[string]interface{})["uri"    ].(string)
 
-            if indent := strings.Index(excerpt, text); indent > -1 {
+            phrase := excerpt
+            if titleOnly {
+                phrase = title
+            }
+
+            if indent := strings.Index(phrase, text); indent > -1 {
                 bits := &PhraseBits{ 
-                    Before:      excerpt[0:indent], 
+                    Before:      phrase[0:indent], 
                     Common:      text, 
-                    After:       excerpt[indent+textLength:len(excerpt)-1],
+                    After:       phrase[indent+textLength:len(phrase)-1],
                     Excerpt:     excerpt,
                     Title:       title,
                     LocationUri: locationUri,
@@ -108,6 +118,7 @@ package main
             }
         }
 
+        // because it looks better this way
         sort.Sort( ByBeforeBit(phrases) )
 
         p    := &AlignParams{ Text: text, Source: source, MaxIndent: maxIndent, Phrases: phrases }
