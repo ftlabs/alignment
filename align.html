@@ -1,10 +1,28 @@
-<h1>Align</h1>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>aligning articles</title>
+  </head>
+  <body>
+	<h1>Align</h1>
 
-<p>A (very) experimental look at recent articles in <a href="http://www.ft.com">FT.com</a>, exploring the impact of aligning the search results in novel ways. <br>The code has very little error handling, and it can not work for an excitingly wide variety of reasons. <br>The 'key text' is case sensitive, and the whole thing breaks if there are no matching search results, so choose wisely.</p>
+	<p>
+		A (very) experimental look at recent articles in <a href="http://www.ft.com">FT.com</a>, exploring the visual impact of aligning the search results in novel ways. 
+		<br>The 'key text' is used to identify articles (via keyword search) and to align the results.
+		<br>It is case sensitive, and the whole thing breaks if there are no matching search results, so choose wisely.</p>
 
-<form action="/align" method="GET">
-	key text: <input type="text" name="text" value="has its own"><br>
-  	<input type="radio" name="source" value="any" checked> any<br>
-  	<input type="radio" name="source" value="title-only"> title-only<br>
-	<input type="submit" value="Get and Align">
-</form>
+	<form action="/align" method="GET">
+		key text: <input type="text" name="text" value="has its own"><br>
+	  	<input type="radio" name="source" value="any" checked> any<br>
+	  	<input type="radio" name="source" value="title-only"> title-only<br>
+		<input type="submit" value="Get and Align">
+	</form>
+
+	<p>The code for all this sits at <a href="https://github.com/railsagainstignorance/alignment">github.com/railsagainstignorance/alignment</a>
+	<br>The code has very little error handling, and it can not work for an excitingly wide variety of reasons.
+	<br>Perhaps the main reason is that this is MyFirstGoProgram.
+	</p>
+
+  </body>
+</html>

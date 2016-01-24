@@ -1,18 +1,27 @@
-<h1>Alignment of recent <a href="http://www.ft.com">FT.com articles</a></h1>
-<form action="/align" method="GET">
-	on <input type="text" name="text" value="{{.Text}}">
-	 <input type="radio" name="source" value="any" checked> any
-  	<input type="radio" name="source" value="title-only"> title-only
-	<input type="submit" value="Get and Align">
-</form>
-
-<table>
-{{range $phrase := .Phrases}}
-	<tr>
-		<td style="text-align:right;  white-space: nowrap">{{ $phrase.Before }}</td>
-		<td style="text-align:center; white-space: nowrap"><a href="{{$phrase.LocationUri}}" alt="{{$phrase.Title}}">{{ $phrase.Common }}</a></td>
-		<td style="text-align:left;   white-space: nowrap">{{ $phrase.After  }}</td>
-	</tr>
-{{ end }}
-</table>
-
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>aligning articles</title>
+  </head>
+  <body>
+	<form action="/align" method="GET">
+		<b style="font-size:xx-large">Alignment of recent <a href="http://www.ft.com">FT.com articles</a></b> 
+		on <input type="text" name="text" value="{{.Text}}">
+		<input type="radio" name="source" value="any" checked> any
+	  	<input type="radio" name="source" value="title-only"> title-only
+		<input type="submit" value="Get and Align">
+		(<a href="/">help?</a>)
+	</form>
+<br>
+	<table>
+	{{range $phrase := .Phrases}}
+		<tr>
+			<td style="text-align:right;  white-space: nowrap">{{ $phrase.Before }}</td>
+			<td style="text-align:center; white-space: nowrap"><a href="{{$phrase.LocationUri}}" alt="{{$phrase.Title}}">{{ $phrase.Common }}</a></td>
+			<td style="text-align:left;   white-space: nowrap">{{ $phrase.After  }}</td>
+		</tr>
+	{{ end }}
+	</table>
+  </body>
+</html>

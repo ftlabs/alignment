@@ -146,6 +146,9 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	godotenv.Load()
 	port := os.Getenv("PORT")
+    if port=="" {
+        port = "8080"
+    }
 
 	http.HandleFunc("/", alignFormHandler)
 	http.HandleFunc("/align", alignHandler)
