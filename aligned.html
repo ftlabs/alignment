@@ -6,7 +6,7 @@
   </head>
   <body>
 	<form action="/align" method="GET">
-		<b style="font-size:xx-large">Alignment of recent <a href="http://www.ft.com">FT.com articles</a></b> 
+		<b style="font-size:xx-large">Alignment of <a href="{{.FtcomSearchUrl}}">recent</a> <a href="{{.FtcomUrl}}">FT.com</a> articles</b> 
 		on <input type="text" name="text" value="{{.Text}}">
 		<input type="radio" name="source" value="any" checked> any
 	  	<input type="radio" name="source" value="title-only"> title-only

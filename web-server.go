@@ -45,9 +45,11 @@ type AlignParams struct {
 	Source    string
 	MaxIndent int
 	Phrases   []PhraseBits
+    FtcomUrl       string
+    FtcomSearchUrl string
 }
 
-func getSapiResponseJsonBody(text string, titleOnly bool) []byte {
+func getSapiResponseJsonBody(text string, titleOnly bool) ([]byte, string) {
 	sapiKey := os.Getenv("SAPI_KEY")
 	url := "http://api.ft.com/content/search/v1?apiKey=" + sapiKey
 	queryString := `\"` + text + `\"`
@@ -70,7 +72,7 @@ func getSapiResponseJsonBody(text string, titleOnly bool) []byte {
 	fmt.Println("response Headers:", resp.Header)
 	jsonBody, _ := ioutil.ReadAll(resp.Body)
 
-	return jsonBody
+	return jsonBody, strings.Replace(queryString, `\"`, `"`, -1)
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +90,7 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     }
 	titleOnly := source == "title-only"
 
-	jsonBody := getSapiResponseJsonBody(text, titleOnly)
+	jsonBody, queryString := getSapiResponseJsonBody(text, titleOnly)
 
 	// locate results
 	var data interface{}
@@ -138,7 +140,15 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     	sort.Sort(ByBeforeBit(phrases))
     } 
 
-	p := &AlignParams{Text: text, Source: source, MaxIndent: maxIndent, Phrases: phrases}
+	p := &AlignParams{
+        Text:           text, 
+        Source:         source, 
+        MaxIndent:      maxIndent, 
+        Phrases:        phrases,
+        FtcomUrl:       "http://www.ft.com",
+        FtcomSearchUrl: "http://search.ft.com/search?queryText=" + queryString,
+    }
+
 	t, _ := template.ParseFiles("aligned.html")
 	t.Execute(w, p)
 }
