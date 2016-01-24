@@ -74,9 +74,18 @@ func getSapiResponseJsonBody(text string, titleOnly bool) []byte {
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
-
+    defaultText := os.Getenv("DEFAULT_TEXT")
+    if defaultText=="" {
+        defaultText = "has its own"
+    }
 	text := r.FormValue("text")
+    if text=="" {
+        text = defaultText
+    }
 	source := r.FormValue("source")
+    if source=="" {
+        source="any"
+    }
 	titleOnly := source == "title-only"
 
 	jsonBody := getSapiResponseJsonBody(text, titleOnly)
