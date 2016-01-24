@@ -1,6 +1,5 @@
 {
-	"ImportPath": ".",
+	"ImportPath": "github.com/upthebuzzard/alignment",
 	"GoVersion": "go1.5",
-	"Deps": [
-	]
+	"Deps": []
 }
