@@ -1,4 +1,10 @@
-<h1>Alignment of "{{.Text}}" from recent <a href="http://www.ft.com">FT.com articles</a></h1>
+<h1>Alignment of recent <a href="http://www.ft.com">FT.com articles</a></h1>
+<form action="/align" method="GET">
+	on <input type="text" name="text" value="{{.Text}}">
+	 <input type="radio" name="source" value="any" checked> any
+  	<input type="radio" name="source" value="title-only"> title-only
+	<input type="submit" value="Get and Align">
+</form>
 
 <table>
 {{range $phrase := .Phrases}}
