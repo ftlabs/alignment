@@ -1,135 +1,136 @@
 package main
-    
-    import (
-        "fmt"
-        "html/template"
-        "net/http"
-        "os"
-        // "github.com/joho/godotenv"
-        "bytes"
-        "io/ioutil"
-        "encoding/json"
-        // "reflect"
-        "strings"
-        "sort"
-    )
-    
-    func alignFormHandler(w http.ResponseWriter, r *http.Request) {
-        t, _ := template.ParseFiles("align.html")
-        t.Execute(w, nil)
-    }
 
-    type PhraseBits struct {
-        Before      string
-        Common      string
-        After       string
-        Excerpt     string
-        Title       string
-        LocationUri string
-    }
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/upthebuzzard/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
+	"html/template"
+	"io/ioutil"
+	"net/http"
+	"os"
+	// "reflect"
+	"sort"
+	"strings"
+)
 
-    type ByBeforeBit []PhraseBits
+func alignFormHandler(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("align.html")
+	t.Execute(w, nil)
+}
 
-    func (s ByBeforeBit) Len() int {
-        return len(s)
-    }
-    func (s ByBeforeBit) Swap(i, j int) {
-        s[i], s[j] = s[j], s[i]
-    }
-    func (s ByBeforeBit) Less(i, j int) bool {
-        return len(s[i].Before) > len(s[j].Before)
-    }
+type PhraseBits struct {
+	Before      string
+	Common      string
+	After       string
+	Excerpt     string
+	Title       string
+	LocationUri string
+}
 
-    type AlignParams struct {
-        Text      string
-        Source    string
-        MaxIndent int
-        Phrases   []PhraseBits
-    }
+type ByBeforeBit []PhraseBits
 
-    func getSapiResponseJsonBody(text string, titleOnly bool) []byte {
-        sapiKey := os.Getenv("SAPI_KEY")
-        url := "http://api.ft.com/content/search/v1?apiKey=" + sapiKey
-        queryString := `\"` + text + `\"`
-        if titleOnly {
-            queryString = "title:" + queryString
-        }
+func (s ByBeforeBit) Len() int {
+	return len(s)
+}
+func (s ByBeforeBit) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s ByBeforeBit) Less(i, j int) bool {
+	return len(s[i].Before) > len(s[j].Before)
+}
 
-        var jsonStr = []byte(`{"queryString": "` + queryString + `","queryContext" : {"curations" : [ "ARTICLES", "BLOGS" ]},  "resultContext" : {"maxResults" : "100", "offset" : "0", "aspects" : [ "title", "location", "summary", "lifecycle", "metadata"], "sortOrder": "DESC", "sortField": "lastPublishDateTime" } } }`)
+type AlignParams struct {
+	Text      string
+	Source    string
+	MaxIndent int
+	Phrases   []PhraseBits
+}
 
-        req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-        req.Header.Set("Content-Type", "application/json")
-        client := &http.Client{}
-        resp, err := client.Do(req)
-        if err != nil {
-            panic(err)
-        }
-        defer resp.Body.Close()
+func getSapiResponseJsonBody(text string, titleOnly bool) []byte {
+	sapiKey := os.Getenv("SAPI_KEY")
+	url := "http://api.ft.com/content/search/v1?apiKey=" + sapiKey
+	queryString := `\"` + text + `\"`
+	if titleOnly {
+		queryString = "title:" + queryString
+	}
 
-        fmt.Println("response Status:", resp.Status)
-        fmt.Println("response Headers:", resp.Header)
-        jsonBody, _ := ioutil.ReadAll(resp.Body)
+	var jsonStr = []byte(`{"queryString": "` + queryString + `","queryContext" : {"curations" : [ "ARTICLES", "BLOGS" ]},  "resultContext" : {"maxResults" : "100", "offset" : "0", "aspects" : [ "title", "location", "summary", "lifecycle", "metadata"], "sortOrder": "DESC", "sortField": "lastPublishDateTime" } } }`)
 
-        return jsonBody
-    }
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
 
-    func alignHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	jsonBody, _ := ioutil.ReadAll(resp.Body)
 
-        text    := r.FormValue("text")
-        source  := r.FormValue("source")
-        titleOnly := source == "title-only"
+	return jsonBody
+}
 
-        jsonBody := getSapiResponseJsonBody( text, titleOnly )
+func alignHandler(w http.ResponseWriter, r *http.Request) {
 
-        // locate results
-        var data interface{}
-        json.Unmarshal(jsonBody, &data)
-        results := data.(map[string]interface{})[`results`].([]interface{})[0].(map[string]interface{})[`results`].([]interface{})
+	text := r.FormValue("text")
+	source := r.FormValue("source")
+	titleOnly := source == "title-only"
 
-        // loop over results to pick out relevant fields
-        textLength := len(text)
-        phrases := []PhraseBits{}
-        maxIndent := 0
+	jsonBody := getSapiResponseJsonBody(text, titleOnly)
 
-        for _,r := range results {
-            excerpt     := r.(map[string]interface{})["summary" ].(map[string]interface{})["excerpt"].(string)
-            title       := r.(map[string]interface{})["title"   ].(map[string]interface{})["title"  ].(string)
-            locationUri := r.(map[string]interface{})["location"].(map[string]interface{})["uri"    ].(string)
+	// locate results
+	var data interface{}
+	json.Unmarshal(jsonBody, &data)
+	results := data.(map[string]interface{})[`results`].([]interface{})[0].(map[string]interface{})[`results`].([]interface{})
 
-            phrase := excerpt
-            if titleOnly {
-                phrase = title
-            }
+	// loop over results to pick out relevant fields
+	textLength := len(text)
+	phrases := []PhraseBits{}
+	maxIndent := 0
 
-            if indent := strings.Index(phrase, text); indent > -1 {
-                bits := &PhraseBits{ 
-                    Before:      phrase[0:indent], 
-                    Common:      text, 
-                    After:       phrase[indent+textLength:len(phrase)],
-                    Excerpt:     excerpt,
-                    Title:       title,
-                    LocationUri: locationUri,
-                }
-                phrases = append(phrases, *bits)
+	for _, r := range results {
+		excerpt := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
+		title := r.(map[string]interface{})["title"].(map[string]interface{})["title"].(string)
+		locationUri := r.(map[string]interface{})["location"].(map[string]interface{})["uri"].(string)
 
-                if maxIndent < indent {
-                    maxIndent = indent
-                }
-            }
-        }
+		phrase := excerpt
+		if titleOnly {
+			phrase = title
+		}
 
-        // because it looks better this way
-        sort.Sort( ByBeforeBit(phrases) )
+		if indent := strings.Index(phrase, text); indent > -1 {
+			bits := &PhraseBits{
+				Before:      phrase[0:indent],
+				Common:      text,
+				After:       phrase[indent+textLength : len(phrase)],
+				Excerpt:     excerpt,
+				Title:       title,
+				LocationUri: locationUri,
+			}
+			phrases = append(phrases, *bits)
 
-        p    := &AlignParams{ Text: text, Source: source, MaxIndent: maxIndent, Phrases: phrases }
-        t, _ := template.ParseFiles("aligned.html")
-        t.Execute(w, p)
-    }
+			if maxIndent < indent {
+				maxIndent = indent
+			}
+		}
+	}
 
-    func main() {
-        // godotenv.Load()
+	// because it looks better this way
+	sort.Sort(ByBeforeBit(phrases))
 
-        http.HandleFunc("/", alignFormHandler)
-        http.HandleFunc("/align", alignHandler)
-        http.ListenAndServe(":8080", nil)
-    }
+	p := &AlignParams{Text: text, Source: source, MaxIndent: maxIndent, Phrases: phrases}
+	t, _ := template.ParseFiles("aligned.html")
+	t.Execute(w, p)
+}
+
+func main() {
+	godotenv.Load()
+	port := os.Getenv("PORT")
+
+	http.HandleFunc("/", alignFormHandler)
+	http.HandleFunc("/align", alignHandler)
+	http.ListenAndServe(":"+string(port), nil)
+}
