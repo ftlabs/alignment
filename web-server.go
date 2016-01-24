@@ -93,42 +93,50 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
 	// locate results
 	var data interface{}
 	json.Unmarshal(jsonBody, &data)
-	results := data.(map[string]interface{})[`results`].([]interface{})[0].(map[string]interface{})[`results`].([]interface{})
+	outerResults := data.(map[string]interface{})[`results`].([]interface{})[0].(map[string]interface{})
 
-	// loop over results to pick out relevant fields
-	textLength := len(text)
-	phrases := []PhraseBits{}
-	maxIndent := 0
+    var (
+        maxIndent int = 0
+        phrases []PhraseBits = []PhraseBits{}
+    )
 
-	for _, r := range results {
-		excerpt := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
-		title := r.(map[string]interface{})["title"].(map[string]interface{})["title"].(string)
-		locationUri := r.(map[string]interface{})["location"].(map[string]interface{})["uri"].(string)
+    if innerResults, ok := outerResults[`results`].([]interface{}); ok {
 
-		phrase := excerpt
-		if titleOnly {
-			phrase = title
-		}
+    	// loop over results to pick out relevant fields
+    	textLength := len(text)
+    	// phrases := []PhraseBits{}
+    	// maxIndent := 0
 
-		if indent := strings.Index(phrase, text); indent > -1 {
-			bits := &PhraseBits{
-				Before:      phrase[0:indent],
-				Common:      text,
-				After:       phrase[indent+textLength : len(phrase)],
-				Excerpt:     excerpt,
-				Title:       title,
-				LocationUri: locationUri,
-			}
-			phrases = append(phrases, *bits)
+    	for _, r := range innerResults {
+    		excerpt := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
+    		title := r.(map[string]interface{})["title"].(map[string]interface{})["title"].(string)
+    		locationUri := r.(map[string]interface{})["location"].(map[string]interface{})["uri"].(string)
 
-			if maxIndent < indent {
-				maxIndent = indent
-			}
-		}
-	}
+    		phrase := excerpt
+    		if titleOnly {
+    			phrase = title
+    		}
 
-	// because it looks better this way
-	sort.Sort(ByBeforeBit(phrases))
+    		if indent := strings.Index(phrase, text); indent > -1 {
+    			bits := &PhraseBits{
+    				Before:      phrase[0:indent],
+    				Common:      text,
+    				After:       phrase[indent+textLength : len(phrase)],
+    				Excerpt:     excerpt,
+    				Title:       title,
+    				LocationUri: locationUri,
+    			}
+    			phrases = append(phrases, *bits)
+
+    			if maxIndent < indent {
+    				maxIndent = indent
+    			}
+    		}
+    	}
+
+    	// because it looks better this way
+    	sort.Sort(ByBeforeBit(phrases))
+    } 
 
 	p := &AlignParams{Text: text, Source: source, MaxIndent: maxIndent, Phrases: phrases}
 	t, _ := template.ParseFiles("aligned.html")
