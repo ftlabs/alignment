@@ -1,1 +1,1 @@
-web: web-server
+web: alignment
