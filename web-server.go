@@ -57,6 +57,8 @@ func getSapiResponseJsonBody(text string, titleOnly bool) ([]byte, string) {
 		queryString = "title:" + queryString
 	}
 
+    fmt.Println("queryString:", queryString)
+
 	var jsonStr = []byte(`{"queryString": "` + queryString + `","queryContext" : {"curations" : [ "ARTICLES", "BLOGS" ]},  "resultContext" : {"maxResults" : "100", "offset" : "0", "aspects" : [ "title", "location", "summary", "lifecycle", "metadata"], "sortOrder": "DESC", "sortField": "lastPublishDateTime" } } }`)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
@@ -69,7 +71,7 @@ func getSapiResponseJsonBody(text string, titleOnly bool) ([]byte, string) {
 	defer resp.Body.Close()
 
 	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
+	// fmt.Println("response Headers:", resp.Header)
 	jsonBody, _ := ioutil.ReadAll(resp.Body)
 
 	return jsonBody, strings.Replace(queryString, `\"`, `"`, -1)
@@ -97,6 +99,9 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(jsonBody, &data)
 	outerResults := data.(map[string]interface{})[`results`].([]interface{})[0].(map[string]interface{})
 
+    indexCount := int(outerResults["indexCount"].(float64))
+    fmt.Println("indexCount:", indexCount)
+
     var (
         maxIndent int = 0
         phrases []PhraseBits = []PhraseBits{}
@@ -106,8 +111,7 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
 
     	// loop over results to pick out relevant fields
     	textLength := len(text)
-    	// phrases := []PhraseBits{}
-    	// maxIndent := 0
+        knownPhrases := map[string]string{}
 
     	for _, r := range innerResults {
     		excerpt := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
@@ -120,19 +124,23 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     		}
 
     		if indent := strings.Index(phrase, text); indent > -1 {
-    			bits := &PhraseBits{
-    				Before:      phrase[0:indent],
-    				Common:      text,
-    				After:       phrase[indent+textLength : len(phrase)],
-    				Excerpt:     excerpt,
-    				Title:       title,
-    				LocationUri: locationUri,
-    			}
-    			phrases = append(phrases, *bits)
+                if _, ok := knownPhrases[phrase]; ! ok {
+                    knownPhrases[phrase] = phrase
 
-    			if maxIndent < indent {
-    				maxIndent = indent
-    			}
+        			bits := &PhraseBits{
+        				Before:      phrase[0:indent],
+        				Common:      text,
+        				After:       phrase[indent+textLength : len(phrase)],
+        				Excerpt:     excerpt,
+        				Title:       title,
+        				LocationUri: locationUri,
+        			}
+        			phrases = append(phrases, *bits)
+
+        			if maxIndent < indent {
+        				maxIndent = indent
+        			}                    
+                }
     		}
     	}
 
