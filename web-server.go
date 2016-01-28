@@ -12,6 +12,7 @@ import (
 	// "reflect"
 	"sort"
 	"strings"
+    "regexp"
 )
 
 func alignFormHandler(w http.ResponseWriter, r *http.Request) {
@@ -110,7 +111,6 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     if innerResults, ok := outerResults[`results`].([]interface{}); ok {
 
     	// loop over results to pick out relevant fields
-    	textLength := len(text)
         knownPhrases := map[string]string{}
 
     	for _, r := range innerResults {
@@ -123,14 +123,22 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     			phrase = title
     		}
 
-    		if indent := strings.Index(phrase, text); indent > -1 {
+            phraseRegexp := regexp.MustCompile(`(?i)^(.*)\b(` + text + `)\b(.*)$`)
+            matches      := phraseRegexp.FindStringSubmatch(phrase)
+
+    		if matches != nil {
+                before      := matches[1]
+                matchedText := matches[2]
+                after       := matches[3]
+                indent      := len(before)
+
                 if _, ok := knownPhrases[phrase]; ! ok {
                     knownPhrases[phrase] = phrase
 
         			bits := &PhraseBits{
-        				Before:      phrase[0:indent],
-        				Common:      text,
-        				After:       phrase[indent+textLength : len(phrase)],
+        				Before:      before,
+        				Common:      matchedText,
+        				After:       after,
         				Excerpt:     excerpt,
         				Title:       title,
         				LocationUri: locationUri,
