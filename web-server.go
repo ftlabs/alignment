@@ -48,6 +48,8 @@ type AlignParams struct {
 	Phrases   []PhraseBits
     FtcomUrl       string
     FtcomSearchUrl string
+    TitleOnlyChecked string
+    AnyChecked       string
 }
 
 func getSapiResponseJsonBody(text string, titleOnly bool) ([]byte, string) {
@@ -156,6 +158,17 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     	sort.Sort(ByBeforeBit(phrases))
     } 
 
+    var (
+        titleOnlyChecked string = ""
+        anyChecked       string = ""
+    )
+
+    if titleOnly {
+        titleOnlyChecked = "checked"
+    } else {
+        anyChecked       = "checked"
+    }
+
 	p := &AlignParams{
         Text:           text, 
         Source:         source, 
@@ -163,6 +176,8 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
         Phrases:        phrases,
         FtcomUrl:       "http://www.ft.com",
         FtcomSearchUrl: "http://search.ft.com/search?queryText=" + queryString,
+        TitleOnlyChecked: titleOnlyChecked,
+        AnyChecked: anyChecked,
     }
 
 	t, _ := template.ParseFiles("aligned.html")
