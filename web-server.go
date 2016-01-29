@@ -116,9 +116,19 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
         knownPhrases := map[string]string{}
 
     	for _, r := range innerResults {
-    		excerpt := r.(map[string]interface{})["summary"].(map[string]interface{})["excerpt"].(string)
-    		title := r.(map[string]interface{})["title"].(map[string]interface{})["title"].(string)
-    		locationUri := r.(map[string]interface{})["location"].(map[string]interface{})["uri"].(string)
+            summary := r.(map[string]interface{})["summary"].(map[string]interface{})
+            var excerpt string = ""
+            if summary != nil {
+                if _, ok := summary["excerpt"].(string); ok {
+                    excerpt = summary["excerpt"].(string)                           
+                }
+            }
+
+    		title1  := r.(map[string]interface{})["title"].(map[string]interface{})
+            title   := title1["title"].(string)
+            
+            location    := r.(map[string]interface{})["location"].(map[string]interface{})
+    		locationUri := location["uri"].(string)
 
     		phrase := excerpt
     		if titleOnly {
