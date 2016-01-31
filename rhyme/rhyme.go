@@ -105,6 +105,5 @@ func main() {
 
     fmt.Println("num words = ", len(*words) ) 
 	fmt.Println("num unique final syllables = ", len(*finalSyllables))
-
 }
 
