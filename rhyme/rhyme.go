@@ -78,6 +78,25 @@ func readSyllables(filename string) (*map[string]Word) {
 }
 
 func main() {
-	readSyllables(SyllableFilename)
+	words          := readSyllables(SyllableFilename)
+	finalSyllables := map[string][]*Word{}
+
+	for _,word := range *words {
+		fs := word.FinalSyllable
+		var rhymingWords []*Word
+
+		rhymingWords, ok := finalSyllables[fs]
+		if ! ok {
+			rhymingWords = []*Word{}
+		}
+
+		finalSyllables[fs] = append( rhymingWords, &word )
+	}
+
+	fmt.Println("num final syllables = ", len(finalSyllables))
+
+	for fs,rw := range finalSyllables {
+		fmt.Println("fs: ", fs, ", num = ", len(rw))
+	}
 }
 
