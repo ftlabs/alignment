@@ -72,13 +72,12 @@ func readSyllables(filename string) (*map[string]Word) {
 		}
     }
 
-    fmt.Println("num words = ", len(words), ", num fragments = ", countFragments, ", num syllables = ", countSyllables) 
+    fmt.Println("num fragments = ", countFragments, ", num syllables = ", countSyllables) 
 
     return &words
 }
 
-func main() {
-	words          := readSyllables(SyllableFilename)
+func processFinalSyllables(words *map[string]Word) (*map[string][]*Word) {
 	finalSyllables := map[string][]*Word{}
 
 	for _,word := range *words {
@@ -93,10 +92,19 @@ func main() {
 		finalSyllables[fs] = append( rhymingWords, &word )
 	}
 
-	fmt.Println("num final syllables = ", len(finalSyllables))
+	// for fs,rw := range finalSyllables {
+	// 	fmt.Println("fs: ", fs, ", num = ", len(rw))
+	// }
 
-	for fs,rw := range finalSyllables {
-		fmt.Println("fs: ", fs, ", num = ", len(rw))
-	}
+	return &finalSyllables
+}
+
+func main() {
+	words          := readSyllables(SyllableFilename)
+	finalSyllables := processFinalSyllables(words)
+
+    fmt.Println("num words = ", len(*words) ) 
+	fmt.Println("num unique final syllables = ", len(*finalSyllables))
+
 }
 
