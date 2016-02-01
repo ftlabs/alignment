@@ -99,11 +99,28 @@ func processFinalSyllables(words *map[string]Word) (*map[string][]*Word) {
 	return &finalSyllables
 }
 
-func main() {
+type Syllabi struct {
+    Words          *map[string]Word
+    FinalOnes      *map[string][]*Word
+    SourceFilename string
+}
+
+func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	words          := readSyllables(SyllableFilename)
 	finalSyllables := processFinalSyllables(words)
 
-    fmt.Println("num words = ", len(*words) ) 
-	fmt.Println("num unique final syllables = ", len(*finalSyllables))
+	syllabi := Syllabi{
+		Words:          words,
+		FinalOnes:      finalSyllables,
+		SourceFilename: SyllableFilename,
+	}
+
+	return &syllabi
 }
 
+func main() {
+	syllabi := ConstructSyllabi(SyllableFilename)
+
+    fmt.Println("num words = ", len(*syllabi.Words) ) 
+	fmt.Println("num unique final syllables = ", len(*syllabi.FinalOnes))
+}
