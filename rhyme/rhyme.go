@@ -6,6 +6,7 @@ import (
     "strings"
     "fmt"
     "regexp"
+    "sort"
 )
 
 const (
@@ -13,20 +14,25 @@ const (
 )
 
 type Word struct {
-    Name           string
-    FragmentString string
-    Fragments      []string
-    NumSyllables   int
-    FinalSyllable  string
+    Name            string
+    FragmentsString string
+    Fragments       []string
+    NumSyllables    int
+    FinalSyllable   string
 }
 
-func readSyllables(filename string) (*map[string]Word) {
+var (
+	syllableRegexp      = regexp.MustCompile(`^[A-Z]+\d+$`)
+	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
+)
 
-	words := map[string]Word{}
+func readSyllables(filename string) (*map[string]*Word) {
+
+	words := map[string]*Word{}
 	countFragments      := 0
 	countSyllables      := 0
-    syllableRegexp      := regexp.MustCompile(`^[A-Z]+\d+$`)
-    finalSyllableRegexp := regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
+    // syllableRegexp      := regexp.MustCompile(`^[A-Z]+\d+$`)
+    // FinalSyllableRegexp := regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
 
     // Open the file.
     f, _ := os.Open(filename)
@@ -62,12 +68,12 @@ func readSyllables(filename string) (*map[string]Word) {
 
 	    	countSyllables = countSyllables + numSyllables
 			countFragments = countFragments + len(fragments)
-			words[name] = Word{
-				Name:           name,
-				FragmentString: remainder,
-				Fragments:      fragments,
-				NumSyllables:   numSyllables,
-				FinalSyllable:  finalSyllable,
+			words[name] = &Word{
+				Name:            name,
+				FragmentsString: remainder,
+				Fragments:       fragments,
+				NumSyllables:    numSyllables,
+				FinalSyllable:   finalSyllable,
 			}
 		}
     }
@@ -77,7 +83,7 @@ func readSyllables(filename string) (*map[string]Word) {
     return &words
 }
 
-func processFinalSyllables(words *map[string]Word) (*map[string][]*Word) {
+func processFinalSyllables(words *map[string]*Word) (*map[string][]*Word) {
 	finalSyllables := map[string][]*Word{}
 
 	for _,word := range *words {
@@ -89,30 +95,49 @@ func processFinalSyllables(words *map[string]Word) (*map[string][]*Word) {
 			rhymingWords = []*Word{}
 		}
 
-		finalSyllables[fs] = append( rhymingWords, &word )
+		finalSyllables[fs] = append( rhymingWords, word )
 	}
-
-	// for fs,rw := range finalSyllables {
-	// 	fmt.Println("fs: ", fs, ", num = ", len(rw))
-	// }
 
 	return &finalSyllables
 }
 
 type Syllabi struct {
-    Words          *map[string]Word
+    Words          *map[string]*Word
     FinalOnes      *map[string][]*Word
     SourceFilename string
+    FindRhymesFunc func(string) []string
 }
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	words          := readSyllables(SyllableFilename)
 	finalSyllables := processFinalSyllables(words)
 
+	findRhymesFunc := func(s string) []string {
+		upperS          := strings.ToUpper(s)
+		matchingStrings := []string{}
+
+	    // fmt.Println("ConstructSyllabi: upperS=", upperS ) 
+
+		if matchingWord, ok := (*words)[upperS]; ok {
+		     // fmt.Println("ConstructSyllabi: matchingWord=", matchingWord ) 
+		     // fmt.Println("ConstructSyllabi: matchingWord.FragmentsString=", matchingWord.FragmentsString ) 
+		     // fmt.Println("ConstructSyllabi: matchingWord.FinalSyllable=", matchingWord.FinalSyllable ) 
+			finalSyllable := matchingWord.FinalSyllable
+		 	if rhymingWords, ok := (*finalSyllables)[finalSyllable]; ok {
+		 		for _,w := range rhymingWords {
+		 			matchingStrings = append(matchingStrings, (*w).Name)
+				}
+			}
+		}
+
+		return matchingStrings
+	}
+
 	syllabi := Syllabi{
 		Words:          words,
 		FinalOnes:      finalSyllables,
 		SourceFilename: SyllableFilename,
+		FindRhymesFunc: findRhymesFunc,
 	}
 
 	return &syllabi
@@ -123,4 +148,9 @@ func main() {
 
     fmt.Println("num words = ", len(*syllabi.Words) ) 
 	fmt.Println("num unique final syllables = ", len(*syllabi.FinalOnes))
+
+	s := "carnival"
+	rhymesWith := (*syllabi).FindRhymesFunc(s)
+	sort.Strings(rhymesWith)
+	fmt.Println(`"`, s, `" rhymes with: `, strings.Join(rhymesWith, ","))
 }
