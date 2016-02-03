@@ -106,18 +106,28 @@ func processFinalSyllables(words *map[string]*Word) (*map[string][]*Word) {
 	return &finalSyllables
 }
 
+type Stats struct {
+	NumWords                int
+	NumUniqueFinalSyllables int
+}
+
 type Syllabi struct {
-    Words          *map[string]*Word
-    FinalOnes      *map[string][]*Word
+	Stats          Stats
     SourceFilename string
     FindRhymes     func(string) []string
     CountSyllables func(string) int
     EmphasisPoints func(string) []string
+    FinalSyllable  func(string) string
 }
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	words          := readSyllables(SyllableFilename)
 	finalSyllables := processFinalSyllables(words)
+
+	stats := Stats{
+		NumWords:                len(*words),
+		NumUniqueFinalSyllables: len( *finalSyllables),
+	}
 
 	findRhymes := func(s string) []string {
 		upperS          := strings.ToUpper(s)
@@ -160,13 +170,22 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		return ep
 	}
 
+	finalSyllableFunc := func(s string) string {
+		upperS := strings.ToUpper(s)
+		fs := ""
+		if w,ok := (*words)[upperS]; ok {
+			fs = (*w).FinalSyllable
+		}
+		return fs
+	}
+
 	syllabi := Syllabi{
-		Words:          words,
-		FinalOnes:      finalSyllables,
+		Stats:          stats,
 		SourceFilename: SyllableFilename,
 		FindRhymes:     findRhymes,
 		CountSyllables: countSyllables,
 		EmphasisPoints: emphasisPoints,
+		FinalSyllable:  finalSyllableFunc,
 	}
 
 	return &syllabi
@@ -175,17 +194,20 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 func main() {
 	syllabi := ConstructSyllabi(SyllableFilename)
 
-    fmt.Println("num words = ", len(*syllabi.Words) ) 
-	fmt.Println("num unique final syllables = ", len(*syllabi.FinalOnes))
+    fmt.Println("num words = ", (*syllabi).Stats.NumWords ) 
+	fmt.Println("num unique final syllables = ", (*syllabi).Stats.NumUniqueFinalSyllables)
 
 	s := "hyperactivity"
 	rhymesWith := (*syllabi).FindRhymes(s)
 	sort.Strings(rhymesWith)
-	fmt.Println(s, " rhymes with: ", strings.Join(rhymesWith, ","))
+	fmt.Println(s, " rhymes with ", len(rhymesWith), ": first=", rhymesWith[0], ", last=", rhymesWith[len(rhymesWith)-1])
 
 	numSyllables := (*syllabi).CountSyllables(s)
 	fmt.Println(s, " has ", numSyllables, " syllables")
 
 	ep := (*syllabi).EmphasisPoints(s)
 	fmt.Println(s, " emphasisPoints=", strings.Join(ep, ","))
+
+	fs := (*syllabi).FinalSyllable(s)
+	fmt.Println(s, " finalSyllable=", fs)
 }
