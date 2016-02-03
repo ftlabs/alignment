@@ -27,7 +27,7 @@ var (
 	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
 )
 
-func readSyllables(filename string) (*map[string]*Word) {
+func readSyllables(filename string) (*map[string]*Word, int, int) {
 
 	words := map[string]*Word{}
 	countFragments      := 0
@@ -83,9 +83,9 @@ func readSyllables(filename string) (*map[string]*Word) {
 		}
     }
 
-    fmt.Println("num fragments = ", countFragments, ", num syllables = ", countSyllables) 
+    // fmt.Println("num fragments = ", countFragments, ", num syllables = ", countSyllables) 
 
-    return &words
+    return &words, countFragments, countSyllables
 }
 
 func processFinalSyllables(words *map[string]*Word) (*map[string][]*Word) {
@@ -109,6 +109,8 @@ func processFinalSyllables(words *map[string]*Word) (*map[string][]*Word) {
 type Stats struct {
 	NumWords                int
 	NumUniqueFinalSyllables int
+	NumFragments            int
+	NumSyllables            int 
 }
 
 type Syllabi struct {
@@ -121,12 +123,14 @@ type Syllabi struct {
 }
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
-	words          := readSyllables(SyllableFilename)
+	words, numFragments, numSyllables := readSyllables(SyllableFilename)
 	finalSyllables := processFinalSyllables(words)
 
 	stats := Stats{
 		NumWords:                len(*words),
 		NumUniqueFinalSyllables: len( *finalSyllables),
+		NumFragments:            numFragments,
+		NumSyllables:            numSyllables,
 	}
 
 	findRhymes := func(s string) []string {
@@ -194,20 +198,22 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 func main() {
 	syllabi := ConstructSyllabi(SyllableFilename)
 
-    fmt.Println("num words = ", (*syllabi).Stats.NumWords ) 
-	fmt.Println("num unique final syllables = ", (*syllabi).Stats.NumUniqueFinalSyllables)
+    fmt.Println("main: num words =", (*syllabi).Stats.NumWords ) 
+	fmt.Println("main: num unique final syllables =", (*syllabi).Stats.NumUniqueFinalSyllables)
+	fmt.Println("main: num fragments =", (*syllabi).Stats.NumFragments)
+	fmt.Println("main: num syllables =", (*syllabi).Stats.NumSyllables)
 
 	s := "hyperactivity"
 	rhymesWith := (*syllabi).FindRhymes(s)
 	sort.Strings(rhymesWith)
-	fmt.Println(s, " rhymes with ", len(rhymesWith), ": first=", rhymesWith[0], ", last=", rhymesWith[len(rhymesWith)-1])
+	fmt.Println("main:", s, "rhymes with", len(rhymesWith), ": first=", rhymesWith[0], ", last=", rhymesWith[len(rhymesWith)-1])
 
 	numSyllables := (*syllabi).CountSyllables(s)
-	fmt.Println(s, " has ", numSyllables, " syllables")
+	fmt.Println("main:", s, "has", numSyllables, "syllables")
 
 	ep := (*syllabi).EmphasisPoints(s)
-	fmt.Println(s, " emphasisPoints=", strings.Join(ep, ","))
+	fmt.Println("main:", s, "emphasisPoints=", strings.Join(ep, ","))
 
 	fs := (*syllabi).FinalSyllable(s)
-	fmt.Println(s, " finalSyllable=", fs)
+	fmt.Println("main:", s, "finalSyllable=", fs)
 }
