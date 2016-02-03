@@ -25,7 +25,7 @@ type Word struct {
 var (
 	syllableRegexp      = regexp.MustCompile(`^[A-Z]+(\d+)$`)
 	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
-	finalWordRegexp     = regexp.MustCompile(`\b(\w+)\b\s*$`)
+	finalWordRegexp     = regexp.MustCompile(`\b(\w+)\b\W*$`)
 )
 
 func readSyllables(filename string) (*map[string]*Word, int, int) {
@@ -122,7 +122,19 @@ type Syllabi struct {
     EmphasisPoints func(string) []string
     FinalSyllable  func(string) string
     FinalSyllableOfPhrase func(string) string
+    SortPhrasesByFinalSyllable func( []string ) *RhymingPhrases
 }
+
+type RhymingPhrase struct {
+	Phrase        string
+	FinalSyllable string
+}
+
+type RhymingPhrases []RhymingPhrase
+
+func (rps RhymingPhrases) Len()          int  { return len(rps) }
+func (rps RhymingPhrases) Swap(i, j int)      { rps[i], rps[j] = rps[j], rps[i] }
+func (rps RhymingPhrases) Less(i, j int) bool { return rps[i].FinalSyllable > rps[j].FinalSyllable }
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	words, numFragments, numSyllables := readSyllables(SyllableFilename)
@@ -195,6 +207,24 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		return finalSyllableFunc(finalWord)
 	}
 
+	sortPhrasesByFinalSyllable := func(phrases []string) *RhymingPhrases {
+		rhymingPhrases := RhymingPhrases{}
+		for _,p := range phrases {
+			fs := finalSyllableOfPhraseFunc(p)
+			keepAZ := func(r rune) rune { if r>='A' && r<='Z' {return r} else {return -1} }
+			fsAZ := strings.Map(keepAZ, fs)
+
+			rp := RhymingPhrase{
+				Phrase:        p,
+				FinalSyllable: fsAZ,
+			}
+			rhymingPhrases = append(rhymingPhrases, rp)
+		}
+
+    	sort.Sort(RhymingPhrases(rhymingPhrases))
+
+		return &rhymingPhrases
+	}
 
 	syllabi := Syllabi{
 		Stats:          stats,
@@ -204,6 +234,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		EmphasisPoints: emphasisPoints,
 		FinalSyllable:  finalSyllableFunc,
 		FinalSyllableOfPhrase: finalSyllableOfPhraseFunc,
+		SortPhrasesByFinalSyllable: sortPhrasesByFinalSyllable,
 	}
 
 	return &syllabi
@@ -234,4 +265,21 @@ func main() {
 	p := "bananas are the scourge of " + s
 	fsop := (*syllabi).FinalSyllableOfPhrase( p )
 	fmt.Println( "main:", p, ": final syllable of phrase=", fsop)
+
+	phrases := []string{
+		"I am a savanna",
+		"please fetch me my banjo.",
+		"give me my bandana",
+		"I am an armadillo",
+		"catch me if you can.",
+		"so so so.",
+	}
+	fmt.Println("main: phrases:")
+	fmt.Println(strings.Join(phrases, "\n"))
+
+	rps := (*syllabi).SortPhrasesByFinalSyllable( phrases)
+	fmt.Println("main: sorted rhyming phrases:")
+	for _,rp := range *rps {
+		fmt.Println("fs:", rp.FinalSyllable, ", phrase:", rp.Phrase)
+	}
 }
