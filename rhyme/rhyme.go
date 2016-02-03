@@ -25,6 +25,7 @@ type Word struct {
 var (
 	syllableRegexp      = regexp.MustCompile(`^[A-Z]+(\d+)$`)
 	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
+	finalWordRegexp     = regexp.MustCompile(`\b(\w+)\b\s*$`)
 )
 
 func readSyllables(filename string) (*map[string]*Word, int, int) {
@@ -120,6 +121,7 @@ type Syllabi struct {
     CountSyllables func(string) int
     EmphasisPoints func(string) []string
     FinalSyllable  func(string) string
+    FinalSyllableOfPhrase func(string) string
 }
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
@@ -183,6 +185,17 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		return fs
 	}
 
+	finalSyllableOfPhraseFunc := func(s string) string {
+		finalWord := ""
+		matches := finalWordRegexp.FindStringSubmatch(s)
+		if matches != nil {
+			finalWord = matches[1]
+		}
+
+		return finalSyllableFunc(finalWord)
+	}
+
+
 	syllabi := Syllabi{
 		Stats:          stats,
 		SourceFilename: SyllableFilename,
@@ -190,6 +203,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		CountSyllables: countSyllables,
 		EmphasisPoints: emphasisPoints,
 		FinalSyllable:  finalSyllableFunc,
+		FinalSyllableOfPhrase: finalSyllableOfPhraseFunc,
 	}
 
 	return &syllabi
@@ -216,4 +230,8 @@ func main() {
 
 	fs := (*syllabi).FinalSyllable(s)
 	fmt.Println("main:", s, "finalSyllable=", fs)
+
+	p := "bananas are the scourge of " + s
+	fsop := (*syllabi).FinalSyllableOfPhrase( p )
+	fmt.Println( "main:", p, ": final syllable of phrase=", fsop)
 }
