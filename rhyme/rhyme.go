@@ -136,6 +136,8 @@ func (rps RhymingPhrases) Len()          int  { return len(rps) }
 func (rps RhymingPhrases) Swap(i, j int)      { rps[i], rps[j] = rps[j], rps[i] }
 func (rps RhymingPhrases) Less(i, j int) bool { return rps[i].FinalSyllable > rps[j].FinalSyllable }
 
+func KeepAZ(r rune) rune { if r>='A' && r<='Z' {return r} else {return -1} }
+
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	if sourceFilename == "" {
 		sourceFilename = SyllableFilename
@@ -220,8 +222,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		rhymingPhrases := RhymingPhrases{}
 		for _,p := range phrases {
 			fs := finalSyllableOfPhraseFunc(p)
-			keepAZ := func(r rune) rune { if r>='A' && r<='Z' {return r} else {return -1} }
-			fsAZ := strings.Map(keepAZ, fs)
+			fsAZ := strings.Map(KeepAZ, fs)
 
 			rp := RhymingPhrase{
 				Phrase:        p,
