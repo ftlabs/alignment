@@ -1,4 +1,4 @@
-package main
+package rhyme
 
 import (
     "bufio"
@@ -137,7 +137,11 @@ func (rps RhymingPhrases) Swap(i, j int)      { rps[i], rps[j] = rps[j], rps[i] 
 func (rps RhymingPhrases) Less(i, j int) bool { return rps[i].FinalSyllable > rps[j].FinalSyllable }
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
-	words, numFragments, numSyllables := readSyllables(SyllableFilename)
+	if sourceFilename == "" {
+		sourceFilename = SyllableFilename
+	}
+
+	words, numFragments, numSyllables := readSyllables(sourceFilename)
 	finalSyllables := processFinalSyllables(words)
 
 	stats := Stats{
@@ -204,7 +208,12 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 			finalWord = matches[1]
 		}
 
-		return finalSyllableFunc(finalWord)
+		fmt.Println("finalSyllableOfPhraseFunc:", "finalWord=", finalWord)
+
+		fs := finalSyllableFunc(finalWord)
+		fmt.Println("finalSyllableOfPhraseFunc:", "fs=", fs)
+
+		return fs
 	}
 
 	sortPhrasesByFinalSyllable := func(phrases []string) *RhymingPhrases {
@@ -228,7 +237,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 
 	syllabi := Syllabi{
 		Stats:          stats,
-		SourceFilename: SyllableFilename,
+		SourceFilename: sourceFilename,
 		FindRhymes:     findRhymes,
 		CountSyllables: countSyllables,
 		EmphasisPoints: emphasisPoints,
