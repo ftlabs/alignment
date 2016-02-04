@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
     "github.com/upthebuzzard/alignment/align"
+    "github.com/upthebuzzard/alignment/sapi"
 )
 
 func alignFormHandler(w http.ResponseWriter, r *http.Request) {
@@ -14,7 +15,7 @@ func alignFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
-    searchParams := align.SearchParams{
+    searchParams := sapi.SearchParams{
         Text:   r.FormValue("text"),
         Source: r.FormValue("source"),
     }
