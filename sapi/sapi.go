@@ -1,4 +1,4 @@
-package sapi
+package main
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+    "github.com/upthebuzzard/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
 )
 
 func getSapiResponseJsonBody(text string, titleOnly bool) ([]byte, string) {
@@ -152,4 +153,19 @@ func Search(params SearchParams) *SearchResult {
     }
 
     return &sr
+}
+
+func main() {
+    godotenv.Load()
+
+    sp := SearchParams{
+        Text: "fish",
+        Source: "title-only",
+    }
+
+    sr := Search( sp )
+
+    fmt.Println("main:", "sp.Text=", sp.Text, ", sp.Source=", sp.Source)
+    fmt.Println("main:", "sr.IndexCount=", sr.IndexCount)
+
 }
