@@ -48,27 +48,21 @@ func Search(params sapi.SearchParams) *ResultParams {
 
     for _, resultItem := range (*(*sapiResults).Items) {
 
-        phraseRegexp := regexp.MustCompile(`(?i)^(.*)\b(` + params.Text + `)\b(.*)$`)
-        matches      := phraseRegexp.FindStringSubmatch(resultItem.Phrase)
+        splitPhrase := FullOnPartial(resultItem.Phrase, params.Text)   
 
-		if matches != nil {
-            before      := matches[1]
-            matchedText := matches[2]
-            after       := matches[3]
-            indent      := len(before)
-
+		if splitPhrase.Indent >= 0 {
 			bits := &PhraseBits{
-				Before:      before,
-				Common:      matchedText,
-				After:       after,
+				Before:      splitPhrase.Before,
+				Common:      splitPhrase.Common,
+				After:       splitPhrase.After,
 				Excerpt:     resultItem.Excerpt,
 				Title:       resultItem.Title,
 				LocationUri: resultItem.LocationUri,
 			}
 			phrases = append(phrases, *bits)
 
-			if maxIndent < indent {
-				maxIndent = indent
+			if maxIndent < splitPhrase.Indent {
+				maxIndent = splitPhrase.Indent
 			}                    
     	}
 
@@ -88,4 +82,44 @@ func Search(params sapi.SearchParams) *ResultParams {
     }
 
     return p
+}
+
+type SplitPhrase struct {
+    Before      string
+    Common      string
+    After       string
+    Indent      int
+    Full        string
+    Partial     string
+}
+
+func FullOnPartial(full string,  partial string) *SplitPhrase {
+
+    phraseRegexp := regexp.MustCompile(`(?i)^(.*)\b(` + partial + `)\b(.*)$`)
+    matches      := phraseRegexp.FindStringSubmatch(full)
+
+    var(
+        before      string = ""
+        matchedText string = ""
+        after       string = ""
+        indent      int    = -1
+    )
+
+    if matches != nil {
+        before      = matches[1]
+        matchedText = matches[2]
+        after       = matches[3]
+        indent      = len(before)
+    }
+
+    sp := SplitPhrase{
+        Before:      before,
+        Common:      matchedText,
+        After:       after,
+        Indent:      indent,
+        Full:        full,
+        Partial:     partial,
+    }
+
+    return &sp
 }
