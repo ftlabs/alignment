@@ -189,15 +189,10 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	}
 
 	findRhymes := func(s string) []string {
-		upperS          := strings.ToUpper(s)
 		matchingStrings := []string{}
+		matchingWord := findMatchingWord(s)
 
-	    // fmt.Println("ConstructSyllabi: upperS=", upperS ) 
-
-		if matchingWord, ok := (*words)[upperS]; ok {
-		     // fmt.Println("ConstructSyllabi: matchingWord=", matchingWord ) 
-		     // fmt.Println("ConstructSyllabi: matchingWord.FragmentsString=", matchingWord.FragmentsString ) 
-		     // fmt.Println("ConstructSyllabi: matchingWord.FinalSyllable=", matchingWord.FinalSyllable ) 
+		if matchingWord != nil {
 			finalSyllable := matchingWord.FinalSyllable
 		 	if rhymingWords, ok := (*finalSyllables)[finalSyllable]; ok {
 		 		for _,w := range rhymingWords {
@@ -210,10 +205,9 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	}
 
 	countSyllables := func(s string) int {
-		upperS := strings.ToUpper(s)
 		count  := 0
-
-		if w, ok := (*words)[upperS]; ok {
+		w := findMatchingWord(s)
+		if w != nil {
 			count = (*w).NumSyllables
 		}
 
@@ -221,24 +215,20 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	}
 
 	emphasisPoints := func(s string) []string {
-		upperS := strings.ToUpper(s)
 		ep := []string{}
-		if w,ok := (*words)[upperS]; ok {
+		w := findMatchingWord(s)
+		if w != nil {
 			ep = (*w).EmphasisPoints
 		}
 		return ep
 	}
 
 	finalSyllableFunc := func(s string) string {
-		upperS := strings.ToUpper(s)
 		fs := ""
-		if w,ok := (*words)[upperS]; ok {
+		w := findMatchingWord(s)
+
+		if w != nil {
 			fs = (*w).FinalSyllable
-		} else if _,ok := knownUnknowns[upperS]; ok {
-			knownUnknowns[upperS]++
-		} else {
-			knownUnknowns[upperS] = 1
-			fmt.Println("rhyme: finalSyllableFunc: new knownUnknown:", upperS)
 		}
 		return fs
 	}
