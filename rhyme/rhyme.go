@@ -146,6 +146,8 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	words, numFragments, numSyllables := readSyllables(sourceFilename)
 	finalSyllables := processFinalSyllables(words)
 
+	knownUnknowns := map[string]int{}
+
 	stats := Stats{
 		NumWords:                len(*words),
 		NumUniqueFinalSyllables: len( *finalSyllables),
@@ -199,6 +201,11 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		fs := ""
 		if w,ok := (*words)[upperS]; ok {
 			fs = (*w).FinalSyllable
+		} else if _,ok := knownUnknowns[upperS]; ok {
+			knownUnknowns[upperS]++
+		} else {
+			knownUnknowns[upperS] = 1
+			fmt.Println("rhyme: finalSyllableFunc: new knownUnknown:", upperS)
 		}
 		return fs
 	}
@@ -210,11 +217,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 			finalWord = matches[1]
 		}
 
-		fmt.Println("finalSyllableOfPhraseFunc:", "finalWord=", finalWord)
-
 		fs := finalSyllableFunc(finalWord)
-		fmt.Println("finalSyllableOfPhraseFunc:", "fs=", fs)
-
 		return fs
 	}
 
