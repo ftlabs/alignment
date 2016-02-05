@@ -20,12 +20,14 @@ type Word struct {
     NumSyllables    int
     FinalSyllable   string
     EmphasisPoints  []string
+    EmphasisPointsString string
 }
 
 var (
 	syllableRegexp      = regexp.MustCompile(`^[A-Z]+(\d+)$`)
 	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
 	finalWordRegexp     = regexp.MustCompile(`\b(\w+)\b\W*$`)
+	wordsRegexp         = regexp.MustCompile(`\b(\w+)\b`)
 )
 
 func readSyllables(filename string) (*map[string]*Word, int, int) {
@@ -59,8 +61,11 @@ func readSyllables(filename string) (*map[string]*Word, int, int) {
 	    		}
 	    	}
 
+	    	emphasisPointsString := strings.Join(emphasisPoints, "")
+
 	    	if numSyllables == 0 {
 	    		fmt.Println("WARNING: no syllables found for name=", name) 
+	    		emphasisPointsString = "X"
 	    	}
 
 	    	matches := finalSyllableRegexp.FindStringSubmatch(remainder)
@@ -80,6 +85,7 @@ func readSyllables(filename string) (*map[string]*Word, int, int) {
 				NumSyllables:    numSyllables,
 				FinalSyllable:   finalSyllable,
 				EmphasisPoints:  emphasisPoints,
+				EmphasisPointsString: emphasisPointsString,
 			}
 		}
     }
@@ -123,6 +129,19 @@ type Syllabi struct {
     FinalSyllable  func(string) string
     FinalSyllableOfPhrase func(string) string
     SortPhrasesByFinalSyllable func( []string ) *RhymingPhrases
+    RhymeAndMeterOfPhrase func(string) *RhymeAndMeter
+    FindMatchingWord func(string) *Word
+}
+
+type RhymeAndMeter struct {
+	Phrase                       string
+	PhraseWords                  *[]string
+	MatchingWords                *[]*Word
+	EmphasisPointsStrings        *[]string
+	EmphasisPointsCombinedString string
+	FinalSyllable                string
+	ContainsUnmatchedWord        bool
+	FinalWord                    string
 }
 
 type RhymingPhrase struct {
@@ -153,6 +172,20 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		NumUniqueFinalSyllables: len( *finalSyllables),
 		NumFragments:            numFragments,
 		NumSyllables:            numSyllables,
+	}
+
+	findMatchingWord := func(s string) *Word {
+		var word *Word
+		upperS := strings.ToUpper(s)
+		if w,ok := (*words)[upperS]; ok {
+			word = w
+		} else if _,ok := knownUnknowns[upperS]; ok {
+			knownUnknowns[upperS]++
+		} else {
+			knownUnknowns[upperS] = 1
+			fmt.Println("rhyme: findMatchingWord: new knownUnknown:", upperS)
+		}
+		return word
 	}
 
 	findRhymes := func(s string) []string {
@@ -221,6 +254,55 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		return fs
 	}
 
+	rhymeAndMeterOfPhrase := func(phrase string) *RhymeAndMeter {
+		finalWord := ""
+		phraseWords := []string{}
+		matchingWords := []*Word{}
+		emphasisPointsStrings := []string{}
+		emphasisPointsCombinedString := ""
+		containsUnmatchedWord := false
+		finalSyllable := ""
+
+		matches := wordsRegexp.FindAllStringSubmatch(phrase, -1)
+		if matches != nil {
+			for _, match := range matches{
+				phraseWord := match[1]
+				phraseWords = append( phraseWords, phraseWord)
+				matchingWord := findMatchingWord(phraseWord)
+				emphasisPointsString := "X"
+				if matchingWord == nil {
+					containsUnmatchedWord = true
+				} else {
+					emphasisPointsString = matchingWord.EmphasisPointsString
+				}
+
+				matchingWords = append(matchingWords, matchingWord)
+				emphasisPointsStrings = append( emphasisPointsStrings, emphasisPointsString)
+			}
+
+			finalMatchingWord := matchingWords[len(matchingWords)-1]; 
+			if finalMatchingWord != nil {
+				finalSyllable = finalMatchingWord.FinalSyllable
+			}
+
+			emphasisPointsCombinedString = strings.Join(emphasisPointsStrings, "")
+		}
+
+		ram := RhymeAndMeter{
+			Phrase:                       phrase,
+			PhraseWords:                  &phraseWords,
+			MatchingWords:                &matchingWords,
+			EmphasisPointsStrings:        &emphasisPointsStrings,
+			EmphasisPointsCombinedString: emphasisPointsCombinedString,
+			FinalSyllable:                finalSyllable,
+			ContainsUnmatchedWord:        containsUnmatchedWord,
+			FinalWord:                    finalWord,
+		}
+
+		return &ram
+	}
+
+
 	sortPhrasesByFinalSyllable := func(phrases []string) *RhymingPhrases {
 		rhymingPhrases := RhymingPhrases{}
 		for _,p := range phrases {
@@ -248,6 +330,8 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		FinalSyllable:  finalSyllableFunc,
 		FinalSyllableOfPhrase: finalSyllableOfPhraseFunc,
 		SortPhrasesByFinalSyllable: sortPhrasesByFinalSyllable,
+		RhymeAndMeterOfPhrase:      rhymeAndMeterOfPhrase,
+		FindMatchingWord:           findMatchingWord,
 	}
 
 	return &syllabi
