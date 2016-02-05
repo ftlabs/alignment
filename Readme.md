@@ -18,6 +18,14 @@ Mostly an exercise to see if Go is usable (for me) as a Ruby+Sinatra replacement
 * $ go install github.com/upthebuzzard/alignment
 * $ $GOPATH/bin/alignment.exe
 
+## deploying to heroku
+
+* first get godep installed (follow [Heroku's instructions](https://devcenter.heroku.com/articles/deploying-go))
+* invoke godep 
+   * $ godep save -r ./...
+* add/commit the new folder+files or changes thereto
+* push to heroku
+
 ## Notes
 
 * The article data is taken from the Financial Times' Search API. It is the most recent 100 (max) articles which contain the user-supplied phrase.
