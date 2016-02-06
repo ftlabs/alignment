@@ -137,6 +137,7 @@ type Syllabi struct {
     SortPhrasesByFinalSyllable func( []string ) *RhymingPhrases
     RhymeAndMeterOfPhrase func(string, *regexp.Regexp) *RhymeAndMeter
     FindMatchingWord func(string) *Word
+    KnownUnknowns func() *[]string
 }
 
 type RhymeAndMeter struct {
@@ -389,6 +390,20 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		return &rhymingPhrases
 	}
 
+	knownUnknownsFunc := func() *[]string {
+		// 	knownUnknowns := map[string]int{}
+
+		list := []string{}
+
+		for k,_ := range knownUnknowns {
+			list = append(list, k)
+		}
+
+		sort.Strings(list)
+
+		return &list
+	}
+
 	syllabi := Syllabi{
 		Stats:          stats,
 		SourceFilename: sourceFilename,
@@ -400,6 +415,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		SortPhrasesByFinalSyllable: sortPhrasesByFinalSyllable,
 		RhymeAndMeterOfPhrase:      rhymeAndMeterOfPhrase,
 		FindMatchingWord:           findMatchingWord,
+		KnownUnknowns:              knownUnknownsFunc,
 	}
 
 	return &syllabi

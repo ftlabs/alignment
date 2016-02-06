@@ -33,5 +33,15 @@
 		</tr>
 	{{ end }}
 	</table>
+
+	<br>
+
+	<h2>unrecognised words</h2>
+	<ul>
+	{{range $item := .KnownUnknowns}}
+		<li>{{ $item }}</li>
+	{{ end }}
+	</ul>
+
   </body>
 </html>
