@@ -19,6 +19,7 @@ type Word struct {
     Fragments       []string
     NumSyllables    int
     FinalSyllable   string
+    FinalSyllableAZ string
     EmphasisPoints  []string
     EmphasisPointsString string
 }
@@ -28,6 +29,8 @@ var (
 	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
 	finalWordRegexp     = regexp.MustCompile(`\b(\w+)\b\W*$`)
 	wordsRegexp         = regexp.MustCompile(`\b(\w+)\b`)
+	unknownEmphasis      = "X"
+	loneSyllableEmphasis = "*"
 )
 
 func readSyllables(filename string) (*map[string]*Word, int, int) {
@@ -65,7 +68,9 @@ func readSyllables(filename string) (*map[string]*Word, int, int) {
 
 	    	if numSyllables == 0 {
 	    		fmt.Println("WARNING: no syllables found for name=", name) 
-	    		emphasisPointsString = "X"
+	    		emphasisPointsString = unknownEmphasis
+	    	} else if numSyllables == 1 {
+	    		emphasisPointsString = loneSyllableEmphasis
 	    	}
 
 	    	matches := finalSyllableRegexp.FindStringSubmatch(remainder)
@@ -84,6 +89,7 @@ func readSyllables(filename string) (*map[string]*Word, int, int) {
 				Fragments:       fragments,
 				NumSyllables:    numSyllables,
 				FinalSyllable:   finalSyllable,
+				FinalSyllableAZ: drop09String(finalSyllable),
 				EmphasisPoints:  emphasisPoints,
 				EmphasisPointsString: emphasisPointsString,
 			}
@@ -140,6 +146,7 @@ type RhymeAndMeter struct {
 	EmphasisPointsStrings        *[]string
 	EmphasisPointsCombinedString string
 	FinalSyllable                string
+	FinalSyllableAZ              string
 	ContainsUnmatchedWord        bool
 	FinalWord                    string
 }
@@ -155,7 +162,11 @@ func (rps RhymingPhrases) Len()          int  { return len(rps) }
 func (rps RhymingPhrases) Swap(i, j int)      { rps[i], rps[j] = rps[j], rps[i] }
 func (rps RhymingPhrases) Less(i, j int) bool { return rps[i].FinalSyllable > rps[j].FinalSyllable }
 
-func KeepAZ(r rune) rune { if r>='A' && r<='Z' {return r} else {return -1} }
+func keepAZ(r rune) rune { if r>='A' && r<='Z' {return r} else {return -1} }
+func KeepAZString( s string ) string {return strings.Map(keepAZ, s)}
+
+func drop09(r rune) rune { if r>='0' && r<='9' {return -1} else {return r} }
+func drop09String( s string ) string {return strings.Map(drop09, s)}
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	if sourceFilename == "" {
@@ -251,7 +262,8 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		emphasisPointsStrings := []string{}
 		emphasisPointsCombinedString := ""
 		containsUnmatchedWord := false
-		finalSyllable := ""
+		finalSyllable   := ""
+		finalSyllableAZ := ""
 
 		matches := wordsRegexp.FindAllStringSubmatch(phrase, -1)
 		if matches != nil {
@@ -272,10 +284,11 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 
 			finalMatchingWord := matchingWords[len(matchingWords)-1]; 
 			if finalMatchingWord != nil {
-				finalSyllable = finalMatchingWord.FinalSyllable
+				finalSyllable   = finalMatchingWord.FinalSyllable
+				finalSyllableAZ = finalMatchingWord.FinalSyllableAZ
 			}
 
-			emphasisPointsCombinedString = strings.Join(emphasisPointsStrings, "")
+			emphasisPointsCombinedString = strings.Join(emphasisPointsStrings, " ")
 		}
 
 		ram := RhymeAndMeter{
@@ -285,6 +298,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 			EmphasisPointsStrings:        &emphasisPointsStrings,
 			EmphasisPointsCombinedString: emphasisPointsCombinedString,
 			FinalSyllable:                finalSyllable,
+			FinalSyllableAZ:              finalSyllableAZ,
 			ContainsUnmatchedWord:        containsUnmatchedWord,
 			FinalWord:                    finalWord,
 		}
@@ -297,7 +311,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		rhymingPhrases := RhymingPhrases{}
 		for _,p := range phrases {
 			fs := finalSyllableOfPhraseFunc(p)
-			fsAZ := strings.Map(KeepAZ, fs)
+			fsAZ := KeepAZString(fs)
 
 			rp := RhymingPhrase{
 				Phrase:        p,
