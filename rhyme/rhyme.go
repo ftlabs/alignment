@@ -29,6 +29,8 @@ var (
 	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
 	unknownEmphasis      = "X"
 	loneSyllableEmphasis = "*"
+	stringsAsKeys        = map[string]string{}
+	wordRegexps          = []string{`\w+`}
 )
 
 func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
@@ -51,46 +53,54 @@ func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
 				nameAndRemainder := strings.Split(line, "  ")
 				name             := nameAndRemainder[0]
 				remainder        := nameAndRemainder[1]
-				fragments        := strings.Split(remainder, " ")
-				emphasisPoints   := []string{}
 
-				numSyllables := 0
-				for _,f := range fragments {
-					matches := syllableRegexp.FindStringSubmatch(f)
-					if matches != nil {
-						numSyllables = numSyllables + 1
-						emphasisPoints = append(emphasisPoints, matches[1])
-		    		}
-		    	}
+				if strings.HasPrefix(name, "MAP:") {
+					namePieces := strings.Split(name, ":")
+					stringsAsKeys[namePieces[1]] = remainder
+				} else if strings.HasPrefix(name, "REGEXP:") {
+					wordRegexps = append(wordRegexps, remainder)
+				} else {
+					fragments        := strings.Split(remainder, " ")
+					emphasisPoints   := []string{}
 
-		    	emphasisPointsString := strings.Join(emphasisPoints, "")
+					numSyllables := 0
+					for _,f := range fragments {
+						matches := syllableRegexp.FindStringSubmatch(f)
+						if matches != nil {
+							numSyllables = numSyllables + 1
+							emphasisPoints = append(emphasisPoints, matches[1])
+			    		}
+			    	}
 
-		    	if numSyllables == 0 {
-		    		fmt.Println("WARNING: no syllables found for name=", name) 
-		    		emphasisPointsString = unknownEmphasis
-		    	} else if numSyllables == 1 {
-		    		emphasisPointsString = loneSyllableEmphasis
-		    	}
+			    	emphasisPointsString := strings.Join(emphasisPoints, "")
 
-		    	matches := finalSyllableRegexp.FindStringSubmatch(remainder)
-		    	finalSyllable := ""
-		    	if matches != nil {
-		    		finalSyllable = matches[1]
-		    	} else {
-		    		fmt.Println("WARNING: no final syllable found for name=", name) 
-		    	}
+			    	if numSyllables == 0 {
+			    		fmt.Println("WARNING: no syllables found for name=", name) 
+			    		emphasisPointsString = unknownEmphasis
+			    	} else if numSyllables == 1 {
+			    		emphasisPointsString = loneSyllableEmphasis
+			    	}
 
-		    	countSyllables = countSyllables + numSyllables
-				countFragments = countFragments + len(fragments)
-				words[name] = &Word{
-					Name:            name,
-					FragmentsString: remainder,
-					Fragments:       fragments,
-					NumSyllables:    numSyllables,
-					FinalSyllable:   finalSyllable,
-					FinalSyllableAZ: drop09String(finalSyllable),
-					EmphasisPoints:  emphasisPoints,
-					EmphasisPointsString: emphasisPointsString,
+			    	matches := finalSyllableRegexp.FindStringSubmatch(remainder)
+			    	finalSyllable := ""
+			    	if matches != nil {
+			    		finalSyllable = matches[1]
+			    	} else {
+			    		fmt.Println("WARNING: no final syllable found for name=", name) 
+			    	}
+
+			    	countSyllables = countSyllables + numSyllables
+					countFragments = countFragments + len(fragments)
+					words[name] = &Word{
+						Name:            name,
+						FragmentsString: remainder,
+						Fragments:       fragments,
+						NumSyllables:    numSyllables,
+						FinalSyllable:   finalSyllable,
+						FinalSyllableAZ: drop09String(finalSyllable),
+						EmphasisPoints:  emphasisPoints,
+						EmphasisPointsString: emphasisPointsString,
+					}
 				}
 			}
 		}
@@ -236,12 +246,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		NumSyllables:            numSyllables,
 	}
 
-	stringsAsKeys := map[string]string{
-		"US": "US(1)",
-		 `%`: `%PERCENT`,
-		"UN": "UN(1)",
-	}
-
 	findMatchingWord := func(s string) *Word {
 		var word *Word
 		var stringAsKey string
@@ -306,11 +310,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			fs = (*w).FinalSyllable
 		}
 		return fs
-	}
-
-	wordRegexps := []string{
-		`\w+`,
-		`\%`,
 	}
 
 	wordRegexpsAsOrs := strings.Join(wordRegexps, "|")

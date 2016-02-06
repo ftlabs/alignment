@@ -1,7 +1,24 @@
-;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;; These are some additional words it would be useful to have phonemed:
 ;;; 
 NHS  EH1 N EY0 CH EH2 S
 UK  Y UW1 K EY1
 FT  EH1 F T IY1
 BREXIT  B R EH1 G Z IH0 T
 GREXIT  G R EH1 G Z IH0 T
+;;;
+;;; and now, bustin the format, to allow for some adjustment of the functionality
+;;; Extension 1:
+;;; When uppercasing a word to find a match in this dataset, we lose some crucial info.
+;;; e.g. us and US both map to US, the variant meaning you and I, losing the country variant.
+;;; Also, some words do not map directly to the relevant entry in the phoneme map, e.g. '%'.
+;;; This list pre-emptively maps a word to the correct entry in the phoneme map.
+MAP:US  US(1)
+MAP:%  %PERCENT
+MAP:UN  UN(1)
+;;;
+;;; Extension 2:
+;;; The default regexp to identify a word in the text is (\w+), which will miss terms such as '%'.
+;;; This list will be used to compile a more complex regexp to cover a wider range of possible words.
+;;; REGEXP:NAME VALUE --> the VALUE is the regexp fragment to use. The NAME is ignored.
+REGEXP:%  \%
