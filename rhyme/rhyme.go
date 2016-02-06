@@ -24,13 +24,19 @@ type Word struct {
     EmphasisPointsString string
 }
 
+type TransformPair struct {
+	Regexp      *(regexp.Regexp)
+	Replacement string
+}
+
 var (
 	syllableRegexp      = regexp.MustCompile(`^[A-Z]+(\d+)$`)
 	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
 	unknownEmphasis      = "X"
 	loneSyllableEmphasis = "*"
 	stringsAsKeys        = map[string]string{}
-	wordRegexps          = []string{`\w+`}
+	wordRegexps          = []string{}
+	nameTransformPairs   = []TransformPair{} 
 )
 
 func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
@@ -48,58 +54,73 @@ func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
 	    scanner := bufio.NewScanner(f)
 	    // Loop over all lines in the file
 	    for scanner.Scan() {
-			line := scanner.Text()
-			if ! strings.HasPrefix(line, ";;;") {
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" {
+				fmt.Println("WARNING: rhyme: readSyllables: empty line: ignoring")
+			} else if strings.HasPrefix(line, ";;;") {
+				// ignore it
+			} else {
 				nameAndRemainder := strings.Split(line, "  ")
-				name             := nameAndRemainder[0]
-				remainder        := nameAndRemainder[1]
-
-				if strings.HasPrefix(name, "MAP:") {
-					namePieces := strings.Split(name, ":")
-					stringsAsKeys[namePieces[1]] = remainder
-				} else if strings.HasPrefix(name, "REGEXP:") {
-					wordRegexps = append(wordRegexps, remainder)
+				if len(nameAndRemainder) != 2 {
+					fmt.Println("WARNING: rhyme: readSyllables: line doesn't split on double space:", line)
 				} else {
-					fragments        := strings.Split(remainder, " ")
-					emphasisPoints   := []string{}
+					name      := nameAndRemainder[0]
+					remainder := nameAndRemainder[1]
 
-					numSyllables := 0
-					for _,f := range fragments {
-						matches := syllableRegexp.FindStringSubmatch(f)
-						if matches != nil {
-							numSyllables = numSyllables + 1
-							emphasisPoints = append(emphasisPoints, matches[1])
-			    		}
-			    	}
+					if strings.HasPrefix(name, "MAP:") {
+						namePieces := strings.Split(name, ":")
+						stringsAsKeys[namePieces[1]] = remainder
+					} else if strings.HasPrefix(name, "WORD:") {
+						wordRegexps = append(wordRegexps, remainder)
+					} else if strings.HasPrefix(name, "TRANSFORM:") {
+						namePieces := strings.Split(name, ":")
+						transformPair := TransformPair{
+							Regexp:      regexp.MustCompile(namePieces[1]),
+							Replacement: remainder,
+						}
+						nameTransformPairs = append( nameTransformPairs, transformPair)
+					} else {
+						fragments        := strings.Split(remainder, " ")
+						emphasisPoints   := []string{}
 
-			    	emphasisPointsString := strings.Join(emphasisPoints, "")
+						numSyllables := 0
+						for _,f := range fragments {
+							matches := syllableRegexp.FindStringSubmatch(f)
+							if matches != nil {
+								numSyllables = numSyllables + 1
+								emphasisPoints = append(emphasisPoints, matches[1])
+				    		}
+				    	}
 
-			    	if numSyllables == 0 {
-			    		fmt.Println("WARNING: no syllables found for name=", name) 
-			    		emphasisPointsString = unknownEmphasis
-			    	} else if numSyllables == 1 {
-			    		emphasisPointsString = loneSyllableEmphasis
-			    	}
+				    	emphasisPointsString := strings.Join(emphasisPoints, "")
 
-			    	matches := finalSyllableRegexp.FindStringSubmatch(remainder)
-			    	finalSyllable := ""
-			    	if matches != nil {
-			    		finalSyllable = matches[1]
-			    	} else {
-			    		fmt.Println("WARNING: no final syllable found for name=", name) 
-			    	}
+				    	if numSyllables == 0 {
+				    		fmt.Println("WARNING: no syllables found for name=", name) 
+				    		emphasisPointsString = unknownEmphasis
+				    	} else if numSyllables == 1 {
+				    		emphasisPointsString = loneSyllableEmphasis
+				    	}
 
-			    	countSyllables = countSyllables + numSyllables
-					countFragments = countFragments + len(fragments)
-					words[name] = &Word{
-						Name:            name,
-						FragmentsString: remainder,
-						Fragments:       fragments,
-						NumSyllables:    numSyllables,
-						FinalSyllable:   finalSyllable,
-						FinalSyllableAZ: drop09String(finalSyllable),
-						EmphasisPoints:  emphasisPoints,
-						EmphasisPointsString: emphasisPointsString,
+				    	matches := finalSyllableRegexp.FindStringSubmatch(remainder)
+				    	finalSyllable := ""
+				    	if matches != nil {
+				    		finalSyllable = matches[1]
+				    	} else {
+				    		fmt.Println("WARNING: no final syllable found for name=", name) 
+				    	}
+
+				    	countSyllables = countSyllables + numSyllables
+						countFragments = countFragments + len(fragments)
+						words[name] = &Word{
+							Name:            name,
+							FragmentsString: remainder,
+							Fragments:       fragments,
+							NumSyllables:    numSyllables,
+							FinalSyllable:   finalSyllable,
+							FinalSyllableAZ: drop09String(finalSyllable),
+							EmphasisPoints:  emphasisPoints,
+							EmphasisPointsString: emphasisPointsString,
+						}
 					}
 				}
 			}
@@ -146,6 +167,8 @@ type Syllabi struct {
     RhymeAndMeterOfPhrase func(string, *regexp.Regexp) *RhymeAndMeter
     FindMatchingWord func(string) *Word
     KnownUnknowns func() *[]string
+	PhraseWordsRegexp            *regexp.Regexp
+	PhraseWordsRegexpString      string
 }
 
 type RhymeAndMeter struct {
@@ -162,6 +185,9 @@ type RhymeAndMeter struct {
 	EmphasisRegexpString         string
 	EmphasisRegexpMatches        []string
 	EmphasisRegexpMatch2         string
+	MatchesOnMeter               *[]string
+	MatchOnMeter                 string
+	MatchOnMeterNumWords         int
 }
 
 type RhymingPhrase struct {
@@ -253,6 +279,9 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		if k,ok := stringsAsKeys[s]; ok {
 			stringAsKey = k
 		} else {
+			for _, pair := range nameTransformPairs {
+				s = pair.Regexp.ReplaceAllString(s, pair.Replacement)
+			}
 			stringAsKey = strings.ToUpper(s)
 		}
 
@@ -312,6 +341,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		return fs
 	}
 
+	wordRegexps       = append(wordRegexps, `\w+`)
 	wordRegexpsAsOrs := strings.Join(wordRegexps, "|")
 	finalWordRegexp  := regexp.MustCompile(`(` + wordRegexpsAsOrs + `)\W*$`)
 	wordsRegexp      := regexp.MustCompile(`(` + wordRegexpsAsOrs + `)`)
@@ -376,6 +406,46 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			emphasisRegexpMatch2 = emphasisRegexpMatches[2]
 		}
 
+		matchesOnMeter := []string{}
+		matchOnMeter   := ""
+		matchOnMeterNumWords := 0
+		if emphasisRegexpMatches != nil {
+			countWordsInMatch := func(s string) int { 
+				trimmed := strings.TrimSpace(s)
+				num := 0
+				if trimmed != "" {
+					num = len( strings.Split( trimmed, " " ) ) 
+				}
+				return num
+			}
+			// assume we can rely on space-separated emphasis fragments to map to words...
+			numBefore        := countWordsInMatch(emphasisRegexpMatches[1])
+			numDuring        := countWordsInMatch(emphasisRegexpMatches[2])
+			numAfter         := countWordsInMatch(emphasisRegexpMatches[3])
+			numBeforeDuring  := numBefore + numDuring
+			numTotal         := numBeforeDuring       + numAfter
+
+			if numTotal != len(phraseWords) {
+				fmt.Println("rhyme: rhymeAndMeterOfPhrase: matchesOnMeter: mismatched counts: numTotal=", numTotal, ", len(phraseWords)=", len(phraseWords))
+			} else {
+				matchBefore := ""
+				if numBefore > 0 {
+					matchBefore = strings.Join(phraseWords[0:(numBefore-1)], " ")
+				}
+				matchDuring := ""
+				if numDuring > 0 {
+					matchDuring = strings.Join(phraseWords[numBefore:numBeforeDuring], " ")
+				}
+				matchAfter := ""
+				if numAfter > 0 {
+					matchAfter = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)], " ")
+				}
+				matchesOnMeter = append(matchesOnMeter, matchBefore, matchDuring, matchAfter)
+				matchOnMeter = matchDuring
+				matchOnMeterNumWords = numDuring
+			}
+		}
+
 		ram := RhymeAndMeter{
 			Phrase:                       phrase,
 			PhraseWords:                  &phraseWords,
@@ -390,6 +460,9 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			EmphasisRegexpString:         emphasisRegexp.String(),
 			EmphasisRegexpMatches:        emphasisRegexpMatches,
 			EmphasisRegexpMatch2:         emphasisRegexpMatch2,
+			MatchesOnMeter:               &matchesOnMeter,
+			MatchOnMeter:                 matchOnMeter,
+			MatchOnMeterNumWords:         matchOnMeterNumWords,
 		}
 
 		return &ram
@@ -440,6 +513,8 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		RhymeAndMeterOfPhrase:      rhymeAndMeterOfPhrase,
 		FindMatchingWord:           findMatchingWord,
 		KnownUnknowns:              knownUnknownsFunc,
+		PhraseWordsRegexp:            wordsRegexp,
+		PhraseWordsRegexpString:      wordsRegexp.String(),
 	}
 
 	return &syllabi

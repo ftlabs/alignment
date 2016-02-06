@@ -42,6 +42,7 @@ type SearchResultWithRhymeAndMeterList struct {
     EmphasisRegexp *(regexp.Regexp)
     EmphasisRegexpString string
     KnownUnknowns *[]string
+    PhraseWordsRegexpString string
 }
 
 type RhymedResultItems []*ResultItemWithRhymeAndMeter
@@ -90,6 +91,7 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
         EmphasisRegexp:       emphasisRegexp,
         EmphasisRegexpString: emphasisRegexp.String(),
         KnownUnknowns:        syllabi.KnownUnknowns(),
+        PhraseWordsRegexpString: syllabi.PhraseWordsRegexpString,
     }
 
     t, _ := template.ParseFiles("rhymed.html")
