@@ -31,8 +31,6 @@ var (
 	wordsRegexp         = regexp.MustCompile(`\b(\w+)\b`)
 	unknownEmphasis      = "X"
 	loneSyllableEmphasis = "*"
-	acceptableMeterRegex = regexp.MustCompile(`^\^*[012]+\$*$`)
-	defaultMeter         = `01$`
 )
 
 func readSyllables(filename string) (*map[string]*Word, int, int) {
@@ -170,14 +168,26 @@ func KeepAZString( s string ) string {return strings.Map(keepAZ, s)}
 func drop09(r rune) rune { if r>='0' && r<='9' {return -1} else {return r} }
 func drop09String( s string ) string {return strings.Map(drop09, s)}
 
-// e.g. "01010101", or "01010101$"
-func convertToEmphasisStringRegexp(meter string) string {
+var (
+	acceptableMeterRegex = regexp.MustCompile(`^\^*[012]+\$*$`)
+	defaultMeter         = `01$`
+	anchorAtStartChar    = "^"
+	wordBoundaryChar     = `\b`
+)
+
+// convertToEmphasisPointsStringRegexp takes a string of the form "01010101", or "01010101$", or "^0101",
+// and expands it to be able to match against an EmphasisPointsCombinedString,
+// with \b prepended if not already anchored to ^.
+func convertToEmphasisPointsStringRegexp(meter string) string {
 	matchMeter := acceptableMeterRegex.FindString(meter)
 	if matchMeter == "" {
 		meter = defaultMeter
 	}
 
 	meterPieces         := strings.Split(meter, "")
+	if meterPieces[0] != anchorAtStartChar {
+		meterPieces = append( []string{wordBoundaryChar}, meterPieces...)
+	}
 	meterWithSpaces     := strings.Join(meterPieces, `\s*`)
 	meterWithExpanded0s := strings.Replace(meterWithSpaces, `0`, `[0*]`, -1)
 	meterWithExpanded1s := strings.Replace(meterWithExpanded0s, `1`, `[12*]`, -1)
