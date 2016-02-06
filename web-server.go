@@ -69,12 +69,15 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
 
     for _, item := range *(sapiResult.Items) {
         ram := syllabi.RhymeAndMeterOfPhrase(item.Phrase, emphasisRegexp)
-        riwfs := ResultItemWithRhymeAndMeter{
-            ResultItem:    item,
-            RhymeAndMeter: ram,
-        }
 
-        riwfsList = append( riwfsList, &riwfs)
+        if ram.EmphasisRegexpMatch2 != "" {
+            riwfs := ResultItemWithRhymeAndMeter{
+                ResultItem:    item,
+                RhymeAndMeter: ram,
+            }
+
+            riwfsList = append( riwfsList, &riwfs)            
+        }
     }
 
     sort.Sort(RhymedResultItems(riwfsList))

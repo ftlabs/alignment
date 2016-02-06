@@ -173,7 +173,7 @@ func drop09(r rune) rune { if r>='0' && r<='9' {return -1} else {return r} }
 func drop09String( s string ) string {return strings.Map(drop09, s)}
 
 var (
-	acceptableMeterRegex = regexp.MustCompile(`^(\^*)([012]+)(\$*)$`)
+	acceptableMeterRegex = regexp.MustCompile(`^(\^*)([012]*)(\$*)$`)
 	DefaultMeter         = `01$`
 	anchorAtStartChar    = "^"
 	anchorAtEndChar      = "$"
