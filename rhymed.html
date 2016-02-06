@@ -29,6 +29,9 @@
 			<td style="text-align:right;  white-space: nowrap">{{ $item.RhymeAndMeter.EmphasisPointsCombinedString }}</td>
 			<td>{{ $item.RhymeAndMeter.EmphasisRegexpMatch2 }}</td>
 			<td style="text-align:right;  white-space: nowrap">{{ $item.RhymeAndMeter.FinalSyllableAZ }}</td>
+
+			<td style="text-align:right;  white-space: nowrap">{{ $item.RhymeAndMeter.MatchOnMeter }}</td>
+			<td style="text-align:right;  white-space: nowrap">({{ $item.RhymeAndMeter.MatchOnMeterNumWords }})</td>
 			<td style="text-align:right;  white-space: nowrap">{{ $item.ResultItem.Phrase }}</td>
 		</tr>
 	{{ end }}

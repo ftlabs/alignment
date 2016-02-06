@@ -162,6 +162,9 @@ type RhymeAndMeter struct {
 	EmphasisRegexpString         string
 	EmphasisRegexpMatches        []string
 	EmphasisRegexpMatch2         string
+	MatchesOnMeter               *[]string
+	MatchOnMeter                 string
+	MatchOnMeterNumWords         int
 }
 
 type RhymingPhrase struct {
@@ -376,6 +379,46 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			emphasisRegexpMatch2 = emphasisRegexpMatches[2]
 		}
 
+		matchesOnMeter := []string{}
+		matchOnMeter   := ""
+		matchOnMeterNumWords := 0
+		if emphasisRegexpMatches != nil {
+			countWordsInMatch := func(s string) int { 
+				trimmed := strings.TrimSpace(s)
+				num := 0
+				if trimmed != "" {
+					num = len( strings.Split( trimmed, " " ) ) 
+				}
+				return num
+			}
+			// assume we can rely on space-separated emphasis fragments to map to words...
+			numBefore        := countWordsInMatch(emphasisRegexpMatches[1])
+			numDuring        := countWordsInMatch(emphasisRegexpMatches[2])
+			numAfter         := countWordsInMatch(emphasisRegexpMatches[3])
+			numBeforeDuring  := numBefore + numDuring
+			numTotal         := numBeforeDuring       + numAfter
+
+			if numTotal != len(phraseWords) {
+				fmt.Println("rhyme: rhymeAndMeterOfPhrase: matchesOnMeter: mismatched counts: numTotal=", numTotal, ", len(phraseWords)=", len(phraseWords))
+			} else {
+				matchBefore := ""
+				if numBefore > 0 {
+					matchBefore = strings.Join(phraseWords[0:(numBefore-1)], " ")
+				}
+				matchDuring := ""
+				if numDuring > 0 {
+					matchDuring = strings.Join(phraseWords[numBefore:numBeforeDuring], " ")
+				}
+				matchAfter := ""
+				if numAfter > 0 {
+					matchAfter = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)], " ")
+				}
+				matchesOnMeter = append(matchesOnMeter, matchBefore, matchDuring, matchAfter)
+				matchOnMeter = matchDuring
+				matchOnMeterNumWords = numDuring
+			}
+		}
+
 		ram := RhymeAndMeter{
 			Phrase:                       phrase,
 			PhraseWords:                  &phraseWords,
@@ -390,6 +433,9 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			EmphasisRegexpString:         emphasisRegexp.String(),
 			EmphasisRegexpMatches:        emphasisRegexpMatches,
 			EmphasisRegexpMatch2:         emphasisRegexpMatch2,
+			MatchesOnMeter:               &matchesOnMeter,
+			MatchOnMeter:                 matchOnMeter,
+			MatchOnMeterNumWords:         matchOnMeterNumWords,
 		}
 
 		return &ram
