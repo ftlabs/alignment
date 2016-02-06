@@ -10,3 +10,25 @@ Its entries are particularly useful for speech recognition and synthesis, as it 
 * 1    — Primary stress
 * 2    — Secondary stress
 
+## iambic pentameter
+
+from [wikipedia](https://en.wikipedia.org/wiki/Iambic_pentameter)
+
+An iambic foot is an unstressed syllable followed by a stressed syllable. The rhythm can be written as:
+
+da DUM
+
+The da-DUM of a human heartbeat is the most common example of this rhythm.
+
+A standard line of iambic pentameter is five iambic feet in a row:
+
+da DUM da DUM da DUM da DUM da DUM
+
+Straightforward examples of this rhythm can be heard in the opening line of William Shakespeare's Sonnet 12:
+
+When I do count the clock that tells the time
+
+and in John Keats' To Autumn:[1]
+
+To swell the gourd, and plump the hazel shells
+

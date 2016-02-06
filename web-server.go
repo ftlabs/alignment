@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
     "sort"
+    "regexp"
     // "fmt"
     "github.com/upthebuzzard/alignment/align"
     "github.com/upthebuzzard/alignment/sapi"
@@ -37,6 +38,10 @@ type ResultItemWithRhymeAndMeter struct {
 type SearchResultWithRhymeAndMeterList struct {
     SearchResult *(sapi.SearchResult)
     ResultItemsWithRhymeAndMeterList []*ResultItemWithRhymeAndMeter
+    MatchMeter string
+    EmphasisRegexp *(regexp.Regexp)
+    EmphasisRegexpString string
+    KnownUnknowns *[]string
 }
 
 type RhymedResultItems []*ResultItemWithRhymeAndMeter
@@ -54,16 +59,26 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     }
     sapiResult := sapi.Search( searchParams )
 
+    matchMeter     := r.FormValue("meter")
+    if matchMeter == "" {
+        matchMeter = rhyme.DefaultMeter
+    }
+
+    emphasisRegexp := rhyme.ConvertToEmphasisPointsStringRegexp(matchMeter)
+
     riwfsList := []*ResultItemWithRhymeAndMeter{}
 
     for _, item := range *(sapiResult.Items) {
-        ram := syllabi.RhymeAndMeterOfPhrase(item.Phrase)
-        riwfs := ResultItemWithRhymeAndMeter{
-            ResultItem:    item,
-            RhymeAndMeter: ram,
-        }
+        ram := syllabi.RhymeAndMeterOfPhrase(item.Phrase, emphasisRegexp)
 
-        riwfsList = append( riwfsList, &riwfs)
+        if ram.EmphasisRegexpMatch2 != "" {
+            riwfs := ResultItemWithRhymeAndMeter{
+                ResultItem:    item,
+                RhymeAndMeter: ram,
+            }
+
+            riwfsList = append( riwfsList, &riwfs)            
+        }
     }
 
     sort.Sort(RhymedResultItems(riwfsList))
@@ -71,6 +86,10 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     srwfs := SearchResultWithRhymeAndMeterList{
         SearchResult: sapiResult,
         ResultItemsWithRhymeAndMeterList:  riwfsList,
+        MatchMeter:           matchMeter,
+        EmphasisRegexp:       emphasisRegexp,
+        EmphasisRegexpString: emphasisRegexp.String(),
+        KnownUnknowns:        syllabi.KnownUnknowns(),
     }
 
     t, _ := template.ParseFiles("rhymed.html")

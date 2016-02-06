@@ -7,23 +7,41 @@
   <body>
 	<form action="/rhyme" method="GET">
 		<b style="font-size:xx-large">Alignment of <a href="{{.SearchResult.FtcomSearchUrl}}">recent</a> <a href="{{.SearchResult.FtcomUrl}}">FT.com</a> articles</b> 
-		on <input type="text" name="text" value="{{.SearchResult.Text}}">
+		<br>on <input type="text" name="text" value="{{.SearchResult.Text}}">
 		<input type="radio" name="source" value="any" {{.SearchResult.AnyChecked}}> any
 	  	<input type="radio" name="source" value="title-only" {{.SearchResult.TitleOnlyChecked}}> title-only
+		<br>meter <input type="text" name="meter" value="{{.MatchMeter}}">
+
 		<input type="submit" value="Get and Rhyme">
 		&nbsp; (<a href="/">help+about</a>)
 	</form>
+
+	<ul>
+		<li>MatchMeter: {{.MatchMeter}}</li>
+		<li>EmphasisRegexpString: {{.EmphasisRegexpString}}</li>
+	</ul>
 <br>
-	<table>
-		<tr><td>EmphasisPointsCombined</td><td>FinalSyllable</td><td></td></tr>
+	<table border="1">
+		<tr><td>EmphasisPointsCombined</td><td>matchedMeter</td><td>FinalSyllable</td><td></td></tr>
 		<tr><td>X=unknown, *=loneSyllable<br>1,2,0=primary,secondary,no (stress)</td><td></td><td></td></tr>
 	{{range $item := .ResultItemsWithRhymeAndMeterList}}
 		<tr>
 			<td style="text-align:right;  white-space: nowrap">{{ $item.RhymeAndMeter.EmphasisPointsCombinedString }}</td>
+			<td>{{ $item.RhymeAndMeter.EmphasisRegexpMatch2 }}</td>
 			<td style="text-align:right;  white-space: nowrap">{{ $item.RhymeAndMeter.FinalSyllableAZ }}</td>
 			<td style="text-align:right;  white-space: nowrap">{{ $item.ResultItem.Phrase }}</td>
 		</tr>
 	{{ end }}
 	</table>
+
+	<br>
+
+	<h2>unrecognised words</h2>
+	<ul>
+	{{range $item := .KnownUnknowns}}
+		<li>{{ $item }}</li>
+	{{ end }}
+	</ul>
+
   </body>
 </html>
