@@ -33,70 +33,70 @@ var (
 	loneSyllableEmphasis = "*"
 )
 
-func readSyllables(filename string) (*map[string]*Word, int, int) {
+func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
 
 	words := map[string]*Word{}
 	countFragments      := 0
 	countSyllables      := 0
-    // syllableRegexp      := regexp.MustCompile(`^[A-Z]+\d+$`)
-    // FinalSyllableRegexp := regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
 
-    // Open the file.
-    f, _ := os.Open(filename)
-    // Create a new Scanner for the file.
-    scanner := bufio.NewScanner(f)
-    // Loop over all lines in the file
-    for scanner.Scan() {
-		line := scanner.Text()
-		if ! strings.HasPrefix(line, ";;;") {
-			nameAndRemainder := strings.Split(line, "  ")
-			name             := nameAndRemainder[0]
-			remainder        := nameAndRemainder[1]
-			fragments        := strings.Split(remainder, " ")
-			emphasisPoints   := []string{}
+	for _,filename := range *filenames {
+	    fmt.Println("rhyme: readSyllables: readingfrom: filename=", filename) 
 
-			numSyllables := 0
-			for _,f := range fragments {
-				matches := syllableRegexp.FindStringSubmatch(f)
-				if matches != nil {
-					numSyllables = numSyllables + 1
-					emphasisPoints = append(emphasisPoints, matches[1])
-	    		}
-	    	}
+	    // Open the file.
+	    f, _ := os.Open(filename)
+	    // Create a new Scanner for the file.
+	    scanner := bufio.NewScanner(f)
+	    // Loop over all lines in the file
+	    for scanner.Scan() {
+			line := scanner.Text()
+			if ! strings.HasPrefix(line, ";;;") {
+				nameAndRemainder := strings.Split(line, "  ")
+				name             := nameAndRemainder[0]
+				remainder        := nameAndRemainder[1]
+				fragments        := strings.Split(remainder, " ")
+				emphasisPoints   := []string{}
 
-	    	emphasisPointsString := strings.Join(emphasisPoints, "")
+				numSyllables := 0
+				for _,f := range fragments {
+					matches := syllableRegexp.FindStringSubmatch(f)
+					if matches != nil {
+						numSyllables = numSyllables + 1
+						emphasisPoints = append(emphasisPoints, matches[1])
+		    		}
+		    	}
 
-	    	if numSyllables == 0 {
-	    		fmt.Println("WARNING: no syllables found for name=", name) 
-	    		emphasisPointsString = unknownEmphasis
-	    	} else if numSyllables == 1 {
-	    		emphasisPointsString = loneSyllableEmphasis
-	    	}
+		    	emphasisPointsString := strings.Join(emphasisPoints, "")
 
-	    	matches := finalSyllableRegexp.FindStringSubmatch(remainder)
-	    	finalSyllable := ""
-	    	if matches != nil {
-	    		finalSyllable = matches[1]
-	    	} else {
-	    		fmt.Println("WARNING: no final syllable found for name=", name) 
-	    	}
+		    	if numSyllables == 0 {
+		    		fmt.Println("WARNING: no syllables found for name=", name) 
+		    		emphasisPointsString = unknownEmphasis
+		    	} else if numSyllables == 1 {
+		    		emphasisPointsString = loneSyllableEmphasis
+		    	}
 
-	    	countSyllables = countSyllables + numSyllables
-			countFragments = countFragments + len(fragments)
-			words[name] = &Word{
-				Name:            name,
-				FragmentsString: remainder,
-				Fragments:       fragments,
-				NumSyllables:    numSyllables,
-				FinalSyllable:   finalSyllable,
-				FinalSyllableAZ: drop09String(finalSyllable),
-				EmphasisPoints:  emphasisPoints,
-				EmphasisPointsString: emphasisPointsString,
+		    	matches := finalSyllableRegexp.FindStringSubmatch(remainder)
+		    	finalSyllable := ""
+		    	if matches != nil {
+		    		finalSyllable = matches[1]
+		    	} else {
+		    		fmt.Println("WARNING: no final syllable found for name=", name) 
+		    	}
+
+		    	countSyllables = countSyllables + numSyllables
+				countFragments = countFragments + len(fragments)
+				words[name] = &Word{
+					Name:            name,
+					FragmentsString: remainder,
+					Fragments:       fragments,
+					NumSyllables:    numSyllables,
+					FinalSyllable:   finalSyllable,
+					FinalSyllableAZ: drop09String(finalSyllable),
+					EmphasisPoints:  emphasisPoints,
+					EmphasisPointsString: emphasisPointsString,
+				}
 			}
 		}
     }
-
-    // fmt.Println("num fragments = ", countFragments, ", num syllables = ", countSyllables) 
 
     return &words, countFragments, countSyllables
 }
@@ -128,7 +128,7 @@ type Stats struct {
 
 type Syllabi struct {
 	Stats          Stats
-    SourceFilename string
+    SourceFilenames *[]string
     FindRhymes     func(string) []string
     CountSyllables func(string) int
     EmphasisPoints func(string) []string
@@ -221,12 +221,12 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 	return r
 }
 
-func ConstructSyllabi(sourceFilename string) (*Syllabi){
-	if sourceFilename == "" {
-		sourceFilename = SyllableFilename
+func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
+	if sourceFilenames == nil {
+		sourceFilenames = &[]string{SyllableFilename}
 	}
 
-	words, numFragments, numSyllables := readSyllables(sourceFilename)
+	words, numFragments, numSyllables := readSyllables(sourceFilenames)
 	finalSyllables := processFinalSyllables(words)
 
 	knownUnknowns := map[string]int{}
@@ -406,7 +406,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 
 	syllabi := Syllabi{
 		Stats:          stats,
-		SourceFilename: sourceFilename,
+		SourceFilenames: sourceFilenames,
 		FindRhymes:     findRhymes,
 		CountSyllables: countSyllables,
 		EmphasisPoints: emphasisPoints,
@@ -422,7 +422,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 }
 
 func main() {
-	syllabi := ConstructSyllabi(SyllableFilename)
+	syllabi := ConstructSyllabi(&[]string{SyllableFilename})
 
     fmt.Println("main: num words =", (*syllabi).Stats.NumWords ) 
 	fmt.Println("main: num unique final syllables =", (*syllabi).Stats.NumUniqueFinalSyllables)
