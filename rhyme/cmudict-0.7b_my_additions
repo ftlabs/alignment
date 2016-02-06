@@ -16,6 +16,7 @@ GREXIT  G R EH1 G Z IH0 T
 MAP:US  US(1)
 MAP:%  %PERCENT
 MAP:UN  UN(1)
+MAP:&  AND
 ;;;
 ;;; Extension 2:
 ;;; The default regexp to identify a word in the text is (\w+), which will miss terms such as '%'.
@@ -24,6 +25,7 @@ MAP:UN  UN(1)
 ;;; NB: the default (\w+) will be invoked *after* all the WORD:... 
 WORD:%  \%
 WORD:'s  \w+['’]s
+WORD:&  &
 ;;;
 ;;; Extension 3:
 ;;; This allows matched words to be transformed, e.g. to ensure the apostophe matches that used in the phoneme keys

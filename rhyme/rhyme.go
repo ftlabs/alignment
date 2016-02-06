@@ -279,9 +279,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		if k,ok := stringsAsKeys[s]; ok {
 			stringAsKey = k
 		} else {
-			if strings.HasPrefix(s, "STATE") {
-				fmt.Println("DEBUG: rhyme: findMatchingWord: stringAsKey=", s)
-			}
 			for _, pair := range nameTransformPairs {
 				s = pair.Regexp.ReplaceAllString(s, pair.Replacement)
 			}
@@ -362,9 +359,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 
 	findAllPhraseMatches := func(phrase string) *[][]string {
 		matches := wordsRegexp.FindAllStringSubmatch(phrase, -1)
-		if strings.HasPrefix(phrase, "State") {
-			fmt.Println("DEBUG: rhyme: findAllPhraseMatches: phrase=", phrase, ", matches=", matches)
-		}
 		return &matches
 	}
 
