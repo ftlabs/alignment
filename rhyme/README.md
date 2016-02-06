@@ -9,6 +9,7 @@ Its entries are particularly useful for speech recognition and synthesis, as it 
 * 0    — No stress
 * 1    — Primary stress
 * 2    — Secondary stress
+
 ## iambic pentameter
 
 from [wikipedia](https://en.wikipedia.org/wiki/Iambic_pentameter)
