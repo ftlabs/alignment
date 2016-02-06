@@ -135,7 +135,7 @@ type Syllabi struct {
     FinalSyllable  func(string) string
     FinalSyllableOfPhrase func(string) string
     SortPhrasesByFinalSyllable func( []string ) *RhymingPhrases
-    RhymeAndMeterOfPhrase func(string) *RhymeAndMeter
+    RhymeAndMeterOfPhrase func(string, *regexp.Regexp) *RhymeAndMeter
     FindMatchingWord func(string) *Word
 }
 
@@ -149,6 +149,10 @@ type RhymeAndMeter struct {
 	FinalSyllableAZ              string
 	ContainsUnmatchedWord        bool
 	FinalWord                    string
+	EmphasisRegexp               *regexp.Regexp
+	EmphasisRegexpString         string
+	EmphasisRegexpMatches        []string
+	EmphasisRegexpMatch2         string
 }
 
 type RhymingPhrase struct {
@@ -169,30 +173,51 @@ func drop09(r rune) rune { if r>='0' && r<='9' {return -1} else {return r} }
 func drop09String( s string ) string {return strings.Map(drop09, s)}
 
 var (
-	acceptableMeterRegex = regexp.MustCompile(`^\^*[012]+\$*$`)
-	defaultMeter         = `01$`
+	acceptableMeterRegex = regexp.MustCompile(`^(\^*)([012]+)(\$*)$`)
+	DefaultMeter         = `01$`
 	anchorAtStartChar    = "^"
+	anchorAtEndChar      = "$"
 	wordBoundaryChar     = `\b`
 )
 
-// convertToEmphasisPointsStringRegexp takes a string of the form "01010101", or "01010101$", or "^0101",
+// ConvertToEmphasisPointsStringRegexp takes a string of the form "01010101", or "01010101$", or "^0101",
 // and expands it to be able to match against an EmphasisPointsCombinedString,
 // with \b prepended if not already anchored to ^.
-func convertToEmphasisPointsStringRegexp(meter string) string {
-	matchMeter := acceptableMeterRegex.FindString(meter)
-	if matchMeter == "" {
-		meter = defaultMeter
+func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
+	matchMeter := acceptableMeterRegex.FindStringSubmatch(meter)
+
+	if matchMeter == nil {
+		meter      = DefaultMeter
+		matchMeter = acceptableMeterRegex.FindStringSubmatch(meter)
 	}
 
-	meterPieces         := strings.Split(meter, "")
-	if meterPieces[0] != anchorAtStartChar {
-		meterPieces = append( []string{wordBoundaryChar}, meterPieces...)
-	}
+	meterCore             := matchMeter[2]
+	containsAnchorAtStart := (matchMeter[1] != "")
+	containsAnchorAtEnd   := (matchMeter[3] != "")
+
+	meterPieces         := strings.Split(meterCore, "")
 	meterWithSpaces     := strings.Join(meterPieces, `\s*`)
-	meterWithExpanded0s := strings.Replace(meterWithSpaces, `0`, `[0*]`, -1)
-	meterWithExpanded1s := strings.Replace(meterWithExpanded0s, `1`, `[12*]`, -1)
+	meterWithExpanded0s := strings.Replace(meterWithSpaces, `0`, `[0\*]`, -1)
+	meterWithExpanded1s := strings.Replace(meterWithExpanded0s, `1`, `[12\*]`, -1)
 
-	return meterWithExpanded1s
+	var capture1 string 
+	if containsAnchorAtStart  {
+		capture1 = "^()" 
+	} else {
+		capture1 = "^(.*)"
+	}
+
+	var capture3 string
+	if containsAnchorAtEnd {
+		capture3 = "()$"
+	} else {
+		capture3 = "(.*)$"
+	}
+
+	meterWithCaptures := capture1 + `(\s` + meterWithExpanded1s + `\s)` + capture3
+
+	r := regexp.MustCompile(meterWithCaptures)
+	return r
 }
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
@@ -282,7 +307,7 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 		return fs
 	}
 
-	rhymeAndMeterOfPhrase := func(phrase string) *RhymeAndMeter {
+	rhymeAndMeterOfPhrase := func(phrase string, emphasisRegexp *regexp.Regexp) *RhymeAndMeter {
 		finalWord := ""
 		phraseWords := []string{}
 		matchingWords := []*Word{}
@@ -315,7 +340,15 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 				finalSyllableAZ = finalMatchingWord.FinalSyllableAZ
 			}
 
-			emphasisPointsCombinedString = strings.Join(emphasisPointsStrings, " ")
+			emphasisPointsCombinedString = " " + strings.Join(emphasisPointsStrings, " ") + " "
+		}
+
+		emphasisRegexpMatches := emphasisRegexp.FindStringSubmatch(emphasisPointsCombinedString)
+		var emphasisRegexpMatch2 string
+		if emphasisRegexpMatches == nil {
+			emphasisRegexpMatch2 = ""
+		} else {
+			emphasisRegexpMatch2 = emphasisRegexpMatches[2]
 		}
 
 		ram := RhymeAndMeter{
@@ -328,6 +361,10 @@ func ConstructSyllabi(sourceFilename string) (*Syllabi){
 			FinalSyllableAZ:              finalSyllableAZ,
 			ContainsUnmatchedWord:        containsUnmatchedWord,
 			FinalWord:                    finalWord,
+			EmphasisRegexp:               emphasisRegexp,
+			EmphasisRegexpString:         emphasisRegexp.String(),
+			EmphasisRegexpMatches:        emphasisRegexpMatches,
+			EmphasisRegexpMatch2:         emphasisRegexpMatch2,
 		}
 
 		return &ram

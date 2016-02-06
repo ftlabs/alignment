@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
     "sort"
+    "regexp"
     // "fmt"
     "github.com/upthebuzzard/alignment/align"
     "github.com/upthebuzzard/alignment/sapi"
@@ -37,6 +38,9 @@ type ResultItemWithRhymeAndMeter struct {
 type SearchResultWithRhymeAndMeterList struct {
     SearchResult *(sapi.SearchResult)
     ResultItemsWithRhymeAndMeterList []*ResultItemWithRhymeAndMeter
+    MatchMeter string
+    EmphasisRegexp *(regexp.Regexp)
+    EmphasisRegexpString string
 }
 
 type RhymedResultItems []*ResultItemWithRhymeAndMeter
@@ -54,10 +58,17 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     }
     sapiResult := sapi.Search( searchParams )
 
+    matchMeter     := r.FormValue("meter")
+    if matchMeter == "" {
+        matchMeter = rhyme.DefaultMeter
+    }
+
+    emphasisRegexp := rhyme.ConvertToEmphasisPointsStringRegexp(matchMeter)
+
     riwfsList := []*ResultItemWithRhymeAndMeter{}
 
     for _, item := range *(sapiResult.Items) {
-        ram := syllabi.RhymeAndMeterOfPhrase(item.Phrase)
+        ram := syllabi.RhymeAndMeterOfPhrase(item.Phrase, emphasisRegexp)
         riwfs := ResultItemWithRhymeAndMeter{
             ResultItem:    item,
             RhymeAndMeter: ram,
@@ -71,6 +82,9 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     srwfs := SearchResultWithRhymeAndMeterList{
         SearchResult: sapiResult,
         ResultItemsWithRhymeAndMeterList:  riwfsList,
+        MatchMeter:           matchMeter,
+        EmphasisRegexp:       emphasisRegexp,
+        EmphasisRegexpString: emphasisRegexp.String(),
     }
 
     t, _ := template.ParseFiles("rhymed.html")
