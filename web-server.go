@@ -50,7 +50,7 @@ func (rri RhymedResultItems) Len()          int  { return len(rri) }
 func (rri RhymedResultItems) Swap(i, j int)      { rri[i], rri[j] = rri[j], rri[i] }
 func (rri RhymedResultItems) Less(i, j int) bool { return rri[i].RhymeAndMeter.FinalSyllable > rri[j].RhymeAndMeter.FinalSyllable }
 
-var syllabi = rhyme.ConstructSyllabi(&[]string{"rhyme/cmudict-0.7b"})
+var syllabi = rhyme.ConstructSyllabi(&[]string{"rhyme/cmudict-0.7b", "rhyme/cmudict-0.7b_my_additions"})
 
 func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     searchParams := sapi.SearchParams{
