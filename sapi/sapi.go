@@ -62,7 +62,8 @@ type SearchResult struct {
     Items      *[]*ResultItem
 }
 
-func KeepAZ(r rune) rune { if r>='A' && r<='Z' {return r} else {return -1} }
+func keepAZ(r rune) rune { if r>='A' && r<='Z' {return r} else {return -1} }
+func KeepAZString( s string ) string {return strings.Map(keepAZ, s)}
 
 func Search(params SearchParams) *SearchResult {
     defaultText := os.Getenv("DEFAULT_TEXT")
@@ -118,7 +119,7 @@ func Search(params SearchParams) *SearchResult {
     			phrase = title
     		}
 
-            phraseAZ := strings.Map(KeepAZ, phrase)
+            phraseAZ := KeepAZString(phrase)
 
             if _, ok := knownPhrases[phraseAZ]; !ok {
                 item := ResultItem{

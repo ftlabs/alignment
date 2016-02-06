@@ -29,21 +29,21 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, p)
 }
 
-type ResultItemWithFinalSyllable struct {
+type ResultItemWithRhymeAndMeter struct {
     ResultItem    *(sapi.ResultItem)
-    FinalSyllable string
+    RhymeAndMeter *(rhyme.RhymeAndMeter)
 }
 
-type SearchResultWithFinalSyllables struct {
-    SearchResult sapi.SearchResult
-    ItemsWithFS  []ResultItemWithFinalSyllable
+type SearchResultWithRhymeAndMeterList struct {
+    SearchResult *(sapi.SearchResult)
+    ResultItemsWithRhymeAndMeterList []*ResultItemWithRhymeAndMeter
 }
 
-type RhymedResultItems []ResultItemWithFinalSyllable
+type RhymedResultItems []*ResultItemWithRhymeAndMeter
 
 func (rri RhymedResultItems) Len()          int  { return len(rri) }
 func (rri RhymedResultItems) Swap(i, j int)      { rri[i], rri[j] = rri[j], rri[i] }
-func (rri RhymedResultItems) Less(i, j int) bool { return rri[i].FinalSyllable > rri[j].FinalSyllable }
+func (rri RhymedResultItems) Less(i, j int) bool { return rri[i].RhymeAndMeter.FinalSyllable > rri[j].RhymeAndMeter.FinalSyllable }
 
 var syllabi = rhyme.ConstructSyllabi("rhyme/cmudict-0.7b")
 
@@ -54,33 +54,27 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     }
     sapiResult := sapi.Search( searchParams )
 
-    riwfsList := []ResultItemWithFinalSyllable{}
+    riwfsList := []*ResultItemWithRhymeAndMeter{}
 
     for _, item := range *(sapiResult.Items) {
-        fs := syllabi.FinalSyllableOfPhrase(item.Phrase)
-        // fmt.Println("rhymeHandler: loop:", "item.Phrase=", item.Phrase, ", fs=", fs)
-        riwfs := ResultItemWithFinalSyllable{
+        ram := syllabi.RhymeAndMeterOfPhrase(item.Phrase)
+        riwfs := ResultItemWithRhymeAndMeter{
             ResultItem:    item,
-            FinalSyllable: fs,
+            RhymeAndMeter: ram,
         }
 
-        riwfsList = append( riwfsList, riwfs)
+        riwfsList = append( riwfsList, &riwfs)
     }
 
     sort.Sort(RhymedResultItems(riwfsList))
 
-    srwfs := SearchResultWithFinalSyllables{
-        SearchResult: *sapiResult,
-        ItemsWithFS:  riwfsList,
+    srwfs := SearchResultWithRhymeAndMeterList{
+        SearchResult: sapiResult,
+        ResultItemsWithRhymeAndMeterList:  riwfsList,
     }
-
-    // fmt.Println("rhymeHandler:", "srwfs.ItemsWithFS[0].ResultItem.Phrase=", srwfs.ItemsWithFS[0].ResultItem.Phrase)
-    // fmt.Println("rhymeHandler:", "srwfs.ItemsWithFS[0].FinalSyllable=", srwfs.ItemsWithFS[0].FinalSyllable)
 
     t, _ := template.ParseFiles("rhymed.html")
     t.Execute(w, &srwfs)
-    // t, _ := template.ParseFiles("rhymed.html")
-    // t.Execute(w, nil)
 }
 
 func main() {
