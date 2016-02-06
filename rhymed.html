@@ -7,9 +7,11 @@
   <body>
 	<form action="/rhyme" method="GET">
 		<b style="font-size:xx-large">Alignment of <a href="{{.SearchResult.FtcomSearchUrl}}">recent</a> <a href="{{.SearchResult.FtcomUrl}}">FT.com</a> articles</b> 
-		on <input type="text" name="text" value="{{.SearchResult.Text}}">
+		<br>on <input type="text" name="text" value="{{.SearchResult.Text}}">
 		<input type="radio" name="source" value="any" {{.SearchResult.AnyChecked}}> any
 	  	<input type="radio" name="source" value="title-only" {{.SearchResult.TitleOnlyChecked}}> title-only
+		<br>meter <input type="text" name="meter" value="{{.MatchMeter}}">
+
 		<input type="submit" value="Get and Rhyme">
 		&nbsp; (<a href="/">help+about</a>)
 	</form>
