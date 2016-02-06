@@ -238,7 +238,8 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 
 	stringsAsKeys := map[string]string{
 		"US": "US(1)",
-		`%`: `%PERCENT`,
+		 `%`: `%PERCENT`,
+		"UN": "UN(1)",
 	}
 
 	findMatchingWord := func(s string) *Word {
