@@ -31,6 +31,8 @@ var (
 	wordsRegexp         = regexp.MustCompile(`\b(\w+)\b`)
 	unknownEmphasis      = "X"
 	loneSyllableEmphasis = "*"
+	acceptableMeterRegex = regexp.MustCompile(`^\^*[012]+\$*$`)
+	defaultMeter         = `01$`
 )
 
 func readSyllables(filename string) (*map[string]*Word, int, int) {
@@ -167,6 +169,21 @@ func KeepAZString( s string ) string {return strings.Map(keepAZ, s)}
 
 func drop09(r rune) rune { if r>='0' && r<='9' {return -1} else {return r} }
 func drop09String( s string ) string {return strings.Map(drop09, s)}
+
+// e.g. "01010101", or "01010101$"
+func convertToEmphasisStringRegexp(meter string) string {
+	matchMeter := acceptableMeterRegex.FindString(meter)
+	if matchMeter == "" {
+		meter = defaultMeter
+	}
+
+	meterPieces         := strings.Split(meter, "")
+	meterWithSpaces     := strings.Join(meterPieces, `\s*`)
+	meterWithExpanded0s := strings.Replace(meterWithSpaces, `0`, `[0*]`, -1)
+	meterWithExpanded1s := strings.Replace(meterWithExpanded0s, `1`, `[12*]`, -1)
+
+	return meterWithExpanded1s
+}
 
 func ConstructSyllabi(sourceFilename string) (*Syllabi){
 	if sourceFilename == "" {
