@@ -27,8 +27,6 @@ type Word struct {
 var (
 	syllableRegexp      = regexp.MustCompile(`^[A-Z]+(\d+)$`)
 	finalSyllableRegexp = regexp.MustCompile(`([A-Z]+\d+(?:[^\d]*))$`)
-	finalWordRegexp     = regexp.MustCompile(`\b(\w+)\b\W*$`)
-	wordsRegexp         = regexp.MustCompile(`\b(\w+)\b`)
 	unknownEmphasis      = "X"
 	loneSyllableEmphasis = "*"
 )
@@ -238,16 +236,28 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		NumSyllables:            numSyllables,
 	}
 
+	stringsAsKeys := map[string]string{
+		"US": "US(1)",
+		`%`: `%PERCENT`,
+	}
+
 	findMatchingWord := func(s string) *Word {
 		var word *Word
-		upperS := strings.ToUpper(s)
-		if w,ok := (*words)[upperS]; ok {
-			word = w
-		} else if _,ok := knownUnknowns[upperS]; ok {
-			knownUnknowns[upperS]++
+		var stringAsKey string
+
+		if k,ok := stringsAsKeys[s]; ok {
+			stringAsKey = k
 		} else {
-			knownUnknowns[upperS] = 1
-			fmt.Println("rhyme: findMatchingWord: new knownUnknown:", upperS)
+			stringAsKey = strings.ToUpper(s)
+		}
+
+		if w,ok := (*words)[stringAsKey]; ok {
+			word = w
+		} else if _,ok := knownUnknowns[stringAsKey]; ok {
+			knownUnknowns[stringAsKey]++
+		} else {
+			knownUnknowns[stringAsKey] = 1
+			fmt.Println("rhyme: findMatchingWord: new knownUnknown:", stringAsKey)
 		}
 		return word
 	}
@@ -297,6 +307,15 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		return fs
 	}
 
+	wordRegexps := []string{
+		`\w+`,
+		`\%`,
+	}
+
+	wordRegexpsAsOrs := strings.Join(wordRegexps, "|")
+	finalWordRegexp  := regexp.MustCompile(`(` + wordRegexpsAsOrs + `)\W*$`)
+	wordsRegexp      := regexp.MustCompile(`(` + wordRegexpsAsOrs + `)`)
+
 	finalSyllableOfPhraseFunc := func(s string) string {
 		finalWord := ""
 		matches := finalWordRegexp.FindStringSubmatch(s)
@@ -306,6 +325,11 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 
 		fs := finalSyllableFunc(finalWord)
 		return fs
+	}
+
+	findAllPhraseMatches := func(phrase string) *[][]string {
+		matches := wordsRegexp.FindAllStringSubmatch(phrase, -1)
+		return &matches
 	}
 
 	rhymeAndMeterOfPhrase := func(phrase string, emphasisRegexp *regexp.Regexp) *RhymeAndMeter {
@@ -318,9 +342,9 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		finalSyllable   := ""
 		finalSyllableAZ := ""
 
-		matches := wordsRegexp.FindAllStringSubmatch(phrase, -1)
-		if matches != nil {
-			for _, match := range matches{
+		phraseMatches := findAllPhraseMatches(phrase)
+		if phraseMatches != nil {
+			for _, match := range *phraseMatches{
 				phraseWord := match[1]
 				phraseWords = append( phraseWords, phraseWord)
 				matchingWord := findMatchingWord(phraseWord)
