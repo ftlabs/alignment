@@ -24,7 +24,7 @@ MAP:&  AND
 ;;; WORD:NAME VALUE --> the VALUE is the regexp fragment to use. The NAME is ignored.
 ;;; NB: the default (\w+) will be invoked *after* all the WORD:... 
 WORD:%  \%
-WORD:'s  \w+['’][std]
+WORD:'s  \w+['’]([std]|re)
 WORD:&  &
 ;;;
 ;;; Extension 3:
@@ -32,3 +32,4 @@ WORD:&  &
 ;;; TRANSFORM:FROM  TO --> the text matching FROM will be transformed to TO.
 ;;; NB: the ToUpper step is invoked *after* all the TRANSFORM:... steps
 TRANSFORM:(\w+)’([std])  $1'$2
+TRANSFORM:(\w+)’(re)  $1'$2
