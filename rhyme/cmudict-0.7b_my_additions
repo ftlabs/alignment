@@ -6,6 +6,16 @@ UK  Y UW1 K EY1
 FT  EH1 F T IY1
 BREXIT  B R EH1 G Z IH0 T
 GREXIT  G R EH1 G Z IH0 T
+KELLAWAY  K EH1 L AH0 W EY2
+KELLAWAY'S  K EH1 L AH0 W EY2 Z
+BBC1  B IY1 B IY0 S IY0 W AH2 N
+BBC2  B IY1 B IY0 S IY0 T UW2
+BBC3  B IY1 B IY0 S IY0 W TH R IY2
+BBC4  B IY1 B IY0 S IY0 W F AO2 R
+EU  IY0 Y UW1
+MP  EH1 M P IY0
+MPS  EH1 M P IY0 Z
+JEZWECAN  JH EH1 Z W IY0 K AE2 N
 ;;;
 ;;; and now, bustin the format, to allow for some adjustment of the functionality
 ;;; Extension 1:
@@ -17,6 +27,7 @@ MAP:US  US(1)
 MAP:%  %PERCENT
 MAP:UN  UN(1)
 MAP:&  AND
+MAP:BLOGGER'S  BLOGGERS
 ;;;
 ;;; Extension 2:
 ;;; The default regexp to identify a word in the text is (\w+), which will miss terms such as '%'.
