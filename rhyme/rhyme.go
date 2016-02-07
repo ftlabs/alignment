@@ -185,9 +185,7 @@ type RhymeAndMeter struct {
 	EmphasisRegexpString         string
 	EmphasisRegexpMatches        []string
 	EmphasisRegexpMatch2         string
-	MatchesOnMeter               *[]string
-	MatchOnMeter                 string
-	MatchOnMeterNumWords         int
+	MatchesOnMeter               *MatchesOnMeter
 }
 
 type RhymingPhrase struct {
@@ -253,6 +251,16 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 
 	r := regexp.MustCompile(meterWithCaptures)
 	return r
+}
+
+type MatchesOnMeter struct {
+	Before   string
+	During   string
+	After    string
+	NumWordsBefore int
+	NumWordsDuring int
+	NumWordsAfter  int
+	NumWordsTotal  int
 }
 
 func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
@@ -406,9 +414,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			emphasisRegexpMatch2 = emphasisRegexpMatches[2]
 		}
 
-		matchesOnMeter := []string{}
-		matchOnMeter   := ""
-		matchOnMeterNumWords := 0
+		matchesOnMeter := MatchesOnMeter{}
 		if emphasisRegexpMatches != nil {
 			countWordsInMatch := func(s string) int { 
 				trimmed := strings.TrimSpace(s)
@@ -430,7 +436,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			} else {
 				matchBefore := ""
 				if numBefore > 0 {
-					matchBefore = strings.Join(phraseWords[0:(numBefore-1)], " ")
+					matchBefore = strings.Join(phraseWords[0:numBefore], " ")
 				}
 				matchDuring := ""
 				if numDuring > 0 {
@@ -440,9 +446,15 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 				if numAfter > 0 {
 					matchAfter = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)], " ")
 				}
-				matchesOnMeter = append(matchesOnMeter, matchBefore, matchDuring, matchAfter)
-				matchOnMeter = matchDuring
-				matchOnMeterNumWords = numDuring
+				matchesOnMeter = MatchesOnMeter{
+					Before:          matchBefore, 
+					During:          matchDuring,
+					After:           matchAfter,
+					NumWordsBefore:  numBefore,
+					NumWordsDuring:  numDuring,
+					NumWordsAfter:   numAfter,
+					NumWordsTotal:   numTotal,
+				}
 			}
 		}
 
@@ -461,8 +473,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			EmphasisRegexpMatches:        emphasisRegexpMatches,
 			EmphasisRegexpMatch2:         emphasisRegexpMatch2,
 			MatchesOnMeter:               &matchesOnMeter,
-			MatchOnMeter:                 matchOnMeter,
-			MatchOnMeterNumWords:         matchOnMeterNumWords,
 		}
 
 		return &ram
