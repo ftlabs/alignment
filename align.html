@@ -5,24 +5,71 @@
     <title>aligning articles</title>
   </head>
   <body>
-	<h1>Align</h1>
+	<h1>Experiments in Alignment</h1>
 
 	<p>
-		A (very) experimental look at recent articles in <a href="http://www.ft.com">FT.com</a>, exploring the visual impact of aligning the search results in novel ways. 
-		<br>The 'key text' is used to identify articles (via keyword search) and to align the results.
-		<br>It is case sensitive, and the whole thing breaks if there are no matching search results, so choose wisely.</p>
-
-	<form action="/align" method="GET">
-		key text: <input type="text" name="text" value="has its own"><br>
-	  	<input type="radio" name="source" value="any" checked> any<br>
-	  	<input type="radio" name="source" value="title-only"> title-only<br>
-		<input type="submit" value="Get and Align">
-	</form>
-
-	<p>The code for all this sits at <a href="https://github.com/railsagainstignorance/alignment">github.com/railsagainstignorance/alignment</a>
-	<br>The code has very little error handling, and it can not work for an excitingly wide variety of reasons.
-	<br>Perhaps the main reason is that this is MyFirstGoProgram.
+		A (very) experimental look at recent articles in <a href="http://www.ft.com">FT.com</a>,
+		<br>exploring the visual impact of aligning the search results in novel ways.
+		<br>The code for all this sits at <a href="https://github.com/railsagainstignorance/alignment">github.com/railsagainstignorance/alignment</a>. 
 	</p>
+
+	</p>
+
+	<h2>on search text</h2>
+		<p>
+			The search text used to identify the articles (via keyword search) is used to align the results.
+		</p>
+		<form action="/align" method="GET">
+			<table>
+				<tr>
+					<td>search text: <input type="text" name="text" value="has its own"></td>
+					<td>source:</td>
+					<td><input type="radio" name="source" value="any" checked> any 
+						<br><input type="radio" name="source" value="title-only"> title-only</td>
+					<td><input type="submit" value="Get and Align on Search Text"></td>
+				</tr>
+			</table>
+			 
+		</form>
+
+	<h2>on meter</h2>
+		<p>
+			In addition to the search text (to locate some articles), you specify a meter. 
+			<br>If any of the results contain text conforming to that meter, they are aligned accordingly. 
+			<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
+			<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
+			<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
+		</p>
+		<form action="/rhyme" method="GET">
+			<table>
+				<tr>
+					<td style="text-align:right;">
+						search text:&nbsp;<input type="text" name="text" value="can">
+						<br>meter:&nbsp;<input type="text" name="meter" value="^1010101010">
+					</td>
+					<td>source:</td>
+					<td>
+						<input type="radio" name="source" value="any" checked> any 
+						<br><input type="radio" name="source" value="title-only"> title-only
+					</td>
+					<td><input type="submit" value="Get and Align on Meter"></td>
+				</tr>
+			</table>			
+		</form>
+
+	<h2>Caveats</h2>
+		<p>
+			<ul>
+				<li>It has very little error handling</li>
+				<li>It can not work for an excitingly wide variety of reasons. 
+				<li>Perhaps the main reason is that this is MyFirstGoProgram.</li>
+				<li>It is case sensitive</li>
+				<li>The whole thing breaks if there are no matching search results</li>
+			</ul>
+			... so choose wisely.
+		</p>
+
+
 
   </body>
 </html>
