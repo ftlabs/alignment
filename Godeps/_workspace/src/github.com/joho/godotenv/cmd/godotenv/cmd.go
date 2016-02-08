@@ -7,7 +7,7 @@ import (
 
 	"strings"
 
-	"github.com/upthebuzzard/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
+	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
 )
 
 func main() {

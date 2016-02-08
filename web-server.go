@@ -1,16 +1,16 @@
 package main
 
 import (
-	"github.com/upthebuzzard/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
+	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
 	"html/template"
 	"net/http"
 	"os"
     "sort"
     "regexp"
     // "fmt"
-    "github.com/upthebuzzard/alignment/align"
-    "github.com/upthebuzzard/alignment/sapi"
-    "github.com/upthebuzzard/alignment/rhyme"
+    "github.com/railsagainstignorance/alignment/align"
+    "github.com/railsagainstignorance/alignment/sapi"
+    "github.com/railsagainstignorance/alignment/rhyme"
 )
 
 func alignFormHandler(w http.ResponseWriter, r *http.Request) {

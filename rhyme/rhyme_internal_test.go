@@ -1,5 +1,5 @@
 package rhyme
 
 import (
-	"github.com/upthebuzzard/alignment/align"
+	"github.com/railsagainstignorance/alignment/align"
 )
