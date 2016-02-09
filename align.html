@@ -1,90 +1,129 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>aligning articles</title>
-  </head>
-  <body>
-	<h1>Experiments in Alignment</h1>
+	<head>
+		<meta charset="UTF-8">
+		<title>aligning articles</title>
+		<link rel="stylesheet" href="https://build.origami.ft.com/bundles/css?modules=o-techdocs@^5.0.1" />
+		<style type="text/css">
+	      	body {
+				margin:0;
+			}
+  		</style>
+	</head>
+	<body>
+  		<header data-o-component="o-header" class="o-header">
+			<div class="o-header__container">
+				<div class="o-header__inner">
+					<div class="o-header__primary">
+						<div class="o-header__primary__left">
+							<a class="o-header__logo o-header__logo--ft" href="http://www.ft.com">
+								<abbr title="Financial Times">FT Labs</abbr>
+								<h1 class="o-header__title">Experiments in Alignment</h1>
+							</a>
+						</div>
+					</div>
+				</div>
+				<div class="o-header__secondary">
+					<div class="o-header__secondary__right demo__secondary--placeholder">
+						from <a href="http://labs.ft.com">FT Labs</a>
+					</div>
+				</div>
+			</div>
+		</header>
 
-	<p>
-		A (very) experimental look at recent articles in <a href="http://www.ft.com">FT.com</a>,
-		<br>exploring the visual impact of aligning the search results in novel ways.
-		<br>The code for all this sits at <a href="https://github.com/railsagainstignorance/alignment">github.com/railsagainstignorance/alignment</a>. 
-	</p>
+		<div class="o-techdocs-hero">
+			<h2 class="o-techdocs-hero__title">
+				A (very) experimental look at recent articles in <a href="http://www.ft.com">FT.com</a>,
+				<br>exploring the visual impact of aligning the search results in novel ways.
+			</h2>
+		</div>
 
-	</p>
+		<div class="o-techdocs-container">
+			<div class="o-techdocs-layout">
+				<!-- Main content (outer div for layout, inner for formatting) -->
+				<div class="o-techdocs-main">
+					<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.css"></link>
+					<div class="o-techdocs-content">
+						<p>
+							The code for all this sits at <a href="https://github.com/railsagainstignorance/alignment">github.com/railsagainstignorance/alignment</a>. 
+						</p>
 
-	<h2>on search text</h2>
-		<p>
-			The search text used to identify the articles (via keyword search) is used to align the results.
-		</p>
-		<form action="/align" method="GET">
-			<table>
-				<tr>
-					<td>search text: <input type="text" name="text" value="has its own"></td>
-					<td>source:</td>
-					<td><input type="radio" name="source" value="any" checked> any 
-						<br><input type="radio" name="source" value="title-only"> title-only</td>
-					<td><input type="submit" value="Get and Align on Search Text"></td>
-				</tr>
-			</table>
-			 
-		</form>
+						</p>
 
-	<h2>on meter</h2>
-		<p>
-			In addition to the search text (to locate some articles), you specify a meter. 
-			<br>If any of the results contain text conforming to that meter, they are aligned accordingly. 
-			<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
-			<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
-			<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
-		</p>
-		<form action="/rhyme" method="GET">
-			<table>
-				<tr>
-					<td style="text-align:right;">
-						search text:&nbsp;<input type="text" name="text" value="can">
-						<br>meter:&nbsp;<input type="text" name="meter" value="^1010101010">
-					</td>
-					<td>source:</td>
-					<td>
-						<input type="radio" name="source" value="any"> any 
-						<br><input type="radio" name="source" value="title-only" checked> title-only
-					</td>
-					<td><input type="submit" value="Get and Align on Meter"></td>
-				</tr>
-			</table>			
-		</form>
+						<h2>on search text</h2>
+							<p>
+								The search text used to identify the articles (via keyword search) is used to align the results.
+							</p>
+							<form action="/align" method="GET">
+								<table>
+									<tr>
+										<td>search text: <input type="text" name="text" value="has its own"></td>
+										<td>source:</td>
+										<td><input type="radio" name="source" value="any" checked> any 
+											<br><input type="radio" name="source" value="title-only"> title-only</td>
+										<td><input type="submit" value="Get and Align on Search Text"></td>
+									</tr>
+								</table>
+								 
+							</form>
 
-	<h2>Caveats</h2>
-		<p>
-			<ul>
-				<li>It has very little error handling</li>
-				<li>It can not work for an excitingly wide variety of reasons. 
-				<li>Perhaps the main reason is that this is MyFirstGoProgram.</li>
-				<li>It is case sensitive</li>
-				<li>The whole thing breaks if there are no matching search results</li>
-			</ul>
-			... so choose wisely.
-		</p>
+						<h2>on meter</h2>
+							<p>
+								In addition to the search text (to locate some articles), you specify a meter. 
+								<br>If any of the results contain text conforming to that meter, they are aligned accordingly. 
+								<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
+								<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
+								<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
+							</p>
+							<form action="/rhyme" method="GET">
+								<table>
+									<tr>
+										<td style="text-align:right;">
+											search text:&nbsp;<input type="text" name="text" value="can">
+											<br>meter:&nbsp;<input type="text" name="meter" value="^1010101010">
+										</td>
+										<td>source:</td>
+										<td>
+											<input type="radio" name="source" value="any"> any 
+											<br><input type="radio" name="source" value="title-only" checked> title-only
+										</td>
+										<td><input type="submit" value="Get and Align on Meter"></td>
+									</tr>
+								</table>			
+							</form>
 
-	<hr>
-	<h2>Simply interesting</h2>
-	<ul>
-		<li><a href="http://www.ft.com/recruitment/workplace-haiku">Workplace Haiku at the FT</a></li>
-		<li><a href="http://haiku.nytimes.com/about">Haikus at the New York Times</a></li>
-		<li><a href="https://en.wikipedia.org/wiki/Computational_humor">Computational Humour</a></li>
-		<li><a href="https://en.wikipedia.org/wiki/The_Ode_Less_Travelled">The Ode Less Travelled</a> by Stephen Fry</li>
-		<li><a href="https://en.wikipedia.org/wiki/List_of_English_words_without_rhymes">English words without rhymes</a></li>
-		<li><a href="http://ed.ted.com/lessons/why-shakespeare-loved-iambic-pentameter-david-t-freeman-and-gregory-taylor">Why Shakespere loved</a> <a href="https://www.youtube.com/watch?v=v0aAWuUX5jU">iambic pentameter</a></li>
-		<li><a href="https://xkcd.com/79/">XKCD does iambic pentameter</a></li>
-	</ul>
+						<h2>Caveats</h2>
+							<p>
+								<ul>
+									<li>It has very little error handling</li>
+									<li>It can not work for an excitingly wide variety of reasons. 
+									<li>Perhaps the main reason is that this is MyFirstGoProgram.</li>
+									<li>It is case sensitive</li>
+									<li>The whole thing breaks if there are no matching search results</li>
+								</ul>
+								... so choose wisely.
+							</p>
 
-	<h3>assorted imagery</h3>
+						<hr>
+						<h2>Simply interesting</h2>
+						<ul>
+							<li><a href="http://www.ft.com/recruitment/workplace-haiku">Workplace Haiku at the FT</a></li>
+							<li><a href="http://haiku.nytimes.com/about">Haikus at the New York Times</a></li>
+							<li><a href="https://en.wikipedia.org/wiki/Computational_humor">Computational Humour</a></li>
+							<li><a href="https://en.wikipedia.org/wiki/The_Ode_Less_Travelled">The Ode Less Travelled</a> by Stephen Fry</li>
+							<li><a href="https://en.wikipedia.org/wiki/List_of_English_words_without_rhymes">English words without rhymes</a></li>
+							<li><a href="http://ed.ted.com/lessons/why-shakespeare-loved-iambic-pentameter-david-t-freeman-and-gregory-taylor">Why Shakespere loved</a> <a href="https://www.youtube.com/watch?v=v0aAWuUX5jU">iambic pentameter</a></li>
+							<li><a href="https://xkcd.com/79/">XKCD does iambic pentameter</a></li>
+						</ul>
 
-	<a href="https://www.flickr.com/photos/60584010@N00/4512300401"><img src="https://farm3.staticflickr.com/2024/4512300401_b0d2b8ca52_o_d.jpg"></a>
-	<a href="https://www.flickr.com/photos/artbystevejohnson/4621636807"><img src="https://farm5.staticflickr.com/4033/4621636807_2e1540fef7_o_d.jpg"></a>
-	<a href="https://www.flickr.com/photos/dentonpotter/11590533916"><img src="https://c2.staticflickr.com/4/3731/11590533916_d05e1a1d8e_b.jpg"></a>
+						<h3>assorted imagery</h3>
+
+						<a href="https://www.flickr.com/photos/60584010@N00/4512300401"><img src="https://farm3.staticflickr.com/2024/4512300401_b0d2b8ca52_o_d.jpg"></a>
+						<a href="https://www.flickr.com/photos/artbystevejohnson/4621636807"><img src="https://farm5.staticflickr.com/4033/4621636807_2e1540fef7_o_d.jpg"></a>
+						<a href="https://www.flickr.com/photos/dentonpotter/11590533916"><img src="https://c2.staticflickr.com/4/3731/11590533916_d05e1a1d8e_b.jpg"></a>
+					</div>
+				</div>
+			</div>
+		</div>
   </body>
 </html>
