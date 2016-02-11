@@ -14,12 +14,12 @@
 
 			<div align="center" style="font-style: italic;">
 				<form action="/rhyme" method="GET">
-					<br>on <input type="text" name="text" value="{{.SearchResult.Text}}">
+					<br><input type="text" name="text" value="{{.SearchResult.Text}}">
 					<input type="radio" name="source" value="any" {{.SearchResult.AnyChecked}}> any
 				  	<input type="radio" name="source" value="title-only" {{.SearchResult.TitleOnlyChecked}}> title-only
 					<br>meter <input type="text" name="meter" value="{{.MatchMeter}}">
 
-					<input type="submit" value="Get and Meter">
+					<input type="submit" value="search and align on matching meter">
 				</form>
 			</div>
 			<br>
