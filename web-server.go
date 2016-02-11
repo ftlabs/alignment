@@ -16,15 +16,16 @@ import (
 // compile all templates and cache them
 var templates = template.Must(template.ParseGlob("templates/*"))
 
-func alignFormHandler(w http.ResponseWriter, r *http.Request) {
-	// t, _ := template.ParseFiles("align.html")
-	// t.Execute(w, nil)
-    // you access the cached templates with the defined name, not the filename
-    err := templates.ExecuteTemplate(w, "alignPage", nil)
+func templateHandler( w http.ResponseWriter, pageName string, data interface{} ){
+    err := templates.ExecuteTemplate(w, pageName, data)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
-    }
+    }    
+}
+
+func alignFormHandler(w http.ResponseWriter, r *http.Request) {
+    templateHandler( w, "alignPage", nil )
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,14 +35,7 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     }
 
 	p := align.Search( searchParams )
-
-	// t, _ := template.ParseFiles("aligned.html")
-	// t.Execute(w, p)
-    err := templates.ExecuteTemplate(w, "alignedPage", p)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+    templateHandler( w, "alignedPage", p )
 }
 
 type ResultItemWithRhymeAndMeter struct {
@@ -108,15 +102,7 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
         PhraseWordsRegexpString: syllabi.PhraseWordsRegexpString,
     }
 
-    // t, _ := template.ParseFiles("rhymed.html")
-    // t.Execute(w, &srwfs)
-
-    err := templates.ExecuteTemplate(w, "rhymedPage", &srwfs)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-
+    templateHandler( w, "rhymedPage", &srwfs )
 }
 
 func main() {
