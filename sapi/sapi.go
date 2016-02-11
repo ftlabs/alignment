@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
-    "github.com/upthebuzzard/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
+    "github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
 )
 
 func getSapiResponseJsonBody(text string, titleOnly bool) ([]byte, string) {

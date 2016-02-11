@@ -8,7 +8,7 @@ Currenly (as of 07/02/2016) [deployed live](https://hidden-wave-75799.herokuapp.
 
 * download the latest stable golang version from https://golang.org/doc/install
 * clone this repo
-* ensure you have your $GOPATH set up ok, in particular with this project sitting in $GOPATH/src/github.com/upthebuzzard/alignment
+* ensure you have your $GOPATH set up ok, in particular with this project sitting in $GOPATH/src/github.com/railsagainstignorance/alignment
 * get and install the 3rd party import (which ends up in $GOPATH/src/... etc)
    * $ go get     github.com/joho/godotenv
    * $ go install github.com/joho/godotenv
@@ -17,7 +17,7 @@ Currenly (as of 07/02/2016) [deployed live](https://hidden-wave-75799.herokuapp.
 
 ## building and running
 
-* $ go install github.com/upthebuzzard/alignment
+* $ go install github.com/railsagainstignorance/alignment
 * $ $GOPATH/bin/alignment.exe
 
 ## deploying to heroku

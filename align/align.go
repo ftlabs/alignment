@@ -3,7 +3,7 @@ package align
 import (
 	"sort"
     "regexp"
-    "github.com/upthebuzzard/alignment/sapi"
+    "github.com/railsagainstignorance/alignment/sapi"
 )
 
 type PhraseBits struct {
