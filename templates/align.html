@@ -3,25 +3,7 @@
 	<html>
     	{{template "head"}}
 		<body>
-	  		<header data-o-component="o-header" class="o-header">
-				<div class="o-header__container">
-					<div class="o-header__inner">
-						<div class="o-header__primary">
-							<div class="o-header__primary__left">
-								<a class="o-header__logo o-header__logo--ft" href="http://www.ft.com">
-									<abbr title="Financial Times">FT Labs</abbr>
-									<h1 class="o-header__title">Experiments in Alignment</h1>
-								</a>
-							</div>
-						</div>
-					</div>
-					<div class="o-header__secondary">
-						<div class="o-header__secondary__right demo__secondary--placeholder">
-							from <a href="http://labs.ft.com">FT Labs</a>
-						</div>
-					</div>
-				</div>
-			</header>
+	    	{{template "header"}}
 
 			<div class="o-techdocs-hero">
 				<h2 class="o-techdocs-hero__title">
@@ -42,24 +24,24 @@
 
 							</p>
 
-							<h2>on search text</h2>
+							<h2>align on matching phrase</h2>
 								<p>
 									The search text used to identify the articles (via keyword search) is used to align the results.
 								</p>
 								<form action="/align" method="GET">
 									<table>
 										<tr>
-											<td>search text: <input type="text" name="text" value="has its own"></td>
+											<td><input type="text" name="text" value="has its own"></td>
 											<td>source:</td>
 											<td><input type="radio" name="source" value="any" checked> any 
 												<br><input type="radio" name="source" value="title-only"> title-only</td>
-											<td><input type="submit" value="Get and Align on Search Text"></td>
+											<td><input type="submit" value="Search and Align on matching phrase"></td>
 										</tr>
 									</table>
 									 
 								</form>
 
-							<h2>on meter</h2>
+							<h2>align on matching meter</h2>
 								<p>
 									In addition to the search text (to locate some articles), you specify a meter. 
 									<br>If any of the results contain text conforming to that meter, they are aligned accordingly. 
@@ -71,7 +53,7 @@
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												search text:&nbsp;<input type="text" name="text" value="can">
+												<input type="text" name="text" value="can">
 												<br>meter:&nbsp;<input type="text" name="meter" value="^1010101010">
 											</td>
 											<td>source:</td>
@@ -79,7 +61,7 @@
 												<input type="radio" name="source" value="any"> any 
 												<br><input type="radio" name="source" value="title-only" checked> title-only
 											</td>
-											<td><input type="submit" value="Get and Align on Meter"></td>
+											<td><input type="submit" value="Get and Align on matching meter"></td>
 										</tr>
 									</table>			
 								</form>
@@ -117,6 +99,6 @@
 					</div>
 				</div>
 			</div>
-	  </body>
+		</body>
 	</html>
 {{end}}

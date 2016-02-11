@@ -3,24 +3,34 @@
 	<html>
     	{{template "head"}}
 		<body>
-			<form action="/align" method="GET">
-				<b style="font-size:xx-large"><a href="/">Alignment</a> of <a href="{{.FtcomSearchUrl}}">recent</a> <a href="{{.FtcomUrl}}">FT.com</a> articles</b> 
-				on <input type="text" name="text" value="{{.Text}}">
-				<input type="radio" name="source" value="any" {{.AnyChecked}}> any
-			  	<input type="radio" name="source" value="title-only" {{.TitleOnlyChecked}}> title-only
-				<input type="submit" value="Get and Align">
-				&nbsp; (<a href="/">help+about</a>)
-			</form>
-		<br>
-			<table>
-			{{range $phrase := .Phrases}}
-				<tr>
-					<td style="text-align:right;  white-space: nowrap">{{ $phrase.Before }}</td>
-					<td style="text-align:center; white-space: nowrap"><a href="{{$phrase.LocationUri}}" alt="{{$phrase.Title}}">{{ $phrase.Common }}</a></td>
-					<td style="text-align:left;   white-space: nowrap">{{ $phrase.After  }}</td>
-				</tr>
-			{{ end }}
-			</table>
+	    	{{template "header"}}
+	    	<div class="o-techdocs-hero">
+				<h2 class="o-techdocs-hero__title">
+					Simply aligning <a href="http://www.ft.com">FT.com</a> <a href="{{.FtcomSearchUrl}}">search results</a>
+					<br>on the placement of the matching phrase.
+				</h2>
+			</div>
+
+			<div align="center" style="font-style: italic;">
+				<form action="/align" method="GET">
+					<input type="text" name="text" value="{{.Text}}">
+					<input type="radio" name="source" value="any" {{.AnyChecked}}> any
+				  	<input type="radio" name="source" value="title-only" {{.TitleOnlyChecked}}> title-only
+					<input type="submit" value="Get and Align">
+				</form>
+			</div>
+			<br>
+			<div align="center">
+				<table>
+				{{range $phrase := .Phrases}}
+					<tr>
+						<td style="text-align:right;  white-space: nowrap">{{ $phrase.Before }}</td>
+						<td style="text-align:center; white-space: nowrap"><a href="{{$phrase.LocationUri}}" alt="{{$phrase.Title}}">{{ $phrase.Common }}</a></td>
+						<td style="text-align:left;   white-space: nowrap">{{ $phrase.After  }}</td>
+					</tr>
+				{{ end }}
+				</table>
+			</div>
 		</body>
 	</html>
 {{end}}

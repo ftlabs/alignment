@@ -102,7 +102,7 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
         PhraseWordsRegexpString: syllabi.PhraseWordsRegexpString,
     }
 
-    templateHandler( w, "rhymedPage", &srwfs )
+    templateHandler( w, "meteredPage", &srwfs )
 }
 
 func main() {

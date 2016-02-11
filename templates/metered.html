@@ -1,0 +1,48 @@
+{{define "meteredPage"}}
+	<!DOCTYPE html>
+	<html>
+    	{{template "head"}}
+		<body>
+	    	{{template "header"}}
+ 		    <div class="o-techdocs-hero">
+				<h2 class="o-techdocs-hero__title">
+					Filtering the <a href="http://www.ft.com">FT.com</a> <a href="{{.SearchResult.FtcomSearchUrl}}">search results</a>
+					<br>for those which match the requested meter,
+					<br>and aligning on the matching phrases.
+				</h2>
+			</div>
+
+			<div align="center" style="font-style: italic;">
+				<form action="/rhyme" method="GET">
+					<br>on <input type="text" name="text" value="{{.SearchResult.Text}}">
+					<input type="radio" name="source" value="any" {{.SearchResult.AnyChecked}}> any
+				  	<input type="radio" name="source" value="title-only" {{.SearchResult.TitleOnlyChecked}}> title-only
+					<br>meter <input type="text" name="meter" value="{{.MatchMeter}}">
+
+					<input type="submit" value="Get and Meter">
+				</form>
+			</div>
+			<br>
+			<div align="center">
+				<table>
+				{{range $item := .ResultItemsWithRhymeAndMeterList}}
+					<tr>
+						<td style="text-align:right;  white-space: nowrap">{{ $item.RhymeAndMeter.MatchesOnMeter.Before }}</td>
+						<td style="text-align:center;  white-space: nowrap; font-style: italic"><a href="{{$item.ResultItem.LocationUri}}" alt="{{$item.ResultItem.Title}}">{{ $item.RhymeAndMeter.MatchesOnMeter.During }}</a></td>
+						<td style="text-align:left;  white-space: nowrap">{{ $item.RhymeAndMeter.MatchesOnMeter.After }}</td>
+					</tr>
+				{{ end }}
+				</table>
+			</div>
+			<br>
+
+			<h2>unrecognised words</h2>
+			<p>... and which therefore cannot be matched by the meter regexp</p>
+			<ul>
+			{{range $item := .KnownUnknowns}}
+				<li>{{ $item }}</li>
+			{{ end }}
+			</ul>
+		</body>
+	</html>
+{{end}}
