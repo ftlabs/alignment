@@ -13,9 +13,18 @@ import (
     "github.com/railsagainstignorance/alignment/rhyme"
 )
 
+// compile all templates and cache them
+var templates = template.Must(template.ParseGlob("templates/*"))
+
 func alignFormHandler(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("align.html")
-	t.Execute(w, nil)
+	// t, _ := template.ParseFiles("align.html")
+	// t.Execute(w, nil)
+    // you access the cached templates with the defined name, not the filename
+    err := templates.ExecuteTemplate(w, "alignPage", nil)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,8 +35,13 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := align.Search( searchParams )
 
-	t, _ := template.ParseFiles("aligned.html")
-	t.Execute(w, p)
+	// t, _ := template.ParseFiles("aligned.html")
+	// t.Execute(w, p)
+    err := templates.ExecuteTemplate(w, "alignedPage", p)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
 }
 
 type ResultItemWithRhymeAndMeter struct {
@@ -94,8 +108,15 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
         PhraseWordsRegexpString: syllabi.PhraseWordsRegexpString,
     }
 
-    t, _ := template.ParseFiles("rhymed.html")
-    t.Execute(w, &srwfs)
+    // t, _ := template.ParseFiles("rhymed.html")
+    // t.Execute(w, &srwfs)
+
+    err := templates.ExecuteTemplate(w, "rhymedPage", &srwfs)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
 }
 
 func main() {
