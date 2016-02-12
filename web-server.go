@@ -61,7 +61,7 @@ func (rri RhymedResultItems) Less(i, j int) bool { return rri[i].RhymeAndMeter.F
 
 var syllabi = rhyme.ConstructSyllabi(&[]string{"rhyme/cmudict-0.7b", "rhyme/cmudict-0.7b_my_additions"})
 
-func rhymeHandler(w http.ResponseWriter, r *http.Request) {
+func meterHandler(w http.ResponseWriter, r *http.Request) {
     searchParams := sapi.SearchParams{
         Text:   r.FormValue("text"),
         Source: r.FormValue("source"),
@@ -114,6 +114,6 @@ func main() {
 
 	http.HandleFunc("/", alignFormHandler)
     http.HandleFunc("/align", alignHandler)
-    http.HandleFunc("/rhyme", rhymeHandler)
+    http.HandleFunc("/meter", meterHandler)
 	http.ListenAndServe(":"+string(port), nil)
 }
