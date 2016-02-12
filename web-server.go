@@ -16,7 +16,7 @@ import (
 // compile all templates and cache them
 var templates = template.Must(template.ParseGlob("templates/*"))
 
-func templateHandler( w http.ResponseWriter, pageName string, data interface{} ){
+func templateExecuter( w http.ResponseWriter, pageName string, data interface{} ){
     err := templates.ExecuteTemplate(w, pageName, data)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -25,7 +25,7 @@ func templateHandler( w http.ResponseWriter, pageName string, data interface{} )
 }
 
 func alignFormHandler(w http.ResponseWriter, r *http.Request) {
-    templateHandler( w, "alignPage", nil )
+    templateExecuter( w, "alignPage", nil )
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +35,7 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     }
 
 	p := align.Search( searchParams )
-    templateHandler( w, "alignedPage", p )
+    templateExecuter( w, "alignedPage", p )
 }
 
 type ResultItemWithRhymeAndMeter struct {
@@ -102,7 +102,7 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
         PhraseWordsRegexpString: syllabi.PhraseWordsRegexpString,
     }
 
-    templateHandler( w, "meteredPage", &srwfs )
+    templateExecuter( w, "meteredPage", &srwfs )
 }
 
 func main() {
