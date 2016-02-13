@@ -22,13 +22,13 @@
 				</form>
 			</div>
 			<br>
-			<div align="center">
+			<div align="center"> 
 				<table>
 				{{range $item := .MatchedPhrases}}
 					<tr>
-						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.Before }}</td>
+						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.BeforeCropped }}</td>
 						<td style="text-align:center;  white-space: nowrap; font-style: italic">{{ $item.MatchesOnMeter.During }}</td>
-						<td style="text-align:left;  white-space: nowrap">{{ $item.MatchesOnMeter.After }}</td>
+						<td style="text-align:left;  white-space: nowrap">{{ $item.MatchesOnMeter.AfterCropped }}</td>
 					</tr>
 				{{ end }}
 				</table>
