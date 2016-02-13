@@ -6,6 +6,7 @@ import (
     "strings"
     "fmt"
     "github.com/railsagainstignorance/alignment/capi"
+    "github.com/railsagainstignorance/alignment/rhyme"
     "github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
     "github.com/kennygrant/sanitize"
 )
@@ -53,16 +54,53 @@ func getArticleWithSentences( uuid string ) (*ArticleWithSentences){
     return &aws
 }
 
+type ArticleWithSentencesAndMeter struct {
+    *ArticleWithSentences
+    MatchedPhrases *[]*rhyme.RhymeAndMeter
+}
+
+func getArticleWithSentencesAndMeter( uuid string, meter string, syllabi *rhyme.Syllabi ) (*ArticleWithSentencesAndMeter){
+    aws := getArticleWithSentences( uuid )
+    rams := []*rhyme.RhymeAndMeter{}
+
+    if meter == "" {
+        meter = rhyme.DefaultMeter
+    }
+
+    emphasisRegexp := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
+
+    for _, s := range *(aws.Sentences) {
+        ram := syllabi.RhymeAndMeterOfPhrase(s, emphasisRegexp)
+
+        // fmt.Println("getArticleWithSentencesAndMeter: ram=", *ram)
+
+        if ram.EmphasisRegexpMatch2 != "" {
+            rams = append( rams, ram )            
+        }
+    }
+
+    awsam := ArticleWithSentencesAndMeter{
+        aws,
+        &rams,
+    }
+
+    return &awsam
+}
+
 func main() {
     godotenv.Load()
+    var syllabi = rhyme.ConstructSyllabi(&[]string{"../rhyme/cmudict-0.7b", "../rhyme/cmudict-0.7b_my_additions"})
 
-    uuid := "b57fee24-cb3c-11e5-be0b-b7ece4e953a0"
+    uuid  := "b57fee24-cb3c-11e5-be0b-b7ece4e953a0"
+    meter := "1010"
 
-    aws := getArticleWithSentences( uuid )
+    aws := getArticleWithSentencesAndMeter( uuid, meter, syllabi )
     fmt.Println("main: article.Title=", aws.Title)
     fmt.Println("main: body=", aws.Body)
 
-    for _,s := range *(aws.Sentences) {
-        fmt.Println("main: s=", s)
+    fmt.Println("main: num Sentences=", len(*(aws.Sentences)), "num MatchedPhrases=", len(*(aws.MatchedPhrases)))
+
+    for _, mp := range *(aws.MatchedPhrases) {
+        fmt.Println("main: mp.MatchesOnMeter.During=", mp.MatchesOnMeter.During)
     }
 }
