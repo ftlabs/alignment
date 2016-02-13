@@ -134,6 +134,7 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
         MeterRegexp *regexp.Regexp
         RhymeAndMeters *[]*rhyme.RhymeAndMeter
         KnownUnknowns *[]string
+        EmphasisPointsDetails *rhyme.EmphasisPointsDetails
     }
 
     pd := PhraseDetails{
@@ -143,6 +144,7 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
         MeterRegexp:    rhyme.ConvertToEmphasisPointsStringRegexp(meter),
         RhymeAndMeters: rams,
         KnownUnknowns:  syllabi.KnownUnknowns(),
+        EmphasisPointsDetails: syllabi.FindAllEmphasisPointsDetails(phrase),
     }
 
     templateExecuter( w, "detailPage", pd )

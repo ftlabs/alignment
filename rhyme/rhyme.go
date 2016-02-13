@@ -155,6 +155,20 @@ type Stats struct {
 	NumSyllables            int 
 }
 
+type EmphasisPointsDetails struct {
+	Phrase                       string
+	PhraseMatches                *[][]string
+	PhraseWords                  []string
+	MatchingWords                []*Word
+	ContainsUnmatchedWord        bool
+	EmphasisPointsStrings        []string
+	FinalSyllable                string
+	FinalSyllableAZ              string
+	EmphasisPointsCombinedString string
+}
+
+
+
 type Syllabi struct {
 	Stats          Stats
     SourceFilenames *[]string
@@ -169,6 +183,7 @@ type Syllabi struct {
     KnownUnknowns func() *[]string
 	PhraseWordsRegexp            *regexp.Regexp
 	PhraseWordsRegexpString      string
+	FindAllEmphasisPointsDetails func(string) *EmphasisPointsDetails
 }
 
 type RhymeAndMeter struct {
@@ -378,18 +393,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 	findAllPhraseMatches := func(phrase string) *[][]string {
 		matches := wordsRegexp.FindAllStringSubmatch(phrase, -1)
 		return &matches
-	}
-
-	type EmphasisPointsDetails struct {
-		Phrase                       string
-		PhraseMatches                *[][]string
-		PhraseWords                  []string
-		MatchingWords                []*Word
-		ContainsUnmatchedWord        bool
-		EmphasisPointsStrings        []string
-		FinalSyllable                string
-		FinalSyllableAZ              string
-		EmphasisPointsCombinedString string
 	}
 
 	findAllEmphasisPointsDetails := func(phrase string) (*EmphasisPointsDetails) {
@@ -608,6 +611,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		KnownUnknowns:              knownUnknownsFunc,
 		PhraseWordsRegexp:            wordsRegexp,
 		PhraseWordsRegexpString:      wordsRegexp.String(),
+		FindAllEmphasisPointsDetails: findAllEmphasisPointsDetails,
 	}
 
 	return &syllabi
