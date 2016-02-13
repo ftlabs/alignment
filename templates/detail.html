@@ -42,12 +42,10 @@
 					</tr>
 				</table>
 				<br>
-				{{range $item := .RhymeAndMeters}}
-				<br>
 				<table border="1">
 					<tr>
 						<td>PhraseWords</td>
-						{{range $pw := $item.PhraseWords}}
+						{{range $pw := .EmphasisPointsDetails.PhraseWords}}
 							<td>{{ $pw }}</td>
 						{{end}}
 					</tr>
@@ -61,7 +59,7 @@
 							<br>- FinalSyllableAZ
 							<br>- EmphasisPointsString
 						</td>
-						{{range $mw := $item.MatchingWords}}
+						{{range $mw := .EmphasisPointsDetails.MatchingWords}}
 							<td>
 								&nbsp;
 								<br>{{$mw.Name}}
@@ -75,6 +73,7 @@
 					</tr>
 				</table>
 				<br>
+				{{range $item := .RhymeAndMeters}}
 				<table>
 					<tr>
 						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.BeforeCropped }}</td>
