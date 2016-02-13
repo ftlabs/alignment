@@ -71,10 +71,12 @@ func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.S
 	emphasisRegexp := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
 
 	for _, s := range *(aws.Sentences) {
-		ram := syllabi.RhymeAndMeterOfPhrase(s, emphasisRegexp)
+		syllabiRams := syllabi.RhymeAndMetersOfPhrase(s, emphasisRegexp)
 
-		if ram.EmphasisRegexpMatch2 != "" {
-			rams = append(rams, ram)
+		for _,ram := range *syllabiRams {
+			if ram.EmphasisRegexpMatch2 != "" {
+				rams = append(rams, ram)
+			}			
 		}
 	}
 

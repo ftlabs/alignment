@@ -79,15 +79,19 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
     riwfsList := []*ResultItemWithRhymeAndMeter{}
 
     for _, item := range *(sapiResult.Items) {
-        ram := syllabi.RhymeAndMeterOfPhrase(item.Phrase, emphasisRegexp)
+        rams := syllabi.RhymeAndMetersOfPhrase(item.Phrase, emphasisRegexp)
 
-        if ram.EmphasisRegexpMatch2 != "" {
-            riwfs := ResultItemWithRhymeAndMeter{
-                ResultItem:    item,
-                RhymeAndMeter: ram,
+        if rams != nil {
+            for _,ram := range *rams {
+                if ram.EmphasisRegexpMatch2 != "" {
+                    riwfs := ResultItemWithRhymeAndMeter{
+                        ResultItem:    item,
+                        RhymeAndMeter: ram,
+                    }
+
+                    riwfsList = append( riwfsList, &riwfs)            
+                }
             }
-
-            riwfsList = append( riwfsList, &riwfs)            
         }
     }
 

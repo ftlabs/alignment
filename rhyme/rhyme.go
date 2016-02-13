@@ -164,7 +164,7 @@ type Syllabi struct {
     FinalSyllable  func(string) string
     FinalSyllableOfPhrase func(string) string
     SortPhrasesByFinalSyllable func( []string ) *RhymingPhrases
-    RhymeAndMeterOfPhrase func(string, *regexp.Regexp) *RhymeAndMeter
+    RhymeAndMetersOfPhrase func(string, *regexp.Regexp) *[]*RhymeAndMeter
     FindMatchingWord func(string) *Word
     KnownUnknowns func() *[]string
 	PhraseWordsRegexp            *regexp.Regexp
@@ -233,21 +233,17 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 	meterWithExpanded0s := strings.Replace(meterWithSpaces, `0`, `[0\*]`, -1)
 	meterWithExpanded1s := strings.Replace(meterWithExpanded0s, `1`, `[12\*]`, -1)
 
-	var capture1 string 
+	before := "" 
 	if containsAnchorAtStart  {
-		capture1 = "^()" 
-	} else {
-		capture1 = "^(.*)"
-	}
+		before = "^" 
+	} 
 
-	var capture3 string
+	after := ""
 	if containsAnchorAtEnd {
-		capture3 = "()$"
-	} else {
-		capture3 = "(.*)$"
+		after = "$"
 	}
 
-	meterWithCaptures := capture1 + `(\s` + meterWithExpanded1s + `\s)` + capture3
+	meterWithCaptures := before + `(\s` + meterWithExpanded1s + `\s)` + after
 
 	r := regexp.MustCompile(meterWithCaptures)
 	return r
@@ -375,7 +371,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		return &matches
 	}
 
-	rhymeAndMeterOfPhrase := func(phrase string, emphasisRegexp *regexp.Regexp) *RhymeAndMeter {
+	rhymeAndMetersOfPhrase := func(phrase string, emphasisRegexp *regexp.Regexp) (*[]*RhymeAndMeter) {
 		finalWord := ""
 		phraseWords := []string{}
 		matchingWords := []*Word{}
@@ -411,92 +407,108 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			emphasisPointsCombinedString = " " + strings.Join(emphasisPointsStrings, " ") + " "
 		}
 
-		emphasisRegexpMatches := emphasisRegexp.FindStringSubmatch(emphasisPointsCombinedString)
-		var emphasisRegexpMatch2 string
-		if emphasisRegexpMatches == nil {
-			emphasisRegexpMatch2 = ""
-		} else {
-			emphasisRegexpMatch2 = emphasisRegexpMatches[2]
-		}
+		rams := []*RhymeAndMeter{}
+		allEmphasisRegexpIndexes := emphasisRegexp.FindAllStringIndex(emphasisPointsCombinedString, -1)
 
-		matchesOnMeter := MatchesOnMeter{}
-		if emphasisRegexpMatches != nil {
-			countWordsInMatch := func(s string) int { 
-				trimmed := strings.TrimSpace(s)
-				num := 0
-				if trimmed != "" {
-					num = len( strings.Split( trimmed, " " ) ) 
+		if allEmphasisRegexpIndexes != nil {
+			for _,emphasisRegexpIndexes := range allEmphasisRegexpIndexes {
+
+				emphasisRegexpMatches := []string{
+					emphasisPointsCombinedString,
+					emphasisPointsCombinedString[                       0 : emphasisRegexpIndexes[0]],
+					emphasisPointsCombinedString[emphasisRegexpIndexes[0] : emphasisRegexpIndexes[1]],
+					emphasisPointsCombinedString[emphasisRegexpIndexes[1] : len(emphasisPointsCombinedString)],
 				}
-				return num
-			}
-			// assume we can rely on space-separated emphasis fragments to map to words...
-			numBefore        := countWordsInMatch(emphasisRegexpMatches[1])
-			numDuring        := countWordsInMatch(emphasisRegexpMatches[2])
-			numAfter         := countWordsInMatch(emphasisRegexpMatches[3])
-			numBeforeDuring  := numBefore + numDuring
-			numTotal         := numBeforeDuring       + numAfter
 
-			if numTotal != len(phraseWords) {
-				fmt.Println("rhyme: rhymeAndMeterOfPhrase: matchesOnMeter: mismatched counts: numTotal=", numTotal, ", len(phraseWords)=", len(phraseWords))
-			} else {
-				matchBefore        := ""
-				matchBeforeCropped := matchBefore
-				if numBefore > 0 {
-					matchBefore = strings.Join(phraseWords[0:numBefore], " ")
-					numBeforeExcess := numBefore-cropBeforeAfterToMaxWords
-					if numBeforeExcess > 0 {
-						matchBeforeCropped = cropBeforeAfterDotDotDot + " " + strings.Join(phraseWords[numBeforeExcess:numBefore], " ")
+				var emphasisRegexpMatch2 string
+				if emphasisRegexpMatches == nil {
+					emphasisRegexpMatch2 = ""
+				} else {
+					emphasisRegexpMatch2 = emphasisRegexpMatches[2]
+				}
+
+				matchesOnMeter := MatchesOnMeter{}
+				if emphasisRegexpMatches != nil {
+					countWordsInMatch := func(s string) int { 
+						trimmed := strings.TrimSpace(s)
+						num := 0
+						if trimmed != "" {
+							num = len( strings.Split( trimmed, " " ) ) 
+						}
+						return num
+					}
+					// assume we can rely on space-separated emphasis fragments to map to words...
+					numBefore        := countWordsInMatch(emphasisRegexpMatches[1])
+					numDuring        := countWordsInMatch(emphasisRegexpMatches[2])
+					numAfter         := countWordsInMatch(emphasisRegexpMatches[3])
+					numBeforeDuring  := numBefore + numDuring
+					numTotal         := numBeforeDuring       + numAfter
+
+					if numTotal != len(phraseWords) {
+						fmt.Println("rhyme: rhymeAndMeterOfPhrase: matchesOnMeter: mismatched counts: numTotal=", numTotal, ", len(phraseWords)=", len(phraseWords))
 					} else {
-						matchBeforeCropped = matchBefore
+						matchBefore        := ""
+						matchBeforeCropped := matchBefore
+						if numBefore > 0 {
+							matchBefore = strings.Join(phraseWords[0:numBefore], " ")
+							numBeforeExcess := numBefore-cropBeforeAfterToMaxWords
+							if numBeforeExcess > 0 {
+								matchBeforeCropped = cropBeforeAfterDotDotDot + " " + strings.Join(phraseWords[numBeforeExcess:numBefore], " ")
+							} else {
+								matchBeforeCropped = matchBefore
+							}
+						}
+						matchDuring := ""
+						if numDuring > 0 {
+							matchDuring = strings.Join(phraseWords[numBefore:numBeforeDuring], " ")
+						}
+						matchAfter 		  := ""
+						matchAfterCropped := matchAfter
+						if numAfter > 0 {
+							matchAfter = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)], " ")
+							numAfterExcess := numAfter-cropBeforeAfterToMaxWords
+							if numAfterExcess > 0 {
+								matchAfterCropped = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)-numAfterExcess], " ") + " " + cropBeforeAfterDotDotDot
+							} else {
+								matchAfterCropped = matchAfter
+							}
+						}
+						matchesOnMeter = MatchesOnMeter{
+							Before:          matchBefore, 
+							During:          matchDuring,
+							After:           matchAfter,
+							NumWordsBefore:  numBefore,
+							NumWordsDuring:  numDuring,
+							NumWordsAfter:   numAfter,
+							NumWordsTotal:   numTotal,
+							BeforeCropped:   matchBeforeCropped,
+							AfterCropped:    matchAfterCropped,
+						}
 					}
 				}
-				matchDuring := ""
-				if numDuring > 0 {
-					matchDuring = strings.Join(phraseWords[numBefore:numBeforeDuring], " ")
+		 
+				ram := RhymeAndMeter{
+					Phrase:                       phrase,
+					PhraseWords:                  &phraseWords,
+					MatchingWords:                &matchingWords,
+					EmphasisPointsStrings:        &emphasisPointsStrings,
+					EmphasisPointsCombinedString: emphasisPointsCombinedString,
+					FinalSyllable:                finalSyllable,
+					FinalSyllableAZ:              finalSyllableAZ,
+					ContainsUnmatchedWord:        containsUnmatchedWord,
+					FinalWord:                    finalWord,
+					EmphasisRegexp:               emphasisRegexp,
+					EmphasisRegexpString:         emphasisRegexp.String(),
+					EmphasisRegexpMatches:        emphasisRegexpMatches,
+					EmphasisRegexpMatch2:         emphasisRegexpMatch2,
+					MatchesOnMeter:               &matchesOnMeter,
 				}
-				matchAfter 		  := ""
-				matchAfterCropped := matchAfter
-				if numAfter > 0 {
-					matchAfter = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)], " ")
-					numAfterExcess := numAfter-cropBeforeAfterToMaxWords
-					if numAfterExcess > 0 {
-						matchAfterCropped = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)-numAfterExcess], " ") + " " + cropBeforeAfterDotDotDot
-					} else {
-						matchAfterCropped = matchAfter
-					}
-				}
-				matchesOnMeter = MatchesOnMeter{
-					Before:          matchBefore, 
-					During:          matchDuring,
-					After:           matchAfter,
-					NumWordsBefore:  numBefore,
-					NumWordsDuring:  numDuring,
-					NumWordsAfter:   numAfter,
-					NumWordsTotal:   numTotal,
-					BeforeCropped:   matchBeforeCropped,
-					AfterCropped:    matchAfterCropped,
-				}
-			}
-		}
- 
-		ram := RhymeAndMeter{
-			Phrase:                       phrase,
-			PhraseWords:                  &phraseWords,
-			MatchingWords:                &matchingWords,
-			EmphasisPointsStrings:        &emphasisPointsStrings,
-			EmphasisPointsCombinedString: emphasisPointsCombinedString,
-			FinalSyllable:                finalSyllable,
-			FinalSyllableAZ:              finalSyllableAZ,
-			ContainsUnmatchedWord:        containsUnmatchedWord,
-			FinalWord:                    finalWord,
-			EmphasisRegexp:               emphasisRegexp,
-			EmphasisRegexpString:         emphasisRegexp.String(),
-			EmphasisRegexpMatches:        emphasisRegexpMatches,
-			EmphasisRegexpMatch2:         emphasisRegexpMatch2,
-			MatchesOnMeter:               &matchesOnMeter,
+
+				rams = append( rams, &ram )		
+			}			
 		}
 
-		return &ram
+		return &rams
 	}
 
 
@@ -541,7 +553,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		FinalSyllable:  finalSyllableFunc,
 		FinalSyllableOfPhrase: finalSyllableOfPhraseFunc,
 		SortPhrasesByFinalSyllable: sortPhrasesByFinalSyllable,
-		RhymeAndMeterOfPhrase:      rhymeAndMeterOfPhrase,
+		RhymeAndMetersOfPhrase:      rhymeAndMetersOfPhrase,
 		FindMatchingWord:           findMatchingWord,
 		KnownUnknowns:              knownUnknownsFunc,
 		PhraseWordsRegexp:            wordsRegexp,
