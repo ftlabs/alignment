@@ -11,6 +11,7 @@ import (
     "github.com/railsagainstignorance/alignment/align"
     "github.com/railsagainstignorance/alignment/sapi"
     "github.com/railsagainstignorance/alignment/rhyme"
+    "github.com/railsagainstignorance/alignment/article"
 )
 
 // compile all templates and cache them
@@ -105,6 +106,14 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
     templateExecuter( w, "meteredPage", &srwfs )
 }
 
+func articleHandler(w http.ResponseWriter, r *http.Request) {
+    uuid  := r.FormValue("uuid")
+    meter := r.FormValue("meter")
+
+    p := article.GetArticleWithSentencesAndMeter(uuid, meter, syllabi )
+    templateExecuter( w, "articlePage", p )
+}
+
 func main() {
 	godotenv.Load()
 	port := os.Getenv("PORT")
@@ -115,5 +124,6 @@ func main() {
 	http.HandleFunc("/", alignFormHandler)
     http.HandleFunc("/align", alignHandler)
     http.HandleFunc("/meter", meterHandler)
+    http.HandleFunc("/article", articleHandler)
 	http.ListenAndServe(":"+string(port), nil)
 }
