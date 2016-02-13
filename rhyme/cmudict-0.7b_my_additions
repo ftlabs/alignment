@@ -38,7 +38,7 @@ MAP:BLOGGER'S  BLOGGERS
 ;;; WORD:NAME VALUE --> the VALUE is the regexp fragment to use. The NAME is ignored.
 ;;; NB: the default (\w+) will be invoked *after* all the WORD:... 
 WORD:%  \%
-WORD:'s  \w+['’][sStd]
+WORD:'s  \w+['’][sStdm]
 WORD:'s  \w+['’](re|ve)
 WORD:&  &
 ;;;

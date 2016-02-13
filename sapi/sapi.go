@@ -49,6 +49,7 @@ type ResultItem struct {
     Excerpt     string
     Title       string
     LocationUri string
+    Id          string
 }
 
 type SearchResult struct {
@@ -108,6 +109,8 @@ func Search(params SearchParams) *SearchResult {
                 }
             }
 
+            id := r.(map[string]interface{})["id"].(string)
+
     		title1  := r.(map[string]interface{})["title"].(map[string]interface{})
             title   := title1["title"].(string)
             
@@ -127,6 +130,7 @@ func Search(params SearchParams) *SearchResult {
                     Excerpt:     excerpt,
                     Title:       title,
                     LocationUri: locationUri,
+                    Id:          id,
                 }
 
                 items = append( items, &item )
