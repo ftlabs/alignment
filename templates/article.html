@@ -1,0 +1,40 @@
+{{define "articlePage"}}
+	<!DOCTYPE html>
+	<html>
+    	{{template "head"}}
+		<body>
+	    	{{template "header"}}
+ 		    <div class="o-techdocs-hero">
+				<h2 class="o-techdocs-hero__title">
+					Parsing the article 
+					<br><a href="{{ .Url }}">{{ .Title }}</a> 
+					<br>for sentences which match the requested meter,
+					<br>and aligning on the matching phrases.
+				</h2>
+			</div>
+
+			<div align="center" style="font-style: italic;">
+				<form action="/article" method="GET">
+					<br><input type="text" name="uuid" value="{{.Uuid}}">
+					<br>meter <input type="text" name="meter" value="{{.Meter}}">
+
+					<input type="submit" value="search and align on matching meter">
+				</form>
+			</div>
+			<br>
+			<div align="center">
+				<table>
+				{{range $item := .MatchedPhrases}}
+					<tr>
+						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.Before }}</td>
+						<td style="text-align:center;  white-space: nowrap; font-style: italic">{{ $item.MatchesOnMeter.During }}</td>
+						<td style="text-align:left;  white-space: nowrap">{{ $item.MatchesOnMeter.After }}</td>
+					</tr>
+				{{ end }}
+				</table>
+			</div>
+			<br>
+
+		</body>
+	</html>
+{{end}}
