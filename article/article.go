@@ -61,8 +61,7 @@ type ArticleWithSentencesAndMeter struct {
     KnownUnknowns *[]string
 }
 
-func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.Syllabi) *ArticleWithSentencesAndMeter {
-	aws := getArticleWithSentences(uuid)
+func FindRhymeAndMetersInSentences(sentences *[]string, meter string, syllabi *rhyme.Syllabi) *[]*rhyme.RhymeAndMeter {
 	rams := []*rhyme.RhymeAndMeter{}
 
 	if meter == "" {
@@ -71,8 +70,10 @@ func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.S
 
 	emphasisRegexp := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
 
-	for _, s := range *(aws.Sentences) {
+	for _, s := range *(sentences) {
 		syllabiRams := syllabi.RhymeAndMetersOfPhrase(s, emphasisRegexp)
+
+		fmt.Println("article: FindRhymeAndMetersInSentences: s=", s, ", len(syllabiRams)=", len(*syllabiRams))
 
 		for _,ram := range *syllabiRams {
 			if ram.EmphasisRegexpMatch2 != "" {
@@ -81,12 +82,19 @@ func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.S
 		}
 	}
 
-    sort.Sort(rhyme.RhymeAndMeters(rams))
+	return &rams
+}
+
+func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.Syllabi) *ArticleWithSentencesAndMeter {
+	aws := getArticleWithSentences(uuid)
+	rams := FindRhymeAndMetersInSentences( aws.Sentences, meter, syllabi )
+
+    sort.Sort(rhyme.RhymeAndMeters(*rams))
 
 	awsam := ArticleWithSentencesAndMeter{
 		aws,
 		meter,
-		&rams,
+		rams,
         syllabi.KnownUnknowns(),
 	}
 

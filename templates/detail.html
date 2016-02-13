@@ -1,0 +1,95 @@
+{{define "detailPage"}}
+	<!DOCTYPE html>
+	<html>
+    	{{template "head"}}
+		<body>
+	    	{{template "header"}}
+ 		    <div class="o-techdocs-hero">
+				<h2 class="o-techdocs-hero__title">
+					Parsing the phrase 
+					<br>"{{ .Phrase }}"
+					<br>for fragments which match the requested meter,
+					<br>"{{ .Meter }}"
+					<br>and aligning on the matching phrases.
+				</h2>
+			</div>
+
+			<div align="center" style="font-style: italic;">
+				<form action="/detail" method="GET">
+					<br>phrase&nbsp;<input type="text" name="phrase" value="{{.Phrase}}">
+					<br>meter&nbsp;<input type="text" name="meter" value="{{.Meter}}">
+
+					<input type="submit" value="find fragments matching meter">
+				</form>
+			</div>
+			<br>
+			<div align="center"> 
+				<table border="1">
+					<tr>
+						<td>Phrase</td>
+						<td>{{ .Phrase }}</td>
+					</tr>
+					<tr>
+						<td>Meter</td>
+						<td>{{ .Meter }}</td>
+					</tr>
+					<tr>
+						<td>MeterRegexp</td>
+						<td>{{ .MeterRegexp }}</td>
+					</tr>
+				</table>
+				<br>
+				{{range $item := .RhymeAndMeters}}
+				<br>
+				<table border="1">
+					<tr>
+						<td>PhraseWords</td>
+						{{range $pw := $item.PhraseWords}}
+							<td>{{ $pw }}</td>
+						{{end}}
+					</tr>
+					<tr>
+						<td>
+							MatchingWords
+							<br>- Name
+							<br>- FragmentsString
+							<br>- NumSyllables
+							<br>- FinalSyllable
+							<br>- FinalSyllableAZ
+							<br>- EmphasisPointsString
+						</td>
+						{{range $mw := $item.MatchingWords}}
+							<td>
+								&nbsp;
+								<br>{{$mw.Name}}
+								<br>{{$mw.FragmentsString}}
+								<br>{{$mw.NumSyllables}}
+								<br>{{$mw.FinalSyllable}}
+								<br>{{$mw.FinalSyllableAZ}}
+								<br>{{$mw.EmphasisPointsString}}
+							</td>
+						{{end}}
+					</tr>
+				</table>
+				<br>
+				<table>
+					<tr>
+						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.BeforeCropped }}</td>
+						<td style="text-align:center;  white-space: nowrap; font-style: italic">{{ $item.MatchesOnMeter.During }}</td>
+						<td style="text-align:left;  white-space: nowrap">{{ $item.MatchesOnMeter.AfterCropped }}</td>
+					</tr>
+				</table>
+				{{ end }}
+			</div>
+			<br>
+			<h2>unrecognised words</h2>
+			<p>... and which therefore cannot be matched by the meter regexp</p>
+			<ul>
+			{{range $item := .KnownUnknowns}}
+				<li>{{ $item }}</LI>
+			{{ end }}
+			</ul>
+
+		</body>
+	</html>
+{{end}}

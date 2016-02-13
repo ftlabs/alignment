@@ -86,6 +86,26 @@
 									</table>			
 								</form>
 
+							<h2>explore phrases matching meter</h2>
+								<p>
+									You specify a phrase. 
+									<br>If any parts of the phrase contain text conforming to that meter, they are aligned accordingly. 
+									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
+									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
+									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
+								</p>
+								<form action="/detail" method="GET">
+									<table>
+										<tr>
+											<td style="text-align:right;">
+												phrase&nbsp;<input type="text" name="phrase" value="my elephant is very perceptive">
+												<br>meter&nbsp;<input type="text" name="meter" value="01">
+											</td>
+											<td><input type="submit" value="find meter within the phrase"></td>
+										</tr>
+									</table>			
+								</form>
+
 							<h2>Caveats</h2>
 								<p>
 									<ul>

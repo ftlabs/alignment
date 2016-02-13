@@ -7,7 +7,8 @@ import (
 	"os"
     "sort"
     "regexp"
-    // "fmt"
+    "fmt"
+    // "strings"
     "github.com/railsagainstignorance/alignment/align"
     "github.com/railsagainstignorance/alignment/sapi"
     "github.com/railsagainstignorance/alignment/rhyme"
@@ -118,6 +119,35 @@ func articleHandler(w http.ResponseWriter, r *http.Request) {
     templateExecuter( w, "articlePage", p )
 }
 
+func detailHandler(w http.ResponseWriter, r *http.Request) {
+    phrase         := r.FormValue("phrase")
+    sentences      := []string{ phrase }
+    meter          := r.FormValue("meter")
+    rams           := article.FindRhymeAndMetersInSentences( &sentences, meter, syllabi )
+
+    fmt.Println("web-server: detailHandler: len(rams)=", len(*rams))
+
+    type PhraseDetails struct {
+        Phrase string
+        Sentences *[]string
+        Meter string
+        MeterRegexp *regexp.Regexp
+        RhymeAndMeters *[]*rhyme.RhymeAndMeter
+        KnownUnknowns *[]string
+    }
+
+    pd := PhraseDetails{
+        Phrase:         phrase,
+        Sentences:      &sentences,
+        Meter:          meter,
+        MeterRegexp:    rhyme.ConvertToEmphasisPointsStringRegexp(meter),
+        RhymeAndMeters: rams,
+        KnownUnknowns:  syllabi.KnownUnknowns(),
+    }
+
+    templateExecuter( w, "detailPage", pd )
+}
+
 func main() {
 	godotenv.Load()
 	port := os.Getenv("PORT")
@@ -125,9 +155,11 @@ func main() {
         port = "8080"
     }
 
-	http.HandleFunc("/", alignFormHandler)
-    http.HandleFunc("/align", alignHandler)
-    http.HandleFunc("/meter", meterHandler)
+	http.HandleFunc("/",        alignFormHandler)
+    http.HandleFunc("/align",   alignHandler)
+    http.HandleFunc("/meter",   meterHandler)
     http.HandleFunc("/article", articleHandler)
+    http.HandleFunc("/detail",  detailHandler)
+
 	http.ListenAndServe(":"+string(port), nil)
 }
