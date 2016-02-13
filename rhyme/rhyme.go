@@ -380,17 +380,28 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		return &matches
 	}
 
-	rhymeAndMetersOfPhrase := func(phrase string, emphasisRegexp *regexp.Regexp) (*[]*RhymeAndMeter) {
-		finalWord := ""
-		phraseWords := []string{}
-		matchingWords := []*Word{}
-		emphasisPointsStrings := []string{}
-		emphasisPointsCombinedString := ""
-		containsUnmatchedWord := false
-		finalSyllable   := ""
-		finalSyllableAZ := ""
+	type EmphasisPointsDetails struct {
+		Phrase                       string
+		PhraseMatches                *[][]string
+		PhraseWords                  []string
+		MatchingWords                []*Word
+		ContainsUnmatchedWord        bool
+		EmphasisPointsStrings        []string
+		FinalSyllable                string
+		FinalSyllableAZ              string
+		EmphasisPointsCombinedString string
+	}
 
-		phraseMatches := findAllPhraseMatches(phrase)
+	findAllEmphasisPointsDetails := func(phrase string) (*EmphasisPointsDetails) {
+		phraseMatches                := findAllPhraseMatches(phrase)
+		phraseWords                  := []string{}
+		matchingWords                := []*Word{}
+		emphasisPointsStrings        := []string{}
+		emphasisPointsCombinedString := ""
+		containsUnmatchedWord        := false
+		finalSyllable                := ""
+		finalSyllableAZ              := ""
+
 		if phraseMatches != nil {
 			for _, match := range *phraseMatches{
 				phraseWord := match[1]
@@ -415,6 +426,28 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 
 			emphasisPointsCombinedString = " " + strings.Join(emphasisPointsStrings, " ") + " "
 		}
+
+		epd := EmphasisPointsDetails{
+			Phrase: phrase,
+			PhraseMatches: phraseMatches,
+			PhraseWords: phraseWords,
+			MatchingWords: matchingWords,
+			ContainsUnmatchedWord: containsUnmatchedWord,
+			EmphasisPointsStrings: emphasisPointsStrings,
+			FinalSyllable: finalSyllable,
+			FinalSyllableAZ: finalSyllableAZ,
+			EmphasisPointsCombinedString: emphasisPointsCombinedString,
+		}
+
+		return &epd
+	}
+
+	rhymeAndMetersOfPhrase := func(phrase string, emphasisRegexp *regexp.Regexp) (*[]*RhymeAndMeter) {
+
+		emphasisPointsDetails        := findAllEmphasisPointsDetails( phrase )
+		emphasisPointsCombinedString := emphasisPointsDetails.EmphasisPointsCombinedString
+		phraseWords                  := emphasisPointsDetails.PhraseWords
+		finalWord := "" // ????
 
 		rams := []*RhymeAndMeter{}
 		allEmphasisRegexpIndexes := emphasisRegexp.FindAllStringIndex(emphasisPointsCombinedString, -1)
@@ -508,12 +541,12 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 				ram := RhymeAndMeter{
 					Phrase:                       phrase,
 					PhraseWords:                  &phraseWords,
-					MatchingWords:                &matchingWords,
-					EmphasisPointsStrings:        &emphasisPointsStrings,
+					MatchingWords:                &emphasisPointsDetails.MatchingWords,
+					EmphasisPointsStrings:        &emphasisPointsDetails.EmphasisPointsStrings,
 					EmphasisPointsCombinedString: emphasisPointsCombinedString,
-					FinalSyllable:                finalSyllable,
-					FinalSyllableAZ:              finalSyllableAZ,
-					ContainsUnmatchedWord:        containsUnmatchedWord,
+					FinalSyllable:                emphasisPointsDetails.FinalSyllable,
+					FinalSyllableAZ:              emphasisPointsDetails.FinalSyllableAZ,
+					ContainsUnmatchedWord:        emphasisPointsDetails.ContainsUnmatchedWord,
 					FinalWord:                    finalWord,
 					EmphasisRegexp:               emphasisRegexp,
 					EmphasisRegexpString:         emphasisRegexp.String(),
