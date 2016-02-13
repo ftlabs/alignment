@@ -1,7 +1,7 @@
 package article
 
 import (
-	// "sort"
+	"sort"
 	//    "regexp"
 	"fmt"
 	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
@@ -58,6 +58,7 @@ type ArticleWithSentencesAndMeter struct {
 	*ArticleWithSentences
 	Meter          string
 	MatchedPhrases *[]*rhyme.RhymeAndMeter
+    KnownUnknowns *[]string
 }
 
 func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.Syllabi) *ArticleWithSentencesAndMeter {
@@ -80,10 +81,13 @@ func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.S
 		}
 	}
 
+    sort.Sort(rhyme.RhymeAndMeters(rams))
+
 	awsam := ArticleWithSentencesAndMeter{
 		aws,
 		meter,
 		&rams,
+        syllabi.KnownUnknowns(),
 	}
 
 	return &awsam

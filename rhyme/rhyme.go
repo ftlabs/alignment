@@ -188,6 +188,12 @@ type RhymeAndMeter struct {
 	MatchesOnMeter               *MatchesOnMeter
 }
 
+type RhymeAndMeters []*RhymeAndMeter
+
+func (rams RhymeAndMeters) Len()          int  { return len(rams) }
+func (rams RhymeAndMeters) Swap(i, j int)      { rams[i], rams[j] = rams[j], rams[i] }
+func (rams RhymeAndMeters) Less(i, j int) bool { return rams[i].MatchesOnMeter.FinalDuringSyllableAZ > rams[j].MatchesOnMeter.FinalDuringSyllableAZ }
+
 type RhymingPhrase struct {
 	Phrase        string
 	FinalSyllable string
@@ -262,6 +268,9 @@ type MatchesOnMeter struct {
 	NumWordsTotal  int
 	BeforeCropped string
 	AfterCropped  string
+	FinalDuringWord       string
+	FinalDuringSyllable   string
+	FinalDuringSyllableAZ string
 }
 
 func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
@@ -462,6 +471,12 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 						if numDuring > 0 {
 							matchDuring = strings.Join(phraseWords[numBefore:numBeforeDuring], " ")
 						}
+						finalDuringWord       := phraseWords[numBeforeDuring-1]
+						finalDuringSyllable   := finalSyllableFunc(finalDuringWord)
+						finalDuringSyllableAZ := KeepAZString(finalDuringSyllable)
+
+						fmt.Println("rhyme: rhymeAndMeterOfPhrase: finalDuringWord=", finalDuringWord, ", finalDuringSyllableAZ=", finalDuringSyllableAZ)
+
 						matchAfter 		  := ""
 						matchAfterCropped := matchAfter
 						if numAfter > 0 {
@@ -483,6 +498,9 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 							NumWordsTotal:   numTotal,
 							BeforeCropped:   matchBeforeCropped,
 							AfterCropped:    matchAfterCropped,
+							FinalDuringWord:       finalDuringWord,
+							FinalDuringSyllable:   finalDuringSyllable,
+							FinalDuringSyllableAZ: finalDuringSyllableAZ,
 						}
 					}
 				}
@@ -510,7 +528,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 
 		return &rams
 	}
-
 
 	sortPhrasesByFinalSyllable := func(phrases []string) *RhymingPhrases {
 		rhymingPhrases := RhymingPhrases{}

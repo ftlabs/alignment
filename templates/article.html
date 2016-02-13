@@ -34,6 +34,13 @@
 				</table>
 			</div>
 			<br>
+			<h2>unrecognised words</h2>
+			<p>... and which therefore cannot be matched by the meter regexp</p>
+			<ul>
+			{{range $item := .KnownUnknowns}}
+				<li>{{ $item }}</li>
+			{{ end }}
+			</ul>
 
 		</body>
 	</html>
