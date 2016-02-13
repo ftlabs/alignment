@@ -38,13 +38,13 @@ MAP:BLOGGER'S  BLOGGERS
 ;;; WORD:NAME VALUE --> the VALUE is the regexp fragment to use. The NAME is ignored.
 ;;; NB: the default (\w+) will be invoked *after* all the WORD:... 
 WORD:%  \%
-WORD:'s  \w+['’][sStdm]
-WORD:'s  \w+['’](re|ve)
+WORD:'s  \w+['’][sStdmM]
+WORD:'s  \w+['’](re|RE|ve|VE|ll|LL)
 WORD:&  &
 ;;;
 ;;; Extension 3:
 ;;; This allows matched words to be transformed, e.g. to ensure the apostophe matches that used in the phoneme keys
 ;;; TRANSFORM:FROM  TO --> the text matching FROM will be transformed to TO.
 ;;; NB: the ToUpper step is invoked *after* all the TRANSFORM:... steps
-TRANSFORM:(\w+)’([sStd])  $1'$2
-TRANSFORM:(\w+)’(re|ve)  $1'$2
+TRANSFORM:(\w+)’([sStTdDmM])  $1'$2
+TRANSFORM:(\w+)’(re|RE|ve|VE|ll|LL)  $1'$2
