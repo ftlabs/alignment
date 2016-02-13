@@ -253,6 +253,9 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 	return r
 }
 
+const cropBeforeAfterToMaxWords = 5
+const cropBeforeAfterDotDotDot  = "..."
+
 type MatchesOnMeter struct {
 	Before   string
 	During   string
@@ -261,6 +264,8 @@ type MatchesOnMeter struct {
 	NumWordsDuring int
 	NumWordsAfter  int
 	NumWordsTotal  int
+	BeforeCropped string
+	AfterCropped  string
 }
 
 func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
@@ -434,17 +439,31 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			if numTotal != len(phraseWords) {
 				fmt.Println("rhyme: rhymeAndMeterOfPhrase: matchesOnMeter: mismatched counts: numTotal=", numTotal, ", len(phraseWords)=", len(phraseWords))
 			} else {
-				matchBefore := ""
+				matchBefore        := ""
+				matchBeforeCropped := matchBefore
 				if numBefore > 0 {
 					matchBefore = strings.Join(phraseWords[0:numBefore], " ")
+					numBeforeExcess := numBefore-cropBeforeAfterToMaxWords
+					if numBeforeExcess > 0 {
+						matchBeforeCropped = cropBeforeAfterDotDotDot + " " + strings.Join(phraseWords[numBeforeExcess:numBefore], " ")
+					} else {
+						matchBeforeCropped = matchBefore
+					}
 				}
 				matchDuring := ""
 				if numDuring > 0 {
 					matchDuring = strings.Join(phraseWords[numBefore:numBeforeDuring], " ")
 				}
-				matchAfter := ""
+				matchAfter 		  := ""
+				matchAfterCropped := matchAfter
 				if numAfter > 0 {
 					matchAfter = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)], " ")
+					numAfterExcess := numAfter-cropBeforeAfterToMaxWords
+					if numAfterExcess > 0 {
+						matchAfterCropped = strings.Join(phraseWords[numBeforeDuring:len(phraseWords)-numAfterExcess], " ") + " " + cropBeforeAfterDotDotDot
+					} else {
+						matchAfterCropped = matchAfter
+					}
 				}
 				matchesOnMeter = MatchesOnMeter{
 					Before:          matchBefore, 
@@ -454,10 +473,12 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 					NumWordsDuring:  numDuring,
 					NumWordsAfter:   numAfter,
 					NumWordsTotal:   numTotal,
+					BeforeCropped:   matchBeforeCropped,
+					AfterCropped:    matchAfterCropped,
 				}
 			}
 		}
-
+ 
 		ram := RhymeAndMeter{
 			Phrase:                       phrase,
 			PhraseWords:                  &phraseWords,
