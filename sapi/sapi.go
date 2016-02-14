@@ -189,7 +189,7 @@ func Search(params SearchParams) *SearchResult {
     }
 
 	sr := SearchResult{
-        Text:             queryString, 
+        Text:             params.Text, 
         Source:           params.Source, 
         FtcomUrl:         "http://www.ft.com",
         FtcomSearchUrl:   "http://search.ft.com/search?queryText=" + queryString,
