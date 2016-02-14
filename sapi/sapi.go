@@ -8,20 +8,76 @@ import (
 	"net/http"
 	"os"
 	"strings"
+    "strconv"
     "github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
 )
 
-func getSapiResponseJsonBody(text string, titleOnly bool) ([]byte, string) {
+// priority for constructing queryString:
+// Author (if not nil), then title (if Source=="title-only"), then exact text 
+type SearchParams struct {
+    Text   string
+    Source string
+    Author string
+}
+
+func constructQueryString(params SearchParams) string {
+
+    var queryString string
+
+    if params.Author != "" {
+        queryString = `authors:\"` + params.Author + `\"`
+    } else {
+        text := params.Text
+        if text == "" {
+            defaultText := os.Getenv("DEFAULT_TEXT")
+            if defaultText=="" {
+                defaultText = "has its own"
+            }
+
+            text = defaultText
+        }
+
+        if params.Source == "title-only" {
+            queryString = `title:\"` + text + `\"`
+        } else {
+            queryString = `\"` + text + `\"`
+        }
+    }
+
+    return queryString
+}
+
+func convertStringsToQuotedCSV( sList []string ) string {
+    sListQuoted := []string{}
+    for _,s := range sList {
+        sListQuoted = append( sListQuoted, `"` + s + `"`)
+    }
+
+    sCsv := strings.Join( sListQuoted, ", " )
+    return sCsv
+}
+
+func getSapiResponseJsonBody(queryString string) ([]byte) {
 	sapiKey := os.Getenv("SAPI_KEY")
-	url := "http://api.ft.com/content/search/v1?apiKey=" + sapiKey
-	queryString := `\"` + text + `\"`
-	if titleOnly {
-		queryString = "title:" + queryString
-	}
+	url     := "http://api.ft.com/content/search/v1?apiKey=" + sapiKey
 
     fmt.Println("queryString:", queryString)
+    curationsString := convertStringsToQuotedCSV( []string{ "ARTICLES", "BLOGS" } )
+    aspectsString   := convertStringsToQuotedCSV( []string{ "title", "location", "summary", "lifecycle", "metadata" } )
+    maxResults      := 100
 
-	var jsonStr = []byte(`{"queryString": "` + queryString + `","queryContext" : {"curations" : [ "ARTICLES", "BLOGS" ]},  "resultContext" : {"maxResults" : "100", "offset" : "0", "aspects" : [ "title", "location", "summary", "lifecycle", "metadata"], "sortOrder": "DESC", "sortField": "lastPublishDateTime" } } }`)
+	jsonStr         := []byte(
+        `{` +
+            `"queryString" : "` + queryString + `",` +
+            `"queryContext" : {"curations" : [ ` + curationsString + ` ]},` +
+            `"resultContext" : {` + 
+                `"maxResults" : "` + strconv.Itoa(maxResults) + `",` + 
+                `"offset" : "0",` + 
+                `"aspects" : [ ` + aspectsString + `],` + 
+                `"sortOrder": "DESC",` + 
+                `"sortField": "lastPublishDateTime"` +
+            `}` + 
+        `}` )
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
@@ -36,12 +92,7 @@ func getSapiResponseJsonBody(text string, titleOnly bool) ([]byte, string) {
 	// fmt.Println("response Headers:", resp.Header)
 	jsonBody, _ := ioutil.ReadAll(resp.Body)
 
-	return jsonBody, strings.Replace(queryString, `\"`, `"`, -1)
-}
-
-type SearchParams struct {
-    Text   string
-    Source string
+	return jsonBody
 }
 
 type ResultItem struct {
@@ -67,21 +118,9 @@ func keepAZ(r rune) rune { if r>='A' && r<='Z' {return r} else {return -1} }
 func KeepAZString( s string ) string {return strings.Map(keepAZ, s)}
 
 func Search(params SearchParams) *SearchResult {
-    defaultText := os.Getenv("DEFAULT_TEXT")
-    if defaultText=="" {
-        defaultText = "has its own"
-    }
-	text := params.Text
-    if text=="" {
-        text = defaultText
-    }
-	source := params.Source
-    if source=="" {
-        source="any"
-    }
-	titleOnly := source == "title-only"
-
-	jsonBody, queryString := getSapiResponseJsonBody(text, titleOnly)
+    queryString := constructQueryString( params )
+	jsonBody    := getSapiResponseJsonBody(queryString)
+    titleOnly   := (params.Source == "title-only")
 
 	// locate results
 	var data interface{}
@@ -151,8 +190,8 @@ func Search(params SearchParams) *SearchResult {
     }
 
 	sr := SearchResult{
-        Text:             text, 
-        Source:           source, 
+        Text:             queryString, 
+        Source:           params.Source, 
         FtcomUrl:         "http://www.ft.com",
         FtcomSearchUrl:   "http://search.ft.com/search?queryText=" + queryString,
         TitleOnlyChecked: titleOnlyChecked,

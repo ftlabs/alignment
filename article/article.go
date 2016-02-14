@@ -101,6 +101,15 @@ func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.S
 	return &awsam
 }
 
+func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, syllabi *rhyme.Syllabi) *ArticleWithSentencesAndMeter {
+	// sapi search to get article uuids
+	// capi searches to get body
+	// []article
+	// and also with combined sentences and meters
+	return nil
+}
+
+
 func main() {
 	godotenv.Load()
 	var syllabi = rhyme.ConstructSyllabi(&[]string{"../rhyme/cmudict-0.7b", "../rhyme/cmudict-0.7b_my_additions"})
