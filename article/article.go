@@ -7,6 +7,7 @@ import (
 	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
 	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/kennygrant/sanitize"
 	"github.com/railsagainstignorance/alignment/capi"
+	"github.com/railsagainstignorance/alignment/sapi"
 	"github.com/railsagainstignorance/alignment/rhyme"
 	"strings"
 )
@@ -101,12 +102,41 @@ func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.S
 	return &awsam
 }
 
-func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, syllabi *rhyme.Syllabi) *ArticleWithSentencesAndMeter {
-	// sapi search to get article uuids
-	// capi searches to get body
-	// []article
-	// and also with combined sentences and meters
-	return nil
+type MatchedPhraseWithUrl struct {
+	*rhyme.RhymeAndMeter
+	Url *string
+}
+
+type MatchedPhrasesWithUrl []*MatchedPhraseWithUrl
+
+func (mpwus MatchedPhrasesWithUrl) Len()          int  { return len(mpwus) }
+func (mpwus MatchedPhrasesWithUrl) Swap(i, j int)      { mpwus[i], mpwus[j] = mpwus[j], mpwus[i] }
+func (mpwus MatchedPhrasesWithUrl) Less(i, j int) bool { return mpwus[i].MatchesOnMeter.FinalDuringSyllableAZ > mpwus[j].MatchesOnMeter.FinalDuringSyllableAZ }
+
+func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, syllabi *rhyme.Syllabi, maxArticles int) (*[]*ArticleWithSentencesAndMeter, *[]*MatchedPhraseWithUrl) {
+	sapiResult := sapi.Search( sapi.SearchParams{ Author: author } )
+
+	articles := []*ArticleWithSentencesAndMeter{}
+
+	for _,item := range (*(sapiResult.Items))[0:maxArticles] {
+		aws := GetArticleWithSentencesAndMeter(item.Id, meter, syllabi)
+		articles = append( articles, aws )
+	}
+
+	mpwus := []*MatchedPhraseWithUrl{}
+
+	for _,article := range articles {
+		for _, mp := range *(article.MatchedPhrases) {
+			mpwu := &MatchedPhraseWithUrl{
+				mp,
+				&article.Url,
+			}
+
+			mpwus = append( mpwus, mpwu )
+		}
+	}
+
+	return &articles, &mpwus
 }
 
 
