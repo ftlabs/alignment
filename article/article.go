@@ -43,9 +43,9 @@ func getArticleWithSentences(uuid string) *ArticleWithSentences {
 	tidyBody := sanitize.HTML(article.Body)
 
 	sentences := splitTextIntoSentences(tidyBody)
-	for _, s := range *sentences {
-		fmt.Println("main: s=", s)
-	}
+	// for _, s := range *sentences {
+	// 	fmt.Println("main: s=", s)
+	// }
 
 	aws := ArticleWithSentences{
 		article,
@@ -73,8 +73,6 @@ func FindRhymeAndMetersInSentences(sentences *[]string, meter string, syllabi *r
 
 	for _, s := range *(sentences) {
 		syllabiRams := syllabi.RhymeAndMetersOfPhrase(s, emphasisRegexp)
-
-		fmt.Println("article: FindRhymeAndMetersInSentences: s=", s, ", len(syllabiRams)=", len(*syllabiRams))
 
 		for _,ram := range *syllabiRams {
 			if ram.EmphasisRegexpMatch2 != "" {

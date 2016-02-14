@@ -7,7 +7,7 @@ import (
 	"os"
     "sort"
     "regexp"
-    "fmt"
+    // "fmt"
     // "strings"
     "github.com/railsagainstignorance/alignment/align"
     "github.com/railsagainstignorance/alignment/sapi"
@@ -124,8 +124,6 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
     sentences      := []string{ phrase }
     meter          := r.FormValue("meter")
     rams           := article.FindRhymeAndMetersInSentences( &sentences, meter, syllabi )
-
-    fmt.Println("web-server: detailHandler: len(rams)=", len(*rams))
 
     type PhraseDetails struct {
         Phrase string
