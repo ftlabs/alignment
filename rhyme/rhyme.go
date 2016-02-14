@@ -22,6 +22,7 @@ type Word struct {
     FinalSyllableAZ string
     EmphasisPoints  []string
     EmphasisPointsString string
+    Unknown bool
 }
 
 type TransformPair struct {
@@ -120,6 +121,7 @@ func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
 							FinalSyllableAZ: drop09String(finalSyllable),
 							EmphasisPoints:  emphasisPoints,
 							EmphasisPointsString: emphasisPointsString,
+							Unknown:         false,
 						}
 					}
 				}
@@ -320,11 +322,25 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 
 		if w,ok := (*words)[stringAsKey]; ok {
 			word = w
-		} else if _,ok := knownUnknowns[stringAsKey]; ok {
-			knownUnknowns[stringAsKey]++
 		} else {
-			knownUnknowns[stringAsKey] = 1
-			fmt.Println("rhyme: findMatchingWord: new knownUnknown:", stringAsKey)
+			if _,ok := knownUnknowns[stringAsKey]; ok {
+				knownUnknowns[stringAsKey]++
+			} else {
+				knownUnknowns[stringAsKey] = 1
+				fmt.Println("rhyme: findMatchingWord: new knownUnknown:", stringAsKey)
+			} 
+
+			word = &Word{
+				Name:            s,
+				FragmentsString: "X",
+				Fragments:       []string{"X"},
+				NumSyllables:    0,
+				FinalSyllable:   "?",
+				FinalSyllableAZ: "?",
+				EmphasisPoints:  []string{"X"},
+				EmphasisPointsString: "X",
+				Unknown:         true,
+			}
 		}
 		return word
 	}
@@ -333,7 +349,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		matchingStrings := []string{}
 		matchingWord := findMatchingWord(s)
 
-		if matchingWord != nil {
+		if ! matchingWord.Unknown {
 			finalSyllable := matchingWord.FinalSyllable
 		 	if rhymingWords, ok := (*finalSyllables)[finalSyllable]; ok {
 		 		for _,w := range rhymingWords {
@@ -348,7 +364,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 	countSyllables := func(s string) int {
 		count  := 0
 		w := findMatchingWord(s)
-		if w != nil {
+		if ! w.Unknown {
 			count = (*w).NumSyllables
 		}
 
@@ -358,7 +374,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 	emphasisPoints := func(s string) []string {
 		ep := []string{}
 		w := findMatchingWord(s)
-		if w != nil {
+		if !w.Unknown {
 			ep = (*w).EmphasisPoints
 		}
 		return ep
@@ -368,7 +384,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		fs := ""
 		w := findMatchingWord(s)
 
-		if w != nil {
+		if !w.Unknown {
 			fs = (*w).FinalSyllable
 		}
 		return fs
@@ -411,7 +427,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 				phraseWords = append( phraseWords, phraseWord)
 				matchingWord := findMatchingWord(phraseWord)
 				emphasisPointsString := "X"
-				if matchingWord == nil {
+				if matchingWord.Unknown {
 					containsUnmatchedWord = true
 				} else {
 					emphasisPointsString = matchingWord.EmphasisPointsString

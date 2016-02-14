@@ -19,7 +19,8 @@
 						<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.css"></link>
 						<div class="o-techdocs-content">
 							<p>
-								The code for all this sits at <a href="https://github.com/railsagainstignorance/alignment">github.com/railsagainstignorance/alignment</a>. 
+								The code for all this sits at <a href="https://github.com/railsagainstignorance/alignment">github.com/railsagainstignorance/alignment</a>.
+								And it makes use of the enormous and enormously useful phoneme dataset <a href="http://www.speech.cs.cmu.edu/cgi-bin/cmudict">CMU Pronouncing Dictionary</a>.
 							</p>
 
 							</p>
@@ -88,17 +89,27 @@
 
 							<h2>explore phrases matching meter</h2>
 								<p>
-									You specify a phrase. 
+									You specify a phrase and a meter. 
+									<br>Details extracted from the phrase and the meter are displayed, mostly for debugging purposes,
+									<br>but it is interesting to see how the words are fragmented into phonemes and syllables.
 									<br>If any parts of the phrase contain text conforming to that meter, they are aligned accordingly. 
 									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
 								</p>
+								<p>
+									Perhaps you want to see why a particular phrase does not get matched by the meter? Most likely first, consider
+									<ol>
+										<li>Its a bug - in which case, feel free to let me know</li>
+										<li>The phonemes are based on American pronounciation, and they do speak funny. So, sorry, but, shrug.</li>
+										<li>The phonemes' emphasis points are perhaps too rigid to allow sufficient slack for the word to be spoken in a poetic context. Again, sorry, shrug.</li>
+									</ol>	
+								</p>
 								<form action="/detail" method="GET">
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												phrase&nbsp;<input type="text" name="phrase" value="All my elephants are really very perceptive">
+												phrase&nbsp;<input type="text" name="phrase" value="All my xxx elephants are really very perceptive">
 												<br>meter&nbsp;<input type="text" name="meter" value="10">
 											</td>
 											<td><input type="submit" value="find meter within the phrase"></td>
