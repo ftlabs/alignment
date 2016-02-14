@@ -117,7 +117,7 @@ func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, sylla
 	sapiResult := sapi.Search( sapi.SearchParams{ Author: author } )
 
 	articles := []*ArticleWithSentencesAndMeter{}
-
+	
 	for _,item := range (*(sapiResult.Items))[0:maxArticles] {
 		aws := GetArticleWithSentencesAndMeter(item.Id, meter, syllabi)
 		articles = append( articles, aws )
