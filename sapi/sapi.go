@@ -61,7 +61,7 @@ func getSapiResponseJsonBody(queryString string) ([]byte) {
 	sapiKey := os.Getenv("SAPI_KEY")
 	url     := "http://api.ft.com/content/search/v1?apiKey=" + sapiKey
 
-    fmt.Println("queryString:", queryString)
+    fmt.Println("sapi: getSapiResponseJsonBody: queryString:", queryString)
     curationsString := convertStringsToQuotedCSV( []string{ "ARTICLES", "BLOGS" } )
     aspectsString   := convertStringsToQuotedCSV( []string{ "title", "location", "summary", "lifecycle", "metadata" } )
     maxResults      := 100
@@ -88,8 +88,7 @@ func getSapiResponseJsonBody(queryString string) ([]byte) {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
-	// fmt.Println("response Headers:", resp.Header)
+	fmt.Println("sapi: getSapiResponseJsonBody: response Status:", resp.Status)
 	jsonBody, _ := ioutil.ReadAll(resp.Body)
 
 	return jsonBody
@@ -128,7 +127,7 @@ func Search(params SearchParams) *SearchResult {
 	outerResults := data.(map[string]interface{})[`results`].([]interface{})[0].(map[string]interface{})
 
     indexCount := int(outerResults["indexCount"].(float64))
-    fmt.Println("indexCount:", indexCount)
+    fmt.Println("sapi: Search: indexCount:", indexCount)
 
     var (
         items []*ResultItem = []*ResultItem{}

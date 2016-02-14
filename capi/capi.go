@@ -24,8 +24,7 @@ func getCapiArticleJsonBody(uuid string) ([]byte) {
         panic(err)
     }
     defer resp.Body.Close()
-    fmt.Println("response Status:", resp.Status)
-    // fmt.Println("response Headers:", resp.Header)
+    fmt.Println("capi: getCapiArticleJsonBody: response Status:", resp.Status)
     jsonBody, _ := ioutil.ReadAll(resp.Body)
 
     return jsonBody

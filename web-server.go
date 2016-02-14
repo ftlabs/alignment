@@ -125,8 +125,6 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
     meter          := r.FormValue("meter")
     rams           := article.FindRhymeAndMetersInSentences( &sentences, meter, syllabi )
 
-    fmt.Println("web-server: detailHandler: len(rams)=", len(*rams))
-
     type PhraseDetails struct {
         Phrase string
         Sentences *[]string
@@ -179,6 +177,12 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
     templateExecuter( w, "authorPage", ad )
 }
 
+func log(fn http.HandlerFunc) http.HandlerFunc {
+  return func(w http.ResponseWriter, r *http.Request) {
+    fmt.Println("REQUEST URL: ", r.URL)
+    fn(w, r)
+  }
+}
 
 func main() {
 	godotenv.Load()
@@ -187,12 +191,12 @@ func main() {
         port = "8080"
     }
 
-	http.HandleFunc("/",        alignFormHandler)
-    http.HandleFunc("/align",   alignHandler)
-    http.HandleFunc("/meter",   meterHandler)
-    http.HandleFunc("/article", articleHandler)
-    http.HandleFunc("/detail",  detailHandler)
-    http.HandleFunc("/author",  authorHandler)
+	http.HandleFunc("/",        log(alignFormHandler))
+    http.HandleFunc("/align",   log(alignHandler))
+    http.HandleFunc("/meter",   log(meterHandler))
+    http.HandleFunc("/article", log(articleHandler))
+    http.HandleFunc("/detail",  log(detailHandler))
+    http.HandleFunc("/author",  log(authorHandler))
 
 	http.ListenAndServe(":"+string(port), nil)
 }

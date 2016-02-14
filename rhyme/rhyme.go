@@ -501,8 +501,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		// allEmphasisRegexpIndexes := emphasisRegexp.FindAllStringIndex(emphasisPointsCombinedString, -1)
 		allEmphasisRegexpIndexes := findAllIndexIncludingOverlapping(emphasisRegexp, emphasisPointsCombinedString)
 
-		fmt.Println("rhymeAndMetersOfPhrase: allEmphasisRegexpIndexes: emphasisPointsCombinedString=\"", emphasisPointsCombinedString, "\", emphasisRegexp=\"", emphasisRegexp, "\",\nallEmphasisRegexpIndexes=", allEmphasisRegexpIndexes)
-
 		if allEmphasisRegexpIndexes != nil {
 			for _,emphasisRegexpIndexes := range allEmphasisRegexpIndexes {
 
@@ -558,8 +556,6 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 						finalDuringWord       := phraseWords[numBeforeDuring-1]
 						finalDuringSyllable   := finalSyllableFunc(finalDuringWord)
 						finalDuringSyllableAZ := KeepAZString(finalDuringSyllable)
-
-						fmt.Println("rhyme: rhymeAndMeterOfPhrase: finalDuringWord=", finalDuringWord, ", finalDuringSyllableAZ=", finalDuringSyllableAZ)
 
 						matchAfter 		  := ""
 						matchAfterCropped := matchAfter
