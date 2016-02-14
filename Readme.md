@@ -2,7 +2,7 @@
 
 Mostly an exercise to see if Go is usable (for me) as a Ruby+Sinatra replacement. Hence, lots of bad go. Idioms? What idioms?
 
-Currenly (as of 07/02/2016) [deployed live](https://hidden-wave-75799.herokuapp.com/) for playing with.
+Currenly (as of 07/02/2016) [deployed live](https://ftlabs-alignment.herokuapp.com/) for playing with.
 
 ## installing (on Windows)
 
