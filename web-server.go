@@ -177,6 +177,53 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
     templateExecuter( w, "authorPage", ad )
 }
 
+type ResultWithFinalSyllable struct {
+    *sapi.ResultItem
+    FinalSyllable string
+}
+
+type ResultsWithFinalSyllable []ResultWithFinalSyllable
+
+func (rwfs ResultsWithFinalSyllable) Len()          int  { return len(rwfs) }
+func (rwfs ResultsWithFinalSyllable) Swap(i, j int)      { rwfs[i], rwfs[j] = rwfs[j], rwfs[i] }
+func (rwfs ResultsWithFinalSyllable) Less(i, j int) bool { return rwfs[i].FinalSyllable > rwfs[j].FinalSyllable }
+
+func rhymeHandler(w http.ResponseWriter, r *http.Request) {
+    text := r.FormValue("text")
+    searchParams := sapi.SearchParams{
+        Text:   text,
+        Source: "any",
+    }
+
+    sapiResult := sapi.Search( searchParams )
+
+    rwfsList := []ResultWithFinalSyllable{}
+
+    for _, item := range *(sapiResult.Items) {
+        phrase := item.Title
+        fs     := syllabi.FinalSyllableOfPhrase(phrase)
+        rwfs   := ResultWithFinalSyllable{
+            item,
+            fs,
+        }
+        rwfsList = append( rwfsList, rwfs )
+    }
+
+    sort.Sort(ResultsWithFinalSyllable(rwfsList))
+
+    type Results struct {
+        Text string
+        ResultsWithFinalSyllable *[]ResultWithFinalSyllable
+    }
+
+    p := Results{
+        Text: text,
+        ResultsWithFinalSyllable: &rwfsList,
+    }
+
+    templateExecuter( w, "rhymedPage", p )
+}
+
 func log(fn http.HandlerFunc) http.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request) {
     fmt.Println("REQUEST URL: ", r.URL)
@@ -197,6 +244,7 @@ func main() {
     http.HandleFunc("/article", log(articleHandler))
     http.HandleFunc("/detail",  log(detailHandler))
     http.HandleFunc("/author",  log(authorHandler))
+    http.HandleFunc("/rhyme",   log(rhymeHandler))
 
 	http.ListenAndServe(":"+string(port), nil)
 }
