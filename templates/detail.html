@@ -26,7 +26,7 @@
 				<table border="1">
 					<tr>
 						<td>Phrase</td>
-						<td>{{ .Phrase }}</td>
+						<td>"{{ .Phrase }}"</td>
 					</tr>
 					<tr>
 						<td>Meter</td>
@@ -38,7 +38,7 @@
 					</tr>
 					<tr>
 						<td>EmphasisPointsCombinedString</td>
-						<td>{{ .EmphasisPointsDetails.EmphasisPointsCombinedString }}</td>
+						<td>"{{ .EmphasisPointsDetails.EmphasisPointsCombinedString }}"</td>
 					</tr>
 				</table>
 				<br>
@@ -73,15 +73,15 @@
 					</tr>
 				</table>
 				<br>
-				{{range $item := .RhymeAndMeters}}
 				<table>
+				{{range $item := .RhymeAndMeters}}
 					<tr>
 						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.BeforeCropped }}</td>
 						<td style="text-align:center;  white-space: nowrap; font-style: italic">{{ $item.MatchesOnMeter.During }}</td>
 						<td style="text-align:left;  white-space: nowrap">{{ $item.MatchesOnMeter.AfterCropped }}</td>
 					</tr>
-				</table>
 				{{ end }}
+				</table>
 			</div>
 			<br>
 			<h2>unrecognised words</h2>

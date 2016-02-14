@@ -264,7 +264,7 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 		after = "$"
 	}
 
-	meterWithCaptures := before + `(\s` + meterWithExpanded1s + `\s)` + after
+	meterWithCaptures := before + `\s(` + meterWithExpanded1s + `)\s` + after
 
 	r := regexp.MustCompile(meterWithCaptures)
 	return r
@@ -445,6 +445,35 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		return &epd
 	}
 
+	// reproduces functionality of func (*Regexp) FindAllIndex, but returns *all* fixed-length matches, including overlapping
+	findAllIndexIncludingOverlapping := func( r *regexp.Regexp, s string ) ([][]int) {
+		allMatches := [][]int{}
+		startFrom  := 0
+
+		matchOnPartial := func (r *regexp.Regexp, s string, i int) ([]int){
+			partialS := s[i:len(s)]
+			m := r.FindStringSubmatchIndex(partialS)
+			return m
+		}
+
+		matches := matchOnPartial(r, s, startFrom)
+
+		for matches != nil {
+			adjustedMatch := []int{
+				startFrom + matches[0],
+				startFrom + matches[1],
+			}
+
+			allMatches = append(allMatches, adjustedMatch)
+			startFrom = startFrom + matches[0] + 1
+			if startFrom < len(s) {
+				matches = matchOnPartial(r, s, startFrom)
+			}
+		}
+
+		return allMatches
+	}
+
 	rhymeAndMetersOfPhrase := func(phrase string, emphasisRegexp *regexp.Regexp) (*[]*RhymeAndMeter) {
 
 		emphasisPointsDetails        := findAllEmphasisPointsDetails( phrase )
@@ -453,7 +482,10 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		finalWord := "" // ????
 
 		rams := []*RhymeAndMeter{}
-		allEmphasisRegexpIndexes := emphasisRegexp.FindAllStringIndex(emphasisPointsCombinedString, -1)
+		// allEmphasisRegexpIndexes := emphasisRegexp.FindAllStringIndex(emphasisPointsCombinedString, -1)
+		allEmphasisRegexpIndexes := findAllIndexIncludingOverlapping(emphasisRegexp, emphasisPointsCombinedString)
+
+		fmt.Println("rhymeAndMetersOfPhrase: allEmphasisRegexpIndexes: emphasisPointsCombinedString=\"", emphasisPointsCombinedString, "\", emphasisRegexp=\"", emphasisRegexp, "\",\nallEmphasisRegexpIndexes=", allEmphasisRegexpIndexes)
 
 		if allEmphasisRegexpIndexes != nil {
 			for _,emphasisRegexpIndexes := range allEmphasisRegexpIndexes {
