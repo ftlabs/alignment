@@ -150,6 +150,36 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
     templateExecuter( w, "detailPage", pd )
 }
 
+func authorHandler(w http.ResponseWriter, r *http.Request) {
+    author := r.FormValue("author")
+    meter  := r.FormValue("meter")
+    maxArticles := 5
+
+    articles, matchedPhrasesWithUrl := article.GetArticlesByAuthorWithSentencesAndMeter(author, meter, syllabi, maxArticles )
+    type AuthorDetails struct {
+        Author                string
+        Meter                 string
+        Articles              *[]*article.ArticleWithSentencesAndMeter
+        MatchedPhrasesWithUrl *[]*article.MatchedPhraseWithUrl
+        KnownUnknowns         *[]string
+        MaxArticles           int
+   }
+
+    sort.Sort(article.MatchedPhrasesWithUrl(*matchedPhrasesWithUrl))
+
+    ad := AuthorDetails{
+        Author:                author,
+        Meter:                 meter,
+        Articles:              articles,
+        MatchedPhrasesWithUrl: matchedPhrasesWithUrl,
+        KnownUnknowns:         syllabi.KnownUnknowns(),
+        MaxArticles:           maxArticles,
+   }
+
+    templateExecuter( w, "authorPage", ad )
+}
+
+
 func main() {
 	godotenv.Load()
 	port := os.Getenv("PORT")
@@ -162,6 +192,7 @@ func main() {
     http.HandleFunc("/meter",   meterHandler)
     http.HandleFunc("/article", articleHandler)
     http.HandleFunc("/detail",  detailHandler)
+    http.HandleFunc("/author",  authorHandler)
 
 	http.ListenAndServe(":"+string(port), nil)
 }
