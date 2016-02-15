@@ -20,7 +20,7 @@
 			<div align="center">
 				<table>
 				{{range $item := .ResultsWithFinalSyllable}}
-					{{if $item.FirstOfNewRhyme}}<tr><td>-{{$item.FinalSyllableAZ}}</td></tr>{{end}}
+					{{if $item.FirstOfNewRhyme}}<tr><td></td><td>-{{$item.FinalSyllableAZ}}</td></tr>{{end}}
 					<tr>
 						<td style="text-align:right;  white-space: nowrap"><a href="{{ $item.LocationUri}}">{{ $item.Title }}</a></td>
 					</tr>
