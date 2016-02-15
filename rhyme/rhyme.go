@@ -421,7 +421,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		finalSyllable                := ""
 		finalSyllableAZ              := ""
 
-		if phraseMatches != nil {
+		if phraseMatches != nil && len(*phraseMatches) > 0 {
 			for _, match := range *phraseMatches{
 				phraseWord := match[1]
 				phraseWords = append( phraseWords, phraseWord)
