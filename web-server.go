@@ -179,14 +179,29 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
 
 type ResultWithFinalSyllable struct {
     *sapi.ResultItem
-    FinalSyllable string
+    FinalSyllableAZ string
+    FirstOfNewRhyme bool
 }
 
-type ResultsWithFinalSyllable []ResultWithFinalSyllable
+func (f *ResultWithFinalSyllable) SetFirstOfNewRhyme(val bool) {
+    f.FirstOfNewRhyme = val
+}
+
+type ResultsWithFinalSyllable []*ResultWithFinalSyllable
 
 func (rwfs ResultsWithFinalSyllable) Len()          int  { return len(rwfs) }
 func (rwfs ResultsWithFinalSyllable) Swap(i, j int)      { rwfs[i], rwfs[j] = rwfs[j], rwfs[i] }
-func (rwfs ResultsWithFinalSyllable) Less(i, j int) bool { return rwfs[i].FinalSyllable > rwfs[j].FinalSyllable }
+func (rwfs ResultsWithFinalSyllable) Less(i, j int) bool { return rwfs[i].FinalSyllableAZ > rwfs[j].FinalSyllableAZ }
+
+type FSandCount struct {
+    FinalSyllable string
+    Count int
+}
+type FSandCounts []*FSandCount
+
+func (fsc FSandCounts) Len()          int  { return len(fsc) }
+func (fsc FSandCounts) Swap(i, j int)      { fsc[i], fsc[j] = fsc[j], fsc[i] }
+func (fsc FSandCounts) Less(i, j int) bool { return (fsc[j].FinalSyllable == "") || ((fsc[i].FinalSyllable != "") && (fsc[i].Count > fsc[j].Count)) }
 
 func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     text := r.FormValue("text")
@@ -197,23 +212,46 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
 
     sapiResult := sapi.Search( searchParams )
 
-    rwfsList := []ResultWithFinalSyllable{}
+    finalSyllablesMap := map[string][]*ResultWithFinalSyllable{}
 
     for _, item := range *(sapiResult.Items) {
         phrase := item.Title
         fs     := syllabi.FinalSyllableOfPhrase(phrase)
-        rwfs   := ResultWithFinalSyllable{
+        fsAZ   := rhyme.KeepAZString( fs )
+        rwfs   := &ResultWithFinalSyllable{
             item,
-            fs,
+            fsAZ,
+            false,
         }
-        rwfsList = append( rwfsList, rwfs )
+        // rwfsList = append( rwfsList, rwfs )
+        if _, ok := finalSyllablesMap[fsAZ]; !ok {
+            finalSyllablesMap[fsAZ] = []*ResultWithFinalSyllable{}
+        }
+
+        finalSyllablesMap[fsAZ] = append(finalSyllablesMap[fsAZ], rwfs)
     }
 
-    sort.Sort(ResultsWithFinalSyllable(rwfsList))
+    fsCounts := []*FSandCount{}
+
+    for fs, list := range finalSyllablesMap {
+        fsCounts = append(fsCounts, &FSandCount{fs, len(list)} )
+    }
+
+    sort.Sort(FSandCounts(fsCounts))
+    rwfsList := []*ResultWithFinalSyllable{}
+
+    for _, fsc := range fsCounts {
+        fsList := finalSyllablesMap[fsc.FinalSyllable]
+        for i,rwfs := range fsList {
+            isFirst := (i == 0)
+            rwfs.SetFirstOfNewRhyme( isFirst )
+            rwfsList = append( rwfsList, rwfs)
+        }
+    }
 
     type Results struct {
         Text string
-        ResultsWithFinalSyllable *[]ResultWithFinalSyllable
+        ResultsWithFinalSyllable *[]*ResultWithFinalSyllable
     }
 
     p := Results{
