@@ -153,23 +153,61 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
     meter  := r.FormValue("meter")
     maxArticles := 5
 
+    type MatchedPhraseWithUrlWithFirst struct {
+        *article.MatchedPhraseWithUrl
+        FirstOfNewRhyme bool
+    }
+
     articles, matchedPhrasesWithUrl := article.GetArticlesByAuthorWithSentencesAndMeter(author, meter, syllabi, maxArticles )
     type AuthorDetails struct {
         Author                string
         Meter                 string
         Articles              *[]*article.ArticleWithSentencesAndMeter
-        MatchedPhrasesWithUrl *[]*article.MatchedPhraseWithUrl
+        MatchedPhrasesWithUrl *[]*MatchedPhraseWithUrlWithFirst
         KnownUnknowns         *[]string
         MaxArticles           int
    }
 
-    sort.Sort(article.MatchedPhrasesWithUrl(*matchedPhrasesWithUrl))
+    // sort.Sort(article.MatchedPhrasesWithUrl(*matchedPhrasesWithUrl))
+
+    finalSyllablesMap := map[string][]*(article.MatchedPhraseWithUrl){}
+    for _,mpwu := range *matchedPhrasesWithUrl {
+        fsAZ := mpwu.MatchesOnMeter.FinalDuringSyllableAZ
+        if _, ok := finalSyllablesMap[fsAZ]; !ok {
+            finalSyllablesMap[fsAZ] = []*(article.MatchedPhraseWithUrl){}
+        }
+
+        finalSyllablesMap[fsAZ] = append(finalSyllablesMap[fsAZ], mpwu)
+    }
+
+    fsCounts := []*FSandCount{}
+
+    for fs, list := range finalSyllablesMap {
+        fsCounts = append(fsCounts, &FSandCount{fs, len(list)} )
+    }
+
+    sort.Sort(FSandCounts(fsCounts))
+
+    sortedMpwus := []*MatchedPhraseWithUrlWithFirst{}
+
+    for _, fsc := range fsCounts {
+        fsList := finalSyllablesMap[fsc.FinalSyllable]
+        for i,mpwu := range fsList {
+            isFirst := (i==0)
+            mpwuf := &MatchedPhraseWithUrlWithFirst{
+                mpwu,
+                isFirst,
+            }
+            sortedMpwus = append( sortedMpwus, mpwuf)
+        }
+    }
+
 
     ad := AuthorDetails{
         Author:                author,
         Meter:                 meter,
         Articles:              articles,
-        MatchedPhrasesWithUrl: matchedPhrasesWithUrl,
+        MatchedPhrasesWithUrl: &sortedMpwus,
         KnownUnknowns:         syllabi.KnownUnknowns(),
         MaxArticles:           maxArticles,
    }
