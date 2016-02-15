@@ -179,14 +179,19 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
 
 type ResultWithFinalSyllable struct {
     *sapi.ResultItem
-    FinalSyllable string
+    FinalSyllableAZ string
+    FirstOfNewRhyme bool
 }
 
-type ResultsWithFinalSyllable []ResultWithFinalSyllable
+func (f *ResultWithFinalSyllable) SetFirstOfNewRhyme(val bool) {
+    f.FirstOfNewRhyme = val
+}
+
+type ResultsWithFinalSyllable []*ResultWithFinalSyllable
 
 func (rwfs ResultsWithFinalSyllable) Len()          int  { return len(rwfs) }
 func (rwfs ResultsWithFinalSyllable) Swap(i, j int)      { rwfs[i], rwfs[j] = rwfs[j], rwfs[i] }
-func (rwfs ResultsWithFinalSyllable) Less(i, j int) bool { return rwfs[i].FinalSyllable > rwfs[j].FinalSyllable }
+func (rwfs ResultsWithFinalSyllable) Less(i, j int) bool { return rwfs[i].FinalSyllableAZ > rwfs[j].FinalSyllableAZ }
 
 func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     text := r.FormValue("text")
@@ -197,23 +202,33 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
 
     sapiResult := sapi.Search( searchParams )
 
-    rwfsList := []ResultWithFinalSyllable{}
+    rwfsList := []*ResultWithFinalSyllable{}
 
     for _, item := range *(sapiResult.Items) {
         phrase := item.Title
         fs     := syllabi.FinalSyllableOfPhrase(phrase)
+        fsAZ   := rhyme.KeepAZString( fs )
         rwfs   := ResultWithFinalSyllable{
             item,
-            fs,
+            fsAZ,
+            false,
         }
-        rwfsList = append( rwfsList, rwfs )
+
+
+        rwfsList = append( rwfsList, &rwfs )
     }
 
     sort.Sort(ResultsWithFinalSyllable(rwfsList))
 
+    for i, item := range rwfsList {
+        isFirst := (i == 0 || rwfsList[i-1].FinalSyllableAZ != item.FinalSyllableAZ)
+        item.SetFirstOfNewRhyme(isFirst)
+        fmt.Println("rhymeHandler: i=", i, ", item.FirstOfNewRhyme=", item.FirstOfNewRhyme)
+    }
+
     type Results struct {
         Text string
-        ResultsWithFinalSyllable *[]ResultWithFinalSyllable
+        ResultsWithFinalSyllable *[]*ResultWithFinalSyllable
     }
 
     p := Results{
