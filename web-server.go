@@ -193,6 +193,16 @@ func (rwfs ResultsWithFinalSyllable) Len()          int  { return len(rwfs) }
 func (rwfs ResultsWithFinalSyllable) Swap(i, j int)      { rwfs[i], rwfs[j] = rwfs[j], rwfs[i] }
 func (rwfs ResultsWithFinalSyllable) Less(i, j int) bool { return rwfs[i].FinalSyllableAZ > rwfs[j].FinalSyllableAZ }
 
+type FSandCount struct {
+    FinalSyllable string
+    Count int
+}
+type FSandCounts []*FSandCount
+
+func (fsc FSandCounts) Len()          int  { return len(fsc) }
+func (fsc FSandCounts) Swap(i, j int)      { fsc[i], fsc[j] = fsc[j], fsc[i] }
+func (fsc FSandCounts) Less(i, j int) bool { return (fsc[j].FinalSyllable == "") || ((fsc[i].FinalSyllable != "") && (fsc[i].Count > fsc[j].Count)) }
+
 func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     text := r.FormValue("text")
     searchParams := sapi.SearchParams{
@@ -202,28 +212,41 @@ func rhymeHandler(w http.ResponseWriter, r *http.Request) {
 
     sapiResult := sapi.Search( searchParams )
 
-    rwfsList := []*ResultWithFinalSyllable{}
+    finalSyllablesMap := map[string][]*ResultWithFinalSyllable{}
 
     for _, item := range *(sapiResult.Items) {
         phrase := item.Title
         fs     := syllabi.FinalSyllableOfPhrase(phrase)
         fsAZ   := rhyme.KeepAZString( fs )
-        rwfs   := ResultWithFinalSyllable{
+        rwfs   := &ResultWithFinalSyllable{
             item,
             fsAZ,
             false,
         }
+        // rwfsList = append( rwfsList, rwfs )
+        if _, ok := finalSyllablesMap[fsAZ]; !ok {
+            finalSyllablesMap[fsAZ] = []*ResultWithFinalSyllable{}
+        }
 
-
-        rwfsList = append( rwfsList, &rwfs )
+        finalSyllablesMap[fsAZ] = append(finalSyllablesMap[fsAZ], rwfs)
     }
 
-    sort.Sort(ResultsWithFinalSyllable(rwfsList))
+    fsCounts := []*FSandCount{}
 
-    for i, item := range rwfsList {
-        isFirst := (i == 0 || rwfsList[i-1].FinalSyllableAZ != item.FinalSyllableAZ)
-        item.SetFirstOfNewRhyme(isFirst)
-        fmt.Println("rhymeHandler: i=", i, ", item.FirstOfNewRhyme=", item.FirstOfNewRhyme)
+    for fs, list := range finalSyllablesMap {
+        fsCounts = append(fsCounts, &FSandCount{fs, len(list)} )
+    }
+
+    sort.Sort(FSandCounts(fsCounts))
+    rwfsList := []*ResultWithFinalSyllable{}
+
+    for _, fsc := range fsCounts {
+        fsList := finalSyllablesMap[fsc.FinalSyllable]
+        for i,rwfs := range fsList {
+            isFirst := (i == 0)
+            rwfs.SetFirstOfNewRhyme( isFirst )
+            rwfsList = append( rwfsList, rwfs)
+        }
     }
 
     type Results struct {
