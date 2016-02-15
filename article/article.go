@@ -116,9 +116,11 @@ func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, sylla
 
 	articles := []*ArticleWithSentencesAndMeter{}
 	
-	for _,item := range (*(sapiResult.Items))[0:maxArticles] {
-		aws := GetArticleWithSentencesAndMeter(item.Id, meter, syllabi)
-		articles = append( articles, aws )
+	if sapiResult != nil && *(sapiResult.Items) != nil && len(*(sapiResult.Items)) > 0 {
+		for _,item := range (*(sapiResult.Items))[0:maxArticles] {
+			aws := GetArticleWithSentencesAndMeter(item.Id, meter, syllabi)
+			articles = append( articles, aws )
+		}
 	}
 
 	mpwus := []*MatchedPhraseWithUrl{}
