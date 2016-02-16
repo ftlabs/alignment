@@ -23,6 +23,11 @@ type Word struct {
     EmphasisPoints  []string
     EmphasisPointsString string
     Unknown bool
+    IsBadEnd bool
+}
+
+func (f *Word) SetIsBadEnd(val bool) {
+    f.IsBadEnd = val
 }
 
 type TransformPair struct {
@@ -45,6 +50,7 @@ func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
 	words := map[string]*Word{}
 	countFragments      := 0
 	countSyllables      := 0
+	badEnds := []string{}            
 
 	for _,filename := range *filenames {
 	    fmt.Println("rhyme: readSyllables: readingfrom: filename=", filename) 
@@ -80,6 +86,8 @@ func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
 							Replacement: remainder,
 						}
 						nameTransformPairs = append( nameTransformPairs, transformPair)
+					} else if name == "BAD:END" {
+						badEnds = append( badEnds, remainder )
 					} else {
 						fragments        := strings.Split(remainder, " ")
 						emphasisPoints   := []string{}
@@ -122,11 +130,18 @@ func readSyllables(filenames *[]string) (*map[string]*Word, int, int) {
 							EmphasisPoints:  emphasisPoints,
 							EmphasisPointsString: emphasisPointsString,
 							Unknown:         false,
+							IsBadEnd:        false,
 						}
 					}
 				}
 			}
 		}
+    }
+
+    for _,be := range badEnds {
+    	if w,ok := words[be]; ok {
+    		w.SetIsBadEnd( true )
+    	}
     }
 
     return &words, countFragments, countSyllables
