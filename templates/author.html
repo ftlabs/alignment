@@ -62,7 +62,7 @@
 				</table>
 			</div>
 			<br>
-			<h2>articles covered</h2>
+			<h2>articles covered, by {{.Author}}</h2>
 			<ul>
 				{{range $item := .Articles}}
 				<li><a href="{{ $item.Url }}">{{ $item.Title }}</a></li>
