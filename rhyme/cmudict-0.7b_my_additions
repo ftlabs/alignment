@@ -48,3 +48,9 @@ WORD:&  &
 ;;; NB: the ToUpper step is invoked *after* all the TRANSFORM:... steps
 TRANSFORM:(\w+)’([sStTdDmM])  $1'$2
 TRANSFORM:(\w+)’(re|RE|ve|VE|ll|LL)  $1'$2
+;;;
+;;; Extension 4:
+;;; This marks a word as being considered as a 'bad' word, unsuited to terminating a phrase in poetry
+BAD:END  THE
+BAD:END  A
+BAD:END  OF

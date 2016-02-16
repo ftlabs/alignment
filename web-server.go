@@ -163,51 +163,67 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         Author                string
         Meter                 string
         Articles              *[]*article.ArticleWithSentencesAndMeter
-        MatchedPhrasesWithUrl *[]*MatchedPhraseWithUrlWithFirst
+        MatchedPhrasesWithUrl    *[]*MatchedPhraseWithUrlWithFirst
+        BadMatchedPhrasesWithUrl *[]*MatchedPhraseWithUrlWithFirst
         KnownUnknowns         *[]string
         MaxArticles           int
    }
 
-    // sort.Sort(article.MatchedPhrasesWithUrl(*matchedPhrasesWithUrl))
+    finalSyllablesMap    := &map[string][]*(article.MatchedPhraseWithUrl){}
+    badFinalSyllablesMap := &map[string][]*(article.MatchedPhraseWithUrl){}
 
-    finalSyllablesMap := map[string][]*(article.MatchedPhraseWithUrl){}
     for _,mpwu := range *matchedPhrasesWithUrl {
-        fsAZ := mpwu.MatchesOnMeter.FinalDuringSyllableAZ
-        if _, ok := finalSyllablesMap[fsAZ]; !ok {
-            finalSyllablesMap[fsAZ] = []*(article.MatchedPhraseWithUrl){}
+        fsAZ     := mpwu.MatchesOnMeter.FinalDuringSyllableAZ
+        isBadEnd := (mpwu.MatchesOnMeter.FinalDuringWordWord == nil) || mpwu.MatchesOnMeter.FinalDuringWordWord.IsBadEnd
+
+        fmt.Println("authorHandler: isBadEnd=", isBadEnd, ", mpwu.MatchesOnMeter.FinalDuringWordWord=", mpwu.MatchesOnMeter.FinalDuringWordWord)
+
+        fsMap := finalSyllablesMap
+        if isBadEnd {
+            fsMap = badFinalSyllablesMap
         }
 
-        finalSyllablesMap[fsAZ] = append(finalSyllablesMap[fsAZ], mpwu)
+        if _, ok := (*fsMap)[fsAZ]; !ok {
+            (*fsMap)[fsAZ] = []*(article.MatchedPhraseWithUrl){}
+        }
+
+        (*fsMap)[fsAZ] = append((*fsMap)[fsAZ], mpwu)
     }
 
-    fsCounts := []*FSandCount{}
+    processFSMapIntoSortedMPWUs := func( fsMap *map[string][]*(article.MatchedPhraseWithUrl) ) *[]*MatchedPhraseWithUrlWithFirst {
+        fsCounts := []*FSandCount{}
 
-    for fs, list := range finalSyllablesMap {
-        fsCounts = append(fsCounts, &FSandCount{fs, len(list)} )
-    }
+        for fs, list := range (*fsMap) {
+            fsCounts = append(fsCounts, &FSandCount{fs, len(list)} )
+        }
 
-    sort.Sort(FSandCounts(fsCounts))
+        sort.Sort(FSandCounts(fsCounts))
 
-    sortedMpwus := []*MatchedPhraseWithUrlWithFirst{}
+        sortedMpwus := []*MatchedPhraseWithUrlWithFirst{}
 
-    for _, fsc := range fsCounts {
-        fsList := finalSyllablesMap[fsc.FinalSyllable]
-        for i,mpwu := range fsList {
-            isFirst := (i==0)
-            mpwuf := &MatchedPhraseWithUrlWithFirst{
-                mpwu,
-                isFirst,
+        for _, fsc := range fsCounts {
+            fsList := (*fsMap)[fsc.FinalSyllable]
+            for i,mpwu := range fsList {
+                isFirst := (i==0)
+                mpwuf := &MatchedPhraseWithUrlWithFirst{
+                    mpwu,
+                    isFirst,
+                }
+                sortedMpwus = append( sortedMpwus, mpwuf)
             }
-            sortedMpwus = append( sortedMpwus, mpwuf)
         }
+        return &sortedMpwus
     }
 
+    sortedMpwus    := processFSMapIntoSortedMPWUs(finalSyllablesMap)
+    sortedBadMpwus := processFSMapIntoSortedMPWUs(badFinalSyllablesMap)
 
     ad := AuthorDetails{
         Author:                author,
         Meter:                 meter,
         Articles:              articles,
-        MatchedPhrasesWithUrl: &sortedMpwus,
+        MatchedPhrasesWithUrl:    sortedMpwus,
+        BadMatchedPhrasesWithUrl: sortedBadMpwus,
         KnownUnknowns:         syllabi.KnownUnknowns(),
         MaxArticles:           maxArticles,
    }
