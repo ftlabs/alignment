@@ -9,6 +9,7 @@ import (
     "regexp"
     "fmt"
     // "strings"
+    "strconv"
     "github.com/railsagainstignorance/alignment/align"
     "github.com/railsagainstignorance/alignment/sapi"
     "github.com/railsagainstignorance/alignment/rhyme"
@@ -151,7 +152,21 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
 func authorHandler(w http.ResponseWriter, r *http.Request) {
     author := r.FormValue("author")
     meter  := r.FormValue("meter")
-    maxArticles := 100
+
+    maxArticles := 10
+    if r.FormValue("max") != "" {
+        i, err := strconv.Atoi(r.FormValue("max"))
+        if err == nil {
+            maxArticles = i
+        }
+    }
+
+    if maxArticles < 1 {
+        maxArticles = 1
+    } else if maxArticles > 100 {
+        maxArticles = 100 
+    }
+    
     maxMillis   := 3000
 
     type MatchedPhraseWithUrlWithFirst struct {
