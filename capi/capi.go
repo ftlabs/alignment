@@ -11,7 +11,7 @@ import (
     "github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
 )
 
-func getCapiArticleJsonBody(uuid string) ([]byte) {
+func getCapiArticleJsonBody(uuid string) (*[]byte) {
     apiKey := os.Getenv("SAPI_KEY")
     url := "http://api.ft.com/content/items/v1/" + uuid + "?apiKey=" + apiKey
     fmt.Println("capi: getCapiArticleJsonBody: url=", url)
@@ -27,7 +27,7 @@ func getCapiArticleJsonBody(uuid string) ([]byte) {
     fmt.Println("capi: getCapiArticleJsonBody: response Status:", resp.Status)
     jsonBody, _ := ioutil.ReadAll(resp.Body)
 
-    return jsonBody
+    return &jsonBody
 }
 
 type Article struct {
@@ -37,10 +37,10 @@ type Article struct {
     Body  string
 }
 
-func parseCapiArticleJsonBody(jsonBody []byte) (*Article) {
+func parseCapiArticleJsonBody(jsonBody *[]byte) (*Article) {
 
     var data interface{}
-    json.Unmarshal(jsonBody, &data)
+    json.Unmarshal(*jsonBody, &data)
 
     article := Article {
         Uuid:  "",
@@ -71,8 +71,20 @@ func parseCapiArticleJsonBody(jsonBody []byte) (*Article) {
     return &article
 }
 
+var uuidJsonBodyCache = map[string]*[]byte{}
+
 func GetArticle(uuid string) (*Article) {
-    jsonBody := getCapiArticleJsonBody(uuid)
+    var jsonBody *[]byte
+
+    if _, ok := uuidJsonBodyCache[uuid]; ok {
+        fmt.Println("capi.GetArticle: cache hit: uuid=", uuid)
+        jsonBody = uuidJsonBodyCache[uuid]
+    } else {
+        fmt.Println("capi.GetArticle: cache miss: uuid=", uuid)
+        jsonBody = getCapiArticleJsonBody(uuid)
+        uuidJsonBodyCache[uuid] = jsonBody
+    }
+
     article := parseCapiArticleJsonBody( jsonBody )
 
     return article

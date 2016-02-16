@@ -176,8 +176,6 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         fsAZ     := mpwu.MatchesOnMeter.FinalDuringSyllableAZ
         isBadEnd := (mpwu.MatchesOnMeter.FinalDuringWordWord == nil) || mpwu.MatchesOnMeter.FinalDuringWordWord.IsBadEnd
 
-        fmt.Println("authorHandler: isBadEnd=", isBadEnd, ", mpwu.MatchesOnMeter.FinalDuringWordWord=", mpwu.MatchesOnMeter.FinalDuringWordWord)
-
         fsMap := finalSyllablesMap
         if isBadEnd {
             fsMap = badFinalSyllablesMap
