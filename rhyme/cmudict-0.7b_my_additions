@@ -53,3 +53,4 @@ TRANSFORM:(\w+)’(re|RE|ve|VE|ll|LL)  $1'$2
 ;;; This marks a word as being considered as a 'bad' word, unsuited to terminating a phrase in poetry
 BAD:END  THE
 BAD:END  A
+BAD:END  OF

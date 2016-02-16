@@ -182,6 +182,7 @@ type EmphasisPointsDetails struct {
 	FinalSyllable                string
 	FinalSyllableAZ              string
 	EmphasisPointsCombinedString string
+	FinalMatchingWord            *Word
 }
 
 
@@ -303,6 +304,7 @@ type MatchesOnMeter struct {
 	FinalDuringWord       string
 	FinalDuringSyllable   string
 	FinalDuringSyllableAZ string
+	FinalDuringWordWord *Word
 }
 
 func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
@@ -435,6 +437,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		containsUnmatchedWord        := false
 		finalSyllable                := ""
 		finalSyllableAZ              := ""
+		var finalMatchingWord *Word = nil
 
 		if phraseMatches != nil && len(*phraseMatches) > 0 {
 			for _, match := range *phraseMatches{
@@ -452,7 +455,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 				emphasisPointsStrings = append( emphasisPointsStrings, emphasisPointsString)
 			}
 
-			finalMatchingWord := matchingWords[len(matchingWords)-1]; 
+			finalMatchingWord = matchingWords[len(matchingWords)-1]; 
 			if finalMatchingWord != nil {
 				finalSyllable   = finalMatchingWord.FinalSyllable
 				finalSyllableAZ = finalMatchingWord.FinalSyllableAZ
@@ -471,6 +474,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			FinalSyllable: finalSyllable,
 			FinalSyllableAZ: finalSyllableAZ,
 			EmphasisPointsCombinedString: emphasisPointsCombinedString,
+			FinalMatchingWord: finalMatchingWord,
 		}
 
 		return &epd
@@ -510,6 +514,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		emphasisPointsDetails        := findAllEmphasisPointsDetails( phrase )
 		emphasisPointsCombinedString := emphasisPointsDetails.EmphasisPointsCombinedString
 		phraseWords                  := emphasisPointsDetails.PhraseWords
+		matchingWords                := emphasisPointsDetails.MatchingWords
 		finalWord := "" // ????
 
 		rams := []*RhymeAndMeter{}
@@ -571,6 +576,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 						finalDuringWord       := phraseWords[numBeforeDuring-1]
 						finalDuringSyllable   := finalSyllableFunc(finalDuringWord)
 						finalDuringSyllableAZ := KeepAZString(finalDuringSyllable)
+						finalDuringWordWord   := matchingWords[numBeforeDuring-1]
 
 						matchAfter 		  := ""
 						matchAfterCropped := matchAfter
@@ -596,6 +602,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 							FinalDuringWord:       finalDuringWord,
 							FinalDuringSyllable:   finalDuringSyllable,
 							FinalDuringSyllableAZ: finalDuringSyllableAZ,
+							FinalDuringWordWord: finalDuringWordWord,
 						}
 					}
 				}

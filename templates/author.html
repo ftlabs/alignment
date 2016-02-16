@@ -22,9 +22,30 @@
 				</form>
 			</div>
 			<br>
+			<h3>... excluding bad end words</h3>
 			<div align="center"> 
 				<table>
 				{{range $item := .MatchedPhrasesWithUrl}}
+					<tr>
+						{{if $item.FirstOfNewRhyme}}
+						<tr>
+							<td></td>
+							<td style="text-align:right;">-{{$item.MatchesOnMeter.FinalDuringSyllableAZ}}</td>
+						</tr>
+						{{end}}
+
+						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.BeforeCropped }}</td>
+						<td style="text-align:center;  white-space: nowrap; font-style: italic; font-size: large"><a href="{{$item.Url}}">{{ $item.MatchesOnMeter.During }}</a></td>
+						<td style="text-align:left;  white-space: nowrap">{{ $item.MatchesOnMeter.AfterCropped }}</td>
+					</tr>
+				{{ end }}
+				</table>
+			</div>
+			<br>
+			<h3>... with bad end words</h3>
+			<div align="center"> 
+				<table>
+				{{range $item := .BadMatchedPhrasesWithUrl}}
 					<tr>
 						{{if $item.FirstOfNewRhyme}}
 						<tr>
