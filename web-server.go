@@ -151,14 +151,15 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
 func authorHandler(w http.ResponseWriter, r *http.Request) {
     author := r.FormValue("author")
     meter  := r.FormValue("meter")
-    maxArticles := 5
+    maxArticles := 100
+    maxMillis   := 3000
 
     type MatchedPhraseWithUrlWithFirst struct {
         *article.MatchedPhraseWithUrl
         FirstOfNewRhyme bool
     }
 
-    articles, matchedPhrasesWithUrl := article.GetArticlesByAuthorWithSentencesAndMeter(author, meter, syllabi, maxArticles )
+    articles, matchedPhrasesWithUrl := article.GetArticlesByAuthorWithSentencesAndMeter(author, meter, syllabi, maxArticles, maxMillis )
     type AuthorDetails struct {
         Author                string
         Meter                 string
@@ -167,6 +168,7 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         BadMatchedPhrasesWithUrl *[]*MatchedPhraseWithUrlWithFirst
         KnownUnknowns         *[]string
         MaxArticles           int
+        NumArticles           int
    }
 
     finalSyllablesMap    := &map[string][]*(article.MatchedPhraseWithUrl){}
@@ -224,6 +226,7 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         BadMatchedPhrasesWithUrl: sortedBadMpwus,
         KnownUnknowns:         syllabi.KnownUnknowns(),
         MaxArticles:           maxArticles,
+        NumArticles:           len(*articles),
    }
 
     templateExecuter( w, "authorPage", ad )

@@ -10,6 +10,7 @@ import (
 	"github.com/railsagainstignorance/alignment/sapi"
 	"github.com/railsagainstignorance/alignment/rhyme"
 	"strings"
+	"time"
 )
 
 func splitTextIntoSentences(text string) *[]string {
@@ -111,15 +112,23 @@ func (mpwus MatchedPhrasesWithUrl) Len()          int  { return len(mpwus) }
 func (mpwus MatchedPhrasesWithUrl) Swap(i, j int)      { mpwus[i], mpwus[j] = mpwus[j], mpwus[i] }
 func (mpwus MatchedPhrasesWithUrl) Less(i, j int) bool { return mpwus[i].MatchesOnMeter.FinalDuringSyllableAZ > mpwus[j].MatchesOnMeter.FinalDuringSyllableAZ }
 
-func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, syllabi *rhyme.Syllabi, maxArticles int) (*[]*ArticleWithSentencesAndMeter, *[]*MatchedPhraseWithUrl) {
+func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, syllabi *rhyme.Syllabi, maxArticles int, maxMillis int) (*[]*ArticleWithSentencesAndMeter, *[]*MatchedPhraseWithUrl) {
+	start := time.Now()
+	maxDurationNanoseconds := int64(maxMillis * 1e6)
+
 	sapiResult := sapi.Search( sapi.SearchParams{ Author: author } )
 
 	articles := []*ArticleWithSentencesAndMeter{}
 	
 	if sapiResult != nil && *(sapiResult.Items) != nil && len(*(sapiResult.Items)) > 0 {
 		for _,item := range (*(sapiResult.Items))[0:maxArticles] {
-			aws := GetArticleWithSentencesAndMeter(item.Id, meter, syllabi)
-			articles = append( articles, aws )
+			if item != nil {
+				aws := GetArticleWithSentencesAndMeter(item.Id, meter, syllabi)
+				articles = append( articles, aws )
+			}
+			if time.Since(start).Nanoseconds() > maxDurationNanoseconds {
+				break
+			}
 		}
 	}
 
