@@ -131,13 +131,13 @@ func GetArticle(uuid string) (*Article) {
 type SearchRequest struct {
     QueryType         string // e.g "keyword", "title", "topicXYZ", etc
     QueryText         string // e.g. "tail spin" or "\"tail spin\""
-    MaxResponses      int
+    MaxArticles       int
     MaxDurationMillis int
     SearchOnly        bool // i.e. don't bother looking up articles
     QueryStringValue  string
 }
 
-func constructQueryString(sr SearchRequest ) string {
+func constructQueryString(sr *SearchRequest ) string {
 
     var queryString string
 
@@ -209,6 +209,11 @@ type SearchResponse struct {
     Articles      *[]*Article
     QueryString   string
     SearchRequest *SearchRequest
+}
+
+func (r *SearchResponse) SetArticles(articles *[]*Article) {
+    r.Articles = articles
+    r.NumItems = len(*articles)
 }
 
 type Article struct {
@@ -316,6 +321,41 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
     }
 
     return &searchResponse
+}
+
+func lookupCapiArticles( sRequest *SearchRequest, sResponse *SearchResponse, startTiming time.Time ) *SearchResponse {
+    maxDurationNanoseconds := int64(sRequest.MaxDurationMillis * 1e6)
+    capiArticles := []*Article{}
+
+    if sRequest.MaxArticles > 0 {
+        for i, sapiA := range *(sResponse.Articles) {
+            capiA := GetArticle(sapiA.Uuid) 
+            capiArticles = append( capiArticles, capiA )
+            durationNanoseconds := time.Since(startTiming).Nanoseconds()
+            if i >= sRequest.MaxArticles {
+                break
+            }
+            if durationNanoseconds > maxDurationNanoseconds {
+                fmt.Println("content.lookupCapiArticles: curtailing CAPI lookups: duration=", durationNanoseconds)
+                break
+            }
+        }
+
+        sResponse.SetArticles(&capiArticles)
+    }
+
+    return sResponse
+}
+
+func Search(sRequest *SearchRequest) *SearchResponse {
+    startTiming := time.Now()
+
+    queryString       := constructQueryString( sRequest )
+    jsonBody          := getSapiResponseJsonBody(queryString)
+    sResponse         := parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
+    sResponseWithCapi := lookupCapiArticles(sRequest, sResponse, startTiming)
+
+    return sResponseWithCapi
 }
 
 func main() {
