@@ -1,4 +1,4 @@
-package content
+package main
 
 import (
 	"bytes"
@@ -13,13 +13,14 @@ import (
     "strconv"
 )
 
-const longformPubDate     = "2015-05-22T18:06:49Z"
+const longformPubDate     = "2006-01-02T15:04:05Z" // needs to be this exact string, according to http://stackoverflow.com/questions/25845172/parsing-date-string-in-golang
 const baseUriCapi         = "http://api.ft.com/content/items/v1/"
 const baseUriSapi         = "http://api.ft.com/content/search/v1"
 
 const sapiKeyEnvParamName = "SAPI_KEY"
 
 func getApiKey() string {
+    godotenv.Load()
     key := os.Getenv(sapiKeyEnvParamName)
 
     if key == "" {
@@ -49,6 +50,19 @@ func getCapiArticleJsonBody(uuid string) (*[]byte) {
     return &jsonBody
 }
 
+func parsePubDateString(pds string) *time.Time {
+    var pubDateTime *time.Time
+    if pds != "" {
+        if pd,err := time.Parse(longformPubDate, pds); err == nil {
+            pubDateTime = &pd
+        } else {
+            fmt.Println("WARNING: content.parsePubDateString: could not parse pubdate string: ", pds, ", where longformPubDate=", longformPubDate, "err=", err)
+        }
+    }
+
+    return pubDateTime
+}
+
 func parseCapiArticleJsonBody(jsonBody *[]byte) (*Article) {
 
     var data interface{}
@@ -60,7 +74,7 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) (*Article) {
     aAuthor  := ""
     aBody    := ""
     aPubDateString := ""
-    var aPubDate time.Time
+    var aPubDate *time.Time
 
     if item, ok := data.(map[string]interface{})[`item`].(map[string]interface{}); ok {
         if uuid, ok := item["id"].(string); ok {
@@ -87,13 +101,7 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) (*Article) {
         }
     }
 
-    if aPubDateString != "" {
-        if pd,err := time.Parse(longformPubDate, aPubDateString); err == nil {
-            aPubDate = pd
-        } else {
-            fmt.Println("WARNING: content.Article: could not parse pubdate string: ", aPubDateString, ", for UUID=", aUuid)
-        }
-    }
+    aPubDate = parsePubDateString( aPubDateString )
 
     article := Article{
         SiteUrl: aSiteUrl,
@@ -193,7 +201,7 @@ func getSapiResponseJsonBody(queryString string) ([]byte) {
     }
     defer resp.Body.Close()
 
-    if resp.Status != "200" {
+    if resp.Status != "200 OK" {
         fmt.Println("WARNING: content: getSapiResponseJsonBody: response Status:", resp.Status)
     }
 
@@ -224,7 +232,7 @@ type Article struct {
     Excerpt string
     Body    string
     PubDateString string
-    PubDate time.Time
+    PubDate *time.Time
 }
 
 func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString string) *SearchResponse {
@@ -251,7 +259,7 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
                     excerpt := ""
                     body    := ""
                     pubDateString := ""
-                    var pubDateTime time.Time
+                    var pubDateTime *time.Time
 
                     if summary, ok := r.(map[string]interface{})["summary"].(map[string]interface{}); ok {
                         if excerptString, ok := summary["excerpt"].(string); ok {
@@ -284,13 +292,7 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
                     if lifecycle, ok := r.(map[string]interface{})["lifecycle"].(map[string]interface{}); ok {
                         if lastPublishDateTimeString, ok := lifecycle["lastPublishDateTime"].(string); ok {
                             pubDateString = lastPublishDateTimeString
-                            if pubDateString != "" {
-                                if pd,err := time.Parse(longformPubDate, pubDateString); err == nil {
-                                    pubDateTime = pd
-                                } else {
-                                    fmt.Println("WARNING: content.parseSapiResponseJsonBody: could not parse pubdate string: ", pubDateString, ", for UUID=", uuid)
-                                }
-                            }
+                            pubDateTime = parsePubDateString(pubDateString)
                         }
                     }
 
