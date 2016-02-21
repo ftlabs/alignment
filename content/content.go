@@ -16,7 +16,6 @@ import (
 const longformPubDate     = "2006-01-02T15:04:05Z" // needs to be this exact string, according to http://stackoverflow.com/questions/25845172/parsing-date-string-in-golang
 const baseUriCapi         = "http://api.ft.com/content/items/v1/"
 const baseUriSapi         = "http://api.ft.com/content/search/v1"
-
 const sapiKeyEnvParamName = "SAPI_KEY"
 
 func getApiKey() string {
@@ -171,13 +170,12 @@ func convertStringsToQuotedCSV( sList []string ) string {
     return sCsv
 }
 
-func getSapiResponseJsonBody(queryString string) ([]byte) {
+func getSapiResponseJsonBody(queryString string, maxResults int) ([]byte) {
     url := "http://api.ft.com/content/search/v1?apiKey=" + apiKey
 
     fmt.Println("sapi: getSapiResponseJsonBody: queryString:", queryString)
     curationsString := convertStringsToQuotedCSV( []string{ "ARTICLES", "BLOGS" } )
-    aspectsString   := convertStringsToQuotedCSV( []string{ "title", "location", "summary", "lifecycle", "metadata" } )
-    maxResults      := 100
+    aspectsString   := convertStringsToQuotedCSV( []string{ "title", "location", "summary", "lifecycle", "metadata", "editorial" } )
 
     jsonStr         := []byte(
         `{` +
@@ -212,8 +210,8 @@ func getSapiResponseJsonBody(queryString string) ([]byte) {
 
 type SearchResponse struct {
     SiteSearchUrl string
-    NumItems      int
-    NumMatches    int
+    NumArticles   int
+    NumPossible   int
     Articles      *[]*Article
     QueryString   string
     SearchRequest *SearchRequest
@@ -221,7 +219,7 @@ type SearchResponse struct {
 
 func (r *SearchResponse) SetArticles(articles *[]*Article) {
     r.Articles = articles
-    r.NumItems = len(*articles)
+    r.NumArticles = len(*articles)
 }
 
 type Article struct {
@@ -238,9 +236,8 @@ type Article struct {
 func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString string) *SearchResponse {
 
     siteSearchUrl := "http://search.ft.com/search?queryText=" + queryString
-    numItems   := 0
-    numMatches := 0
-    articles   := []*Article{}
+    numPossible   := 0
+    articles      := []*Article{}
 
     // locate results
     var data interface{}
@@ -248,7 +245,7 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
     if outerResults, ok := data.(map[string]interface{})["results"].([]interface{}); ok {
         if results0, ok := outerResults[0].(map[string]interface{}); ok {
             if indexCount, ok := results0["indexCount"]; ok {
-                numMatches = indexCount.(int)
+                numPossible = int(indexCount.(float64))
             }
             if innerResults, ok := results0["results"].([]interface{}); ok {
                 for _, r := range innerResults {
@@ -284,6 +281,7 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
                     }
 
                     if editorial, ok := r.(map[string]interface{})["editorial"].(map[string]interface{}); ok {
+                        fmt.Println("parseSapiResponseJsonBody: in editorial")
                         if byline, ok := editorial["byline"].(string); ok {
                             author = byline
                         }
@@ -315,8 +313,8 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
 
     searchResponse := SearchResponse{
         SiteSearchUrl: siteSearchUrl,
-        NumItems:      numItems,
-        NumMatches:    numMatches,
+        NumArticles:   len(articles),
+        NumPossible:   numPossible,
         Articles:      &articles,
         QueryString:   queryString,
         SearchRequest: sReq,
@@ -353,11 +351,13 @@ func Search(sRequest *SearchRequest) *SearchResponse {
     startTiming := time.Now()
 
     queryString       := constructQueryString( sRequest )
-    jsonBody          := getSapiResponseJsonBody(queryString)
+    jsonBody          := getSapiResponseJsonBody(queryString, sRequest.MaxArticles)
     sResponse         := parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
-    sResponseWithCapi := lookupCapiArticles(sRequest, sResponse, startTiming)
-
-    return sResponseWithCapi
+    if !sRequest.SearchOnly {
+        sResponse = lookupCapiArticles(sRequest, sResponse, startTiming)
+    }
+    
+    return sResponse
 }
 
 func main() {
@@ -366,4 +366,29 @@ func main() {
 
     article := GetArticle( uuid )
     fmt.Println("main: article.Title=", article.Title)
+
+    sRequest := &SearchRequest {
+        QueryType: "keyword", // e.g "keyword", "title", "topicXYZ", etc
+        QueryText: "a bit of a", // e.g. "tail spin" or "\"tail spin\""
+        MaxArticles: 10,
+        MaxDurationMillis: 3000,
+        SearchOnly: true, // i.e. don't bother looking up articles
+    }
+
+    fmt.Println("sRequest=", sRequest)
+
+    sResponse := Search(sRequest)
+
+    fmt.Println("sResponse:", 
+        "\nSiteSearchUrl=", sResponse.SiteSearchUrl,
+        "\nNumArticles=", sResponse.NumArticles,
+        "\nNumPossible=", sResponse.NumPossible,
+        "\nQueryString=", sResponse.QueryString,
+        "\nSearchRequest=", sResponse.SearchRequest,
+        "\nArticles:\n",
+        )
+
+    for i,a := range *(sResponse.Articles) {
+        fmt.Println(i, " - ", a.Uuid, ", ", a.Title, ", by ", a.Author)
+    }
 }
