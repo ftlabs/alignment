@@ -13,26 +13,6 @@ import (
     "strconv"
 )
 
-type Article struct {
-    SiteUrl string
-    Uuid    string
-    Title   string
-    Author  string
-    Excerpt string
-    Body    string
-    PubDateString string
-    PubDate time.Time
-}
-
-type SearchResponse struct {
-    SiteSearchUrl string
-    NumItems      int
-    NumMatches    int
-    Articles      *[]*Article
-    QueryString   string
-    SearchRequest *SearchRequest
-}
-
 const longformPubDate     = "2015-05-22T18:06:49Z"
 const baseUriCapi         = "http://api.ft.com/content/items/v1/"
 const baseUriSapi         = "http://api.ft.com/content/search/v1"
@@ -220,6 +200,122 @@ func getSapiResponseJsonBody(queryString string) ([]byte) {
     jsonBody, _ := ioutil.ReadAll(resp.Body)
 
     return jsonBody
+}
+
+type SearchResponse struct {
+    SiteSearchUrl string
+    NumItems      int
+    NumMatches    int
+    Articles      *[]*Article
+    QueryString   string
+    SearchRequest *SearchRequest
+}
+
+type Article struct {
+    SiteUrl string
+    Uuid    string
+    Title   string
+    Author  string
+    Excerpt string
+    Body    string
+    PubDateString string
+    PubDate time.Time
+}
+
+func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString string) *SearchResponse {
+
+    siteSearchUrl := "http://search.ft.com/search?queryText=" + queryString
+    numItems   := 0
+    numMatches := 0
+    articles   := []*Article{}
+
+    // locate results
+    var data interface{}
+    json.Unmarshal(jsonBody, &data)
+    if outerResults, ok := data.(map[string]interface{})["results"].([]interface{}); ok {
+        if results0, ok := outerResults[0].(map[string]interface{}); ok {
+            if indexCount, ok := results0["indexCount"]; ok {
+                numMatches = indexCount.(int)
+            }
+            if innerResults, ok := results0["results"].([]interface{}); ok {
+                for _, r := range innerResults {
+                    siteUrl := ""
+                    uuid    := ""
+                    title   := ""
+                    author  := ""
+                    excerpt := ""
+                    body    := ""
+                    pubDateString := ""
+                    var pubDateTime time.Time
+
+                    if summary, ok := r.(map[string]interface{})["summary"].(map[string]interface{}); ok {
+                        if excerptString, ok := summary["excerpt"].(string); ok {
+                            excerpt = excerptString                      
+                        }
+                    }
+
+                    if id, ok := r.(map[string]interface{})["id"].(string); ok {
+                        uuid = id
+                    }
+
+                    if titleOuter, ok := r.(map[string]interface{})["title"].(map[string]interface{}); ok {
+                        if titleString, ok := titleOuter["title"].(string); ok {
+                            title = titleString
+                        }
+                    }
+
+                    if location, ok := r.(map[string]interface{})["location"].(map[string]interface{}); ok {
+                        if locationUri, ok := location["uri"].(string); ok {
+                            siteUrl = locationUri
+                        }
+                    }
+
+                    if editorial, ok := r.(map[string]interface{})["editorial"].(map[string]interface{}); ok {
+                        if byline, ok := editorial["byline"].(string); ok {
+                            author = byline
+                        }
+                    }
+
+                    if lifecycle, ok := r.(map[string]interface{})["lifecycle"].(map[string]interface{}); ok {
+                        if lastPublishDateTimeString, ok := lifecycle["lastPublishDateTime"].(string); ok {
+                            pubDateString = lastPublishDateTimeString
+                            if pubDateString != "" {
+                                if pd,err := time.Parse(longformPubDate, pubDateString); err == nil {
+                                    pubDateTime = pd
+                                } else {
+                                    fmt.Println("WARNING: content.parseSapiResponseJsonBody: could not parse pubdate string: ", pubDateString, ", for UUID=", uuid)
+                                }
+                            }
+                        }
+                    }
+
+                    article := Article{
+                        SiteUrl: siteUrl,
+                        Uuid:    uuid,
+                        Title:   title,
+                        Author:  author,
+                        Excerpt: excerpt,
+                        Body:    body,
+                        PubDateString: pubDateString,
+                        PubDate:       pubDateTime,
+                    }
+
+                    articles = append( articles, &article )
+                }
+            }
+        }
+    }
+
+    searchResponse := SearchResponse{
+        SiteSearchUrl: siteSearchUrl,
+        NumItems:      numItems,
+        NumMatches:    numMatches,
+        Articles:      &articles,
+        QueryString:   queryString,
+        SearchRequest: sReq,
+    }
+
+    return &searchResponse
 }
 
 func main() {
