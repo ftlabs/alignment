@@ -33,7 +33,7 @@ var apiKey = getApiKey()
 
 func getCapiArticleJsonBody(uuid string) (*[]byte) {
     url := baseUriCapi + uuid + "?apiKey=" + apiKey
-    fmt.Println("content: getCapiArticleJsonBody: url=", url)
+    fmt.Println("content: getCapiArticleJsonBody: uuid=", uuid)
 
     req, err := http.NewRequest("GET", url, nil)
     req.Header.Set("Content-Type", "application/json")
@@ -95,6 +95,12 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) (*Article) {
             if lifecycle, ok := item["lifecycle"].(map[string]interface{}); ok {
                 if lastPublishDateTime, ok := lifecycle["lastPublishDateTime"].(string); ok {
                     aPubDateString = lastPublishDateTime
+                }
+            }
+
+            if editorial, ok := item["editorial"].(map[string]interface{}); ok {
+                if byline, ok := editorial["byline"].(string); ok {
+                    aAuthor = byline
                 }
             }
         }
@@ -281,7 +287,6 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
                     }
 
                     if editorial, ok := r.(map[string]interface{})["editorial"].(map[string]interface{}); ok {
-                        fmt.Println("parseSapiResponseJsonBody: in editorial")
                         if byline, ok := editorial["byline"].(string); ok {
                             author = byline
                         }
@@ -332,11 +337,11 @@ func lookupCapiArticles( sRequest *SearchRequest, sResponse *SearchResponse, sta
             capiA := GetArticle(sapiA.Uuid) 
             capiArticles = append( capiArticles, capiA )
             durationNanoseconds := time.Since(startTiming).Nanoseconds()
-            if i >= sRequest.MaxArticles {
+            if i > sRequest.MaxArticles {
                 break
             }
             if durationNanoseconds > maxDurationNanoseconds {
-                fmt.Println("content.lookupCapiArticles: curtailing CAPI lookups: duration=", durationNanoseconds)
+                fmt.Println("content.lookupCapiArticles: curtailing CAPI lookups: durationMillis=", durationNanoseconds / 1e6)
                 break
             }
         }
@@ -376,7 +381,6 @@ func main() {
     }
 
     fmt.Println("sRequest=", sRequest)
-
     sResponse := Search(sRequest)
 
     fmt.Println("sResponse:", 
@@ -390,5 +394,29 @@ func main() {
 
     for i,a := range *(sResponse.Articles) {
         fmt.Println(i, " - ", a.Uuid, ", ", a.Title, ", by ", a.Author)
+    }
+
+    sRequest = &SearchRequest {
+        QueryType: "keyword", // e.g "keyword", "title", "topicXYZ", etc
+        QueryText: "a bit of a", // e.g. "tail spin" or "\"tail spin\""
+        MaxArticles: 100,
+        MaxDurationMillis: 3000,
+        SearchOnly: false, // i.e.do lookup CAPI
+    }
+
+    fmt.Println("sRequest=", sRequest)
+    sResponse = Search(sRequest)
+
+    fmt.Println("sResponse:", 
+        "\nSiteSearchUrl=", sResponse.SiteSearchUrl,
+        "\nNumArticles=", sResponse.NumArticles,
+        "\nNumPossible=", sResponse.NumPossible,
+        "\nQueryString=", sResponse.QueryString,
+        "\nSearchRequest=", sResponse.SearchRequest,
+        "\nArticles:\n",
+        )
+
+    for i,a := range *(sResponse.Articles) {
+        fmt.Println(i, " - ", a.Uuid, ", ", a.Title, ", by ", a.Author, ", body=", a.Body[0:20])
     }
 }
