@@ -70,10 +70,10 @@ func FindRhymeAndMetersInSentences(sentences *[]string, meter string, syllabi *r
 		meter = rhyme.DefaultMeter
 	}
 
-	emphasisRegexp, _ := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
+	emphasisRegexp, emphasisRegexpSecondary := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
 
 	for _, s := range *(sentences) {
-		syllabiRams := syllabi.RhymeAndMetersOfPhrase(s, emphasisRegexp)
+		syllabiRams := syllabi.RhymeAndMetersOfPhrase(s, emphasisRegexp, emphasisRegexpSecondary)
 
 		for _,ram := range *syllabiRams {
 			if ram.EmphasisRegexpMatch2 != "" {

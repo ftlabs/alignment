@@ -185,12 +185,19 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         KnownUnknowns         *[]string
         MaxArticles           int
         NumArticles           int
+        SecondaryMatchedPhrasesWithUrl *[]*(article.MatchedPhraseWithUrl)
    }
 
     finalSyllablesMap    := &map[string][]*(article.MatchedPhraseWithUrl){}
     badFinalSyllablesMap := &map[string][]*(article.MatchedPhraseWithUrl){}
+    secondaryMatchedPhrasesWithUrl := []*(article.MatchedPhraseWithUrl){}
 
     for _,mpwu := range *matchedPhrasesWithUrl {
+
+        if mpwu.MatchesOnMeter.SecondaryMatch != nil {
+            secondaryMatchedPhrasesWithUrl = append( secondaryMatchedPhrasesWithUrl, mpwu)
+        }
+
         fsAZ     := mpwu.MatchesOnMeter.FinalDuringSyllableAZ
         isBadEnd := (mpwu.MatchesOnMeter.FinalDuringWordWord == nil) || mpwu.MatchesOnMeter.FinalDuringWordWord.IsBadEnd
 
@@ -243,9 +250,14 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         KnownUnknowns:         syllabi.KnownUnknowns(),
         MaxArticles:           maxArticles,
         NumArticles:           len(*articles),
-   }
+        SecondaryMatchedPhrasesWithUrl: &secondaryMatchedPhrasesWithUrl,
+    }
 
-    templateExecuter( w, "authorPage", ad )
+    if len(secondaryMatchedPhrasesWithUrl) > 0 {
+        templateExecuter( w, "authorHaikuPage", ad )
+    } else {
+        templateExecuter( w, "authorPage", ad )
+    }
 }
 
 type ResultWithFinalSyllable struct {
