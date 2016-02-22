@@ -20,17 +20,19 @@
 				</form>
 			</div>
 			<br>
-			<div align="center"> 
-				<table>
-				{{range $item := .SecondaryMatchedPhrasesWithUrl}}
+			<div align="center">
+				<table border="1" style="border-collapse: collapse; font-size:large; font-family:Arial, Helvetica, sans-serif;">
+					{{range $item := .SecondaryMatchedPhrasesWithUrl}}
 					<tr>
-						<td style="text-align:left;  white-space: nowrap">
-							{{ range $line := $item.MatchesOnMeter.SecondaryMatch.PhraseInEachMatch }}
-							{{ $line }}<br>
-							{{ end }}
+						<td style="text-align:left;  white-space: nowrap; padding: 15px; ">
+							<a href="{{$item.Url}}" style="text-decoration:none">
+								{{ range $line := $item.MatchesOnMeter.SecondaryMatch.PhraseInEachMatch }}
+								{{ $line }}<br>
+								{{ end }}
+							</a>
 						</td>
 					</tr>
-				{{ end }}
+					{{ end }}
 				</table>
 			</div>
 			<br>

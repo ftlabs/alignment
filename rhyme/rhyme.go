@@ -546,7 +546,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 			emphasisRegexpSecondary = emphasisRegexps[1]
 		}
 
-		fmt.Println("rhyme.rhymeAndMetersOfPhrase: emphasisRegexpSecondary=", emphasisRegexpSecondary)
+		// fmt.Println("rhyme.rhymeAndMetersOfPhrase: emphasisRegexpSecondary=", emphasisRegexpSecondary)
 
 		emphasisPointsDetails        := findAllEmphasisPointsDetails( phrase )
 		emphasisPointsCombinedString := emphasisPointsDetails.EmphasisPointsCombinedString
