@@ -245,7 +245,8 @@ func drop09(r rune) rune { if r>='0' && r<='9' {return -1} else {return r} }
 func drop09String( s string ) string {return strings.Map(drop09, s)}
 
 var (
-	acceptableMeterRegex = regexp.MustCompile(`^(\^*)([012]*)(\$*)$`)
+	acceptableMeterRegex = regexp.MustCompile(`^(\^*)([012 \.]*)(\$*)$`)
+	multipleSpacesRegex  = regexp.MustCompile(`\s\s+`)
 	DefaultMeter         = `01$`
 	anchorAtStartChar    = "^"
 	anchorAtEndChar      = "$"
@@ -267,10 +268,16 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 	containsAnchorAtStart := (matchMeter[1] != "")
 	containsAnchorAtEnd   := (matchMeter[3] != "")
 
-	meterPieces         := strings.Split(meterCore, "")
-	meterWithSpaces     := strings.Join(meterPieces, `\s*`)
-	meterWithExpanded0s := strings.Replace(meterWithSpaces, `0`, `[0\*]`, -1)
-	meterWithExpanded1s := strings.Replace(meterWithExpanded0s, `1`, `[12\*]`, -1)
+	meterCore = strings.TrimSpace(meterCore)
+	meterCore = multipleSpacesRegex.ReplaceAllString(meterCore, " ")
+
+	meterPieces := strings.Split(meterCore, "")
+	mungedMeter := strings.Join(meterPieces, `\s*`)
+
+	mungedMeter = strings.Replace(mungedMeter, `0`, `[0\*]`,   -1)
+	mungedMeter = strings.Replace(mungedMeter, `1`, `[12\*]`,  -1)
+	mungedMeter = strings.Replace(mungedMeter, ` `, `\s+`,     -1)
+	mungedMeter = strings.Replace(mungedMeter, `.`, `[012\*]`, -1)
 
 	before := "" 
 	if containsAnchorAtStart  {
@@ -282,9 +289,9 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 		after = "$"
 	}
 
-	meterWithCaptures := before + `\s(` + meterWithExpanded1s + `)\s` + after
+	mungedMeter = before + `\s(` + mungedMeter + `)\s` + after
 
-	r := regexp.MustCompile(meterWithCaptures)
+	r := regexp.MustCompile(mungedMeter)
 	return r
 }
 
