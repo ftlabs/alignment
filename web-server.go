@@ -76,7 +76,7 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
         matchMeter = rhyme.DefaultMeter
     }
 
-    emphasisRegexp := rhyme.ConvertToEmphasisPointsStringRegexp(matchMeter)
+    emphasisRegexp, _ := rhyme.ConvertToEmphasisPointsStringRegexp(matchMeter)
 
     riwfsList := []*ResultItemWithRhymeAndMeter{}
 
@@ -125,6 +125,7 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
     sentences      := []string{ phrase }
     meter          := r.FormValue("meter")
     rams           := article.FindRhymeAndMetersInSentences( &sentences, meter, syllabi )
+    meterRegexp,_  := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
 
     type PhraseDetails struct {
         Phrase string
@@ -140,7 +141,7 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
         Phrase:         phrase,
         Sentences:      &sentences,
         Meter:          meter,
-        MeterRegexp:    rhyme.ConvertToEmphasisPointsStringRegexp(meter),
+        MeterRegexp:    meterRegexp,
         RhymeAndMeters: rams,
         KnownUnknowns:  syllabi.KnownUnknowns(),
         EmphasisPointsDetails: syllabi.FindAllEmphasisPointsDetails(phrase),

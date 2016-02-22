@@ -256,7 +256,7 @@ var (
 // ConvertToEmphasisPointsStringRegexp takes a string of the form "01010101", or "01010101$", or "^0101",
 // and expands it to be able to match against an EmphasisPointsCombinedString,
 // with \b prepended if not already anchored to ^.
-func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
+func ConvertToEmphasisPointsStringRegexp(meter string) (*regexp.Regexp, *regexp.Regexp) {
 	matchMeter := acceptableMeterRegex.FindStringSubmatch(meter)
 
 	if matchMeter == nil {
@@ -279,6 +279,18 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 	mungedMeter = strings.Replace(mungedMeter, ` `, `\s+`,     -1)
 	mungedMeter = strings.Replace(mungedMeter, `.`, `[012\*]`, -1)
 
+	var secondaryR *regexp.Regexp
+	if strings.Contains(meterCore, " ") {
+		mungedMeterPieces := strings.Split(mungedMeter, `\s+`)
+		mungedMeterPiecesCaptured := []string{}
+		for _,mmp := range mungedMeterPieces {
+			mungedMeterPiecesCaptured = append( mungedMeterPiecesCaptured, "(" + mmp + ")" )
+		}
+		mungedMeterPiecesCombined := strings.Join(mungedMeterPiecesCaptured, `\s+`)
+		secondaryR = regexp.MustCompile(mungedMeterPiecesCombined)
+	}
+
+
 	before := "" 
 	if containsAnchorAtStart  {
 		before = "^" 
@@ -289,10 +301,10 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 		after = "$"
 	}
 
-	mungedMeter = before + `\s(` + mungedMeter + `)\s` + after
+	capturedMeter := before + `\s(` + mungedMeter + `)\s` + after
 
-	r := regexp.MustCompile(mungedMeter)
-	return r
+	r := regexp.MustCompile(capturedMeter)
+	return r, secondaryR
 }
 
 const cropBeforeAfterToMaxWords = 5
