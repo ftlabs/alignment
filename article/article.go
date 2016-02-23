@@ -1,7 +1,7 @@
 package article
 
 import (
-	"sort"
+	// "sort"
 	//    "regexp"
 	"fmt"
 	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
@@ -89,7 +89,7 @@ func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.S
 	aws := getArticleWithSentences(uuid)
 	rams := FindRhymeAndMetersInSentences( aws.Sentences, meter, syllabi )
 
-    sort.Sort(rhyme.RhymeAndMeters(*rams))
+    // sort.Sort(rhyme.RhymeAndMeters(*rams))
 
 	awsam := ArticleWithSentencesAndMeter{
 		aws,

@@ -186,16 +186,33 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         MaxArticles           int
         NumArticles           int
         SecondaryMatchedPhrasesWithUrl *[]*(article.MatchedPhraseWithUrl)
+        BadSecondaryMatchedPhrasesWithUrl *[]*(article.MatchedPhraseWithUrl)
    }
 
     finalSyllablesMap    := &map[string][]*(article.MatchedPhraseWithUrl){}
     badFinalSyllablesMap := &map[string][]*(article.MatchedPhraseWithUrl){}
-    secondaryMatchedPhrasesWithUrl := []*(article.MatchedPhraseWithUrl){}
+    secondaryMatchedPhrasesWithUrl    := []*(article.MatchedPhraseWithUrl){}
+    badSecondaryMatchedPhrasesWithUrl := []*(article.MatchedPhraseWithUrl){}
 
     for _,mpwu := range *matchedPhrasesWithUrl {
 
         if mpwu.MatchesOnMeter.SecondaryMatch != nil {
-            secondaryMatchedPhrasesWithUrl = append( secondaryMatchedPhrasesWithUrl, mpwu)
+            // fwwiem := mpwu.MatchesOnMeter.SecondaryMatch.FinalWordWordInEachMatch
+
+            isBadEnd := false
+            for _,w := range *(mpwu.MatchesOnMeter.SecondaryMatch.FinalWordWordInEachMatch) {
+                if w.IsBadEnd {
+                    isBadEnd = true
+                    break
+                }
+            }
+            // isBadEnd := (*fwwiem)[len(*fwwiem)-1].IsBadEnd
+
+            if isBadEnd {
+                badSecondaryMatchedPhrasesWithUrl = append( badSecondaryMatchedPhrasesWithUrl, mpwu)
+            } else {
+                secondaryMatchedPhrasesWithUrl = append( secondaryMatchedPhrasesWithUrl, mpwu)
+            }
         }
 
         fsAZ     := mpwu.MatchesOnMeter.FinalDuringSyllableAZ
@@ -251,6 +268,7 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         MaxArticles:           maxArticles,
         NumArticles:           len(*articles),
         SecondaryMatchedPhrasesWithUrl: &secondaryMatchedPhrasesWithUrl,
+        BadSecondaryMatchedPhrasesWithUrl: &badSecondaryMatchedPhrasesWithUrl,
     }
 
     if len(secondaryMatchedPhrasesWithUrl) > 0 {
