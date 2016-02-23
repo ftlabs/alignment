@@ -54,3 +54,4 @@ TRANSFORM:(\w+)’(re|RE|ve|VE|ll|LL)  $1'$2
 BAD:END  THE
 BAD:END  A
 BAD:END  OF
+BAD:END  AN

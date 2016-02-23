@@ -317,6 +317,7 @@ type SecondaryMatch struct {
 	NumWordsInEachMatch   *[]int
 	WordsInEachMatch      *[]*[]string
 	PhraseInEachMatch     *[]string
+	FinalWordWordInEachMatch *[]*Word
 }
 
 type MatchesOnMeter struct {
@@ -633,6 +634,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 // 	NumWordsInEachMatch *[]int
 // 	WordsInEachMatch *[]string
 // 	PhraseInEachMatch *[]string
+//  FinalWordWordInEachMatch *[]*Word
 // }
 
 						var secondaryMatch *SecondaryMatch
@@ -653,9 +655,12 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 								}
 								countFrom := numBefore
 								secondaryEmphMatchesWords := []*[]string{}
+								finalWordWordInEachMatch := []*Word{}
 								for _,c := range secondaryEmphMatchesWordCounts {
 									ws := phraseWords[countFrom:(countFrom+c)]
 									secondaryEmphMatchesWords = append(secondaryEmphMatchesWords, &ws)
+									ww := matchingWords[countFrom+c-1]
+									finalWordWordInEachMatch = append(finalWordWordInEachMatch, ww)
 									countFrom = countFrom + c
 								}
 								secondaryEmphMatchesPhrases := []string{}
@@ -671,6 +676,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 									NumWordsInEachMatch:   &secondaryEmphMatchesWordCounts,
 									WordsInEachMatch:      &secondaryEmphMatchesWords,
 									PhraseInEachMatch:     &secondaryEmphMatchesPhrases,
+									FinalWordWordInEachMatch: &finalWordWordInEachMatch,
 								}
 							}
 						}
