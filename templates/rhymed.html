@@ -22,7 +22,7 @@
 				{{range $item := .ResultsWithFinalSyllable}}
 					{{if $item.FirstOfNewRhyme}}<tr><td></td><td>-{{$item.FinalSyllableAZ}}</td></tr>{{end}}
 					<tr>
-						<td style="text-align:right;  white-space: nowrap"><a href="{{ $item.LocationUri}}">{{ $item.Title }}</a></td>
+						<td style="text-align:right;  white-space: nowrap"><a href="{{ $item.SiteUrl}}">{{ $item.Title }}</a></td>
 					</tr>
 				{{ end }}
 				</table>

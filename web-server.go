@@ -14,7 +14,7 @@ import (
     "github.com/railsagainstignorance/alignment/sapi"
     "github.com/railsagainstignorance/alignment/rhyme"
     "github.com/railsagainstignorance/alignment/article"
-    // "github.com/railsagainstignorance/alignment/content"
+    "github.com/railsagainstignorance/alignment/content"
 )
 
 // compile all templates and cache them
@@ -33,15 +33,7 @@ func alignFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
-    // searchParams := sapi.SearchParams{
-    //     Text:   r.FormValue("text"),
-    //     Source: r.FormValue("source"),
-    // }
-
-	// p := align.Search( searchParams )
-
     p := align.Search( r.FormValue("text"), r.FormValue("source") )
-
     templateExecuter( w, "alignedPage", p )
 }
 
@@ -283,7 +275,7 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type ResultWithFinalSyllable struct {
-    *sapi.ResultItem
+    *content.Article
     FinalSyllableAZ string
     FirstOfNewRhyme bool
 }
@@ -310,16 +302,26 @@ func (fsc FSandCounts) Less(i, j int) bool { return (fsc[j].FinalSyllable == "")
 
 func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     text := r.FormValue("text")
-    searchParams := sapi.SearchParams{
-        Text:   text,
-        Source: "any",
+    // searchParams := sapi.SearchParams{
+    //     Text:   text,
+    //     Source: "any",
+    // }
+
+    // sapiResult := sapi.Search( searchParams )
+
+    sRequest := &content.SearchRequest {
+        QueryType: "title",
+        QueryText: text,
+        MaxArticles: 100,
+        MaxDurationMillis: 3000,
+        SearchOnly: true, // i.e. don't bother looking up articles
     }
 
-    sapiResult := sapi.Search( searchParams )
+    sapiResult := content.Search( sRequest )
 
     finalSyllablesMap := map[string][]*ResultWithFinalSyllable{}
 
-    for _, item := range *(sapiResult.Items) {
+    for _, item := range *(sapiResult.Articles) {
         phrase := item.Title
         fs     := syllabi.FinalSyllableOfPhrase(phrase)
         fsAZ   := rhyme.KeepAZString( fs )
