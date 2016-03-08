@@ -1,4 +1,4 @@
-package main
+package content
 
 import (
 	"bytes"
@@ -158,6 +158,8 @@ func constructQueryString(sr *SearchRequest ) string {
     switch sr.QueryType {
     case "keyword", "":
         queryString = sr.QueryText
+    case "title-only":
+        queryString = "title" + `:\"` + sr.QueryText + `\"`
     default:
         queryString = sr.QueryType + `:\"` + sr.QueryText + `\"`
     }
@@ -179,7 +181,7 @@ func convertStringsToQuotedCSV( sList []string ) string {
 func getSapiResponseJsonBody(queryString string, maxResults int) ([]byte) {
     url := "http://api.ft.com/content/search/v1?apiKey=" + apiKey
 
-    fmt.Println("sapi: getSapiResponseJsonBody: queryString:", queryString)
+    // fmt.Println("sapi: getSapiResponseJsonBody: queryString:", queryString)
     curationsString := convertStringsToQuotedCSV( []string{ "ARTICLES", "BLOGS" } )
     aspectsString   := convertStringsToQuotedCSV( []string{ "title", "location", "summary", "lifecycle", "metadata", "editorial" } )
 
@@ -215,6 +217,7 @@ func getSapiResponseJsonBody(queryString string, maxResults int) ([]byte) {
 }
 
 type SearchResponse struct {
+    SiteUrl       string
     SiteSearchUrl string
     NumArticles   int
     NumPossible   int
@@ -241,7 +244,8 @@ type Article struct {
 
 func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString string) *SearchResponse {
 
-    siteSearchUrl := "http://search.ft.com/search?queryText=" + queryString
+    siteUrl       := "http://www.ft.com"
+    siteSearchUrl := "http://search.ft.com/search?queryText=" + strings.Replace(queryString, `\"`, `"`, -1)
     numPossible   := 0
     articles      := []*Article{}
 
@@ -317,6 +321,7 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
     }
 
     searchResponse := SearchResponse{
+        SiteUrl:       siteUrl,
         SiteSearchUrl: siteSearchUrl,
         NumArticles:   len(articles),
         NumPossible:   numPossible,

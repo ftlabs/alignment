@@ -14,6 +14,7 @@ import (
     "github.com/railsagainstignorance/alignment/sapi"
     "github.com/railsagainstignorance/alignment/rhyme"
     "github.com/railsagainstignorance/alignment/article"
+    // "github.com/railsagainstignorance/alignment/content"
 )
 
 // compile all templates and cache them
@@ -32,12 +33,15 @@ func alignFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
-    searchParams := sapi.SearchParams{
-        Text:   r.FormValue("text"),
-        Source: r.FormValue("source"),
-    }
+    // searchParams := sapi.SearchParams{
+    //     Text:   r.FormValue("text"),
+    //     Source: r.FormValue("source"),
+    // }
 
-	p := align.Search( searchParams )
+	// p := align.Search( searchParams )
+
+    p := align.Search( r.FormValue("text"), r.FormValue("source") )
+
     templateExecuter( w, "alignedPage", p )
 }
 

@@ -61,7 +61,7 @@ func getSapiResponseJsonBody(queryString string) ([]byte) {
 	sapiKey := os.Getenv("SAPI_KEY")
 	url     := "http://api.ft.com/content/search/v1?apiKey=" + sapiKey
 
-    fmt.Println("sapi: getSapiResponseJsonBody: queryString:", queryString)
+    // fmt.Println("sapi: getSapiResponseJsonBody: queryString:", queryString)
     curationsString := convertStringsToQuotedCSV( []string{ "ARTICLES", "BLOGS" } )
     aspectsString   := convertStringsToQuotedCSV( []string{ "title", "location", "summary", "lifecycle", "metadata" } )
     maxResults      := 100
