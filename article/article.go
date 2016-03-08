@@ -1,7 +1,7 @@
 package article
 
 import (
-	"sort"
+	// "sort"
 	//    "regexp"
 	"fmt"
 	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
@@ -70,10 +70,10 @@ func FindRhymeAndMetersInSentences(sentences *[]string, meter string, syllabi *r
 		meter = rhyme.DefaultMeter
 	}
 
-	emphasisRegexp := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
+	emphasisRegexp, emphasisRegexpSecondary := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
 
 	for _, s := range *(sentences) {
-		syllabiRams := syllabi.RhymeAndMetersOfPhrase(s, emphasisRegexp)
+		syllabiRams := syllabi.RhymeAndMetersOfPhrase(s, emphasisRegexp, emphasisRegexpSecondary)
 
 		for _,ram := range *syllabiRams {
 			if ram.EmphasisRegexpMatch2 != "" {
@@ -89,7 +89,7 @@ func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.S
 	aws := getArticleWithSentences(uuid)
 	rams := FindRhymeAndMetersInSentences( aws.Sentences, meter, syllabi )
 
-    sort.Sort(rhyme.RhymeAndMeters(*rams))
+    // sort.Sort(rhyme.RhymeAndMeters(*rams))
 
 	awsam := ArticleWithSentencesAndMeter{
 		aws,

@@ -196,7 +196,7 @@ type Syllabi struct {
     FinalSyllable  func(string) string
     FinalSyllableOfPhrase func(string) string
     SortPhrasesByFinalSyllable func( []string ) *RhymingPhrases
-    RhymeAndMetersOfPhrase func(string, *regexp.Regexp) *[]*RhymeAndMeter
+    RhymeAndMetersOfPhrase func(string, ...*regexp.Regexp) *[]*RhymeAndMeter
     FindMatchingWord func(string) *Word
     KnownUnknowns func() *[]string
 	PhraseWordsRegexp            *regexp.Regexp
@@ -245,7 +245,8 @@ func drop09(r rune) rune { if r>='0' && r<='9' {return -1} else {return r} }
 func drop09String( s string ) string {return strings.Map(drop09, s)}
 
 var (
-	acceptableMeterRegex = regexp.MustCompile(`^(\^*)([012]*)(\$*)$`)
+	acceptableMeterRegex = regexp.MustCompile(`^(\^*)([012 \.]*)(\$*)$`)
+	multipleSpacesRegex  = regexp.MustCompile(`\s\s+`)
 	DefaultMeter         = `01$`
 	anchorAtStartChar    = "^"
 	anchorAtEndChar      = "$"
@@ -255,7 +256,7 @@ var (
 // ConvertToEmphasisPointsStringRegexp takes a string of the form "01010101", or "01010101$", or "^0101",
 // and expands it to be able to match against an EmphasisPointsCombinedString,
 // with \b prepended if not already anchored to ^.
-func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
+func ConvertToEmphasisPointsStringRegexp(meter string) (*regexp.Regexp, *regexp.Regexp) {
 	matchMeter := acceptableMeterRegex.FindStringSubmatch(meter)
 
 	if matchMeter == nil {
@@ -267,10 +268,28 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 	containsAnchorAtStart := (matchMeter[1] != "")
 	containsAnchorAtEnd   := (matchMeter[3] != "")
 
-	meterPieces         := strings.Split(meterCore, "")
-	meterWithSpaces     := strings.Join(meterPieces, `\s*`)
-	meterWithExpanded0s := strings.Replace(meterWithSpaces, `0`, `[0\*]`, -1)
-	meterWithExpanded1s := strings.Replace(meterWithExpanded0s, `1`, `[12\*]`, -1)
+	meterCore = strings.TrimSpace(meterCore)
+	meterCore = multipleSpacesRegex.ReplaceAllString(meterCore, " ")
+
+	meterPieces := strings.Split(meterCore, "")
+	mungedMeter := strings.Join(meterPieces, `\s*`)
+
+	mungedMeter = strings.Replace(mungedMeter, `0`, `[0\*]`,   -1)
+	mungedMeter = strings.Replace(mungedMeter, `1`, `[12\*]`,  -1)
+	mungedMeter = strings.Replace(mungedMeter, ` `, `\s+`,     -1)
+	mungedMeter = strings.Replace(mungedMeter, `.`, `[012\*]`, -1)
+
+	var secondaryR *regexp.Regexp
+	if strings.Contains(meterCore, " ") {
+		mungedMeterPieces := strings.Split(mungedMeter, `\s+`)
+		mungedMeterPiecesCaptured := []string{}
+		for _,mmp := range mungedMeterPieces {
+			mungedMeterPiecesCaptured = append( mungedMeterPiecesCaptured, "(" + mmp + ")" )
+		}
+		mungedMeterPiecesCombined := strings.Join(mungedMeterPiecesCaptured, `\s+`)
+		secondaryR = regexp.MustCompile(mungedMeterPiecesCombined)
+	}
+
 
 	before := "" 
 	if containsAnchorAtStart  {
@@ -282,14 +301,24 @@ func ConvertToEmphasisPointsStringRegexp(meter string) *regexp.Regexp {
 		after = "$"
 	}
 
-	meterWithCaptures := before + `\s(` + meterWithExpanded1s + `)\s` + after
+	capturedMeter := before + `\s(` + mungedMeter + `)\s` + after
 
-	r := regexp.MustCompile(meterWithCaptures)
-	return r
+	r := regexp.MustCompile(capturedMeter)
+	return r, secondaryR
 }
 
 const cropBeforeAfterToMaxWords = 5
 const cropBeforeAfterDotDotDot  = "..."
+
+type SecondaryMatch struct {
+	SecondaryRegexp       *regexp.Regexp
+	FullPhrase            string
+	EmphasisRegexpMatches *[]string
+	NumWordsInEachMatch   *[]int
+	WordsInEachMatch      *[]*[]string
+	PhraseInEachMatch     *[]string
+	FinalWordWordInEachMatch *[]*Word
+}
 
 type MatchesOnMeter struct {
 	Before   string
@@ -305,6 +334,7 @@ type MatchesOnMeter struct {
 	FinalDuringSyllable   string
 	FinalDuringSyllableAZ string
 	FinalDuringWordWord *Word
+	SecondaryMatch *SecondaryMatch
 }
 
 func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
@@ -509,7 +539,15 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		return allMatches
 	}
 
-	rhymeAndMetersOfPhrase := func(phrase string, emphasisRegexp *regexp.Regexp) (*[]*RhymeAndMeter) {
+	rhymeAndMetersOfPhrase := func(phrase string, emphasisRegexps ...*regexp.Regexp) (*[]*RhymeAndMeter) {
+
+		emphasisRegexp               := emphasisRegexps[0]
+		var emphasisRegexpSecondary *regexp.Regexp
+		if len(emphasisRegexps)>1 {
+			emphasisRegexpSecondary = emphasisRegexps[1]
+		}
+
+		// fmt.Println("rhyme.rhymeAndMetersOfPhrase: emphasisRegexpSecondary=", emphasisRegexpSecondary)
 
 		emphasisPointsDetails        := findAllEmphasisPointsDetails( phrase )
 		emphasisPointsCombinedString := emphasisPointsDetails.EmphasisPointsCombinedString
@@ -589,6 +627,60 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 								matchAfterCropped = matchAfter
 							}
 						}
+
+// type SecondaryMatch struct {
+// 	FullPhrase string
+// 	EmphasisRegexpMatches *[]string
+// 	NumWordsInEachMatch *[]int
+// 	WordsInEachMatch *[]string
+// 	PhraseInEachMatch *[]string
+//  FinalWordWordInEachMatch *[]*Word
+// }
+
+						var secondaryMatch *SecondaryMatch
+
+						// fmt.Println("rhymeAndMetersOfPhrase: matchDuring=", matchDuring)
+						// fmt.Println("rhymeAndMetersOfPhrase: emphasisRegexpMatch2=", emphasisRegexpMatch2)
+						// fmt.Println("rhymeAndMetersOfPhrase: emphasisRegexpSecondary=", emphasisRegexpSecondary)
+
+						if emphasisRegexpSecondary != nil && emphasisRegexpMatch2 != "" {
+							secondaryEmphMatches := emphasisRegexpSecondary.FindStringSubmatch( emphasisRegexpMatch2 )
+							if secondaryEmphMatches != nil {
+								secondaryEmphMatchesWordCounts := []int{}
+								for i,sem := range secondaryEmphMatches {
+									if i==0 { continue }
+									c := countWordsInMatch(sem)
+									secondaryEmphMatchesWordCounts = append( secondaryEmphMatchesWordCounts, c)
+									// fmt.Println("rhymeAndMetersOfPhrase: secondaryEmphMatches: sem=", sem, ", c=", c)
+								}
+								countFrom := numBefore
+								secondaryEmphMatchesWords := []*[]string{}
+								finalWordWordInEachMatch := []*Word{}
+								for _,c := range secondaryEmphMatchesWordCounts {
+									ws := phraseWords[countFrom:(countFrom+c)]
+									secondaryEmphMatchesWords = append(secondaryEmphMatchesWords, &ws)
+									ww := matchingWords[countFrom+c-1]
+									finalWordWordInEachMatch = append(finalWordWordInEachMatch, ww)
+									countFrom = countFrom + c
+								}
+								secondaryEmphMatchesPhrases := []string{}
+								for _,ws := range secondaryEmphMatchesWords {
+									phrase := strings.Join(*ws, " ")
+									secondaryEmphMatchesPhrases = append( secondaryEmphMatchesPhrases, phrase)
+								}
+
+								secondaryMatch = &SecondaryMatch{
+									SecondaryRegexp:       emphasisRegexpSecondary,
+									FullPhrase:            matchDuring,
+									EmphasisRegexpMatches: &secondaryEmphMatches,
+									NumWordsInEachMatch:   &secondaryEmphMatchesWordCounts,
+									WordsInEachMatch:      &secondaryEmphMatchesWords,
+									PhraseInEachMatch:     &secondaryEmphMatchesPhrases,
+									FinalWordWordInEachMatch: &finalWordWordInEachMatch,
+								}
+							}
+						}
+
 						matchesOnMeter = MatchesOnMeter{
 							Before:          matchBefore, 
 							During:          matchDuring,
@@ -603,6 +695,7 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 							FinalDuringSyllable:   finalDuringSyllable,
 							FinalDuringSyllableAZ: finalDuringSyllableAZ,
 							FinalDuringWordWord: finalDuringWordWord,
+							SecondaryMatch:  secondaryMatch,
 						}
 					}
 				}

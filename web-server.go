@@ -76,7 +76,7 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
         matchMeter = rhyme.DefaultMeter
     }
 
-    emphasisRegexp := rhyme.ConvertToEmphasisPointsStringRegexp(matchMeter)
+    emphasisRegexp, _ := rhyme.ConvertToEmphasisPointsStringRegexp(matchMeter)
 
     riwfsList := []*ResultItemWithRhymeAndMeter{}
 
@@ -125,6 +125,7 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
     sentences      := []string{ phrase }
     meter          := r.FormValue("meter")
     rams           := article.FindRhymeAndMetersInSentences( &sentences, meter, syllabi )
+    meterRegexp,_  := rhyme.ConvertToEmphasisPointsStringRegexp(meter)
 
     type PhraseDetails struct {
         Phrase string
@@ -140,7 +141,7 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
         Phrase:         phrase,
         Sentences:      &sentences,
         Meter:          meter,
-        MeterRegexp:    rhyme.ConvertToEmphasisPointsStringRegexp(meter),
+        MeterRegexp:    meterRegexp,
         RhymeAndMeters: rams,
         KnownUnknowns:  syllabi.KnownUnknowns(),
         EmphasisPointsDetails: syllabi.FindAllEmphasisPointsDetails(phrase),
@@ -184,12 +185,36 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         KnownUnknowns         *[]string
         MaxArticles           int
         NumArticles           int
+        SecondaryMatchedPhrasesWithUrl *[]*(article.MatchedPhraseWithUrl)
+        BadSecondaryMatchedPhrasesWithUrl *[]*(article.MatchedPhraseWithUrl)
    }
 
     finalSyllablesMap    := &map[string][]*(article.MatchedPhraseWithUrl){}
     badFinalSyllablesMap := &map[string][]*(article.MatchedPhraseWithUrl){}
+    secondaryMatchedPhrasesWithUrl    := []*(article.MatchedPhraseWithUrl){}
+    badSecondaryMatchedPhrasesWithUrl := []*(article.MatchedPhraseWithUrl){}
 
     for _,mpwu := range *matchedPhrasesWithUrl {
+
+        if mpwu.MatchesOnMeter.SecondaryMatch != nil {
+            // fwwiem := mpwu.MatchesOnMeter.SecondaryMatch.FinalWordWordInEachMatch
+
+            isBadEnd := false
+            for _,w := range *(mpwu.MatchesOnMeter.SecondaryMatch.FinalWordWordInEachMatch) {
+                if w.IsBadEnd {
+                    isBadEnd = true
+                    break
+                }
+            }
+            // isBadEnd := (*fwwiem)[len(*fwwiem)-1].IsBadEnd
+
+            if isBadEnd {
+                badSecondaryMatchedPhrasesWithUrl = append( badSecondaryMatchedPhrasesWithUrl, mpwu)
+            } else {
+                secondaryMatchedPhrasesWithUrl = append( secondaryMatchedPhrasesWithUrl, mpwu)
+            }
+        }
+
         fsAZ     := mpwu.MatchesOnMeter.FinalDuringSyllableAZ
         isBadEnd := (mpwu.MatchesOnMeter.FinalDuringWordWord == nil) || mpwu.MatchesOnMeter.FinalDuringWordWord.IsBadEnd
 
@@ -242,9 +267,15 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
         KnownUnknowns:         syllabi.KnownUnknowns(),
         MaxArticles:           maxArticles,
         NumArticles:           len(*articles),
-   }
+        SecondaryMatchedPhrasesWithUrl: &secondaryMatchedPhrasesWithUrl,
+        BadSecondaryMatchedPhrasesWithUrl: &badSecondaryMatchedPhrasesWithUrl,
+    }
 
-    templateExecuter( w, "authorPage", ad )
+    if len(secondaryMatchedPhrasesWithUrl) > 0 {
+        templateExecuter( w, "authorHaikuPage", ad )
+    } else {
+        templateExecuter( w, "authorPage", ad )
+    }
 }
 
 type ResultWithFinalSyllable struct {
