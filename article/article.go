@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
 	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/kennygrant/sanitize"
-	"github.com/railsagainstignorance/alignment/capi"
-	"github.com/railsagainstignorance/alignment/sapi"
+	// "github.com/railsagainstignorance/alignment/capi"
+	// "github.com/railsagainstignorance/alignment/sapi"
 	"github.com/railsagainstignorance/alignment/rhyme"
+	"github.com/railsagainstignorance/alignment/content"
 	"strings"
 	"time"
 )
@@ -35,12 +36,14 @@ func splitTextIntoSentences(text string) *[]string {
 }
 
 type ArticleWithSentences struct {
-	*capi.Article
+	*content.Article
 	Sentences *[]string
 }
 
 func getArticleWithSentences(uuid string) *ArticleWithSentences {
-	article := capi.GetArticle(uuid)
+	// article := capi.GetArticle(uuid)
+	article := content.GetArticle(uuid)
+
 	tidyBody := sanitize.HTML(article.Body)
 
 	sentences := splitTextIntoSentences(tidyBody)
@@ -116,14 +119,36 @@ func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, sylla
 	start := time.Now()
 	maxDurationNanoseconds := int64(maxMillis * 1e6)
 
-	sapiResult := sapi.Search( sapi.SearchParams{ Author: author } )
+	// sapiResult := sapi.Search( sapi.SearchParams{ Author: author } )
 
 	articles := []*ArticleWithSentencesAndMeter{}
 	
-	if sapiResult != nil && *(sapiResult.Items) != nil && len(*(sapiResult.Items)) > 0 {
-		for _,item := range (*(sapiResult.Items))[0:maxArticles] {
+	// if sapiResult != nil && *(sapiResult.Items) != nil && len(*(sapiResult.Items)) > 0 {
+	// 	for _,item := range (*(sapiResult.Items))[0:maxArticles] {
+	// 		if item != nil {
+	// 			aws := GetArticleWithSentencesAndMeter(item.Id, meter, syllabi)
+	// 			articles = append( articles, aws )
+	// 		}
+	// 		if time.Since(start).Nanoseconds() > maxDurationNanoseconds {
+	// 			break
+	// 		}
+	// 	}
+	// }
+
+    sRequest := &content.SearchRequest {
+        QueryType: "authors",
+        QueryText: author,
+        MaxArticles: maxArticles,
+        MaxDurationMillis: maxMillis,
+        SearchOnly: false, 
+    }
+
+    sapiResult := content.Search( sRequest )
+
+	if sapiResult != nil && *(sapiResult.Articles) != nil && len(*(sapiResult.Articles)) > 0 {
+		for _,item := range (*(sapiResult.Articles))[0:maxArticles] {
 			if item != nil {
-				aws := GetArticleWithSentencesAndMeter(item.Id, meter, syllabi)
+				aws := GetArticleWithSentencesAndMeter(item.Uuid, meter, syllabi)
 				articles = append( articles, aws )
 			}
 			if time.Since(start).Nanoseconds() > maxDurationNanoseconds {
@@ -138,7 +163,7 @@ func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, sylla
 		for _, mp := range *(article.MatchedPhrases) {
 			mpwu := &MatchedPhraseWithUrl{
 				mp,
-				&article.Url,
+				&article.SiteUrl,
 			}
 
 			mpwus = append( mpwus, mpwu )

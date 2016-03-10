@@ -3,7 +3,9 @@ package align
 import (
 	"sort"
     "regexp"
-    "github.com/railsagainstignorance/alignment/sapi"
+    // "fmt"
+    // "github.com/railsagainstignorance/alignment/sapi"
+    "github.com/railsagainstignorance/alignment/content"
 )
 
 type PhraseBits struct {
@@ -38,17 +40,51 @@ type ResultParams struct {
     AnyChecked       string
 }
 
-func Search(params sapi.SearchParams) *ResultParams {
-    sapiResults := sapi.Search( params )
+func Search(text string, source string) *ResultParams {
+    // sapiResults := sapi.Search( params )
+
+    var textForSearch string
+
+    if source != "title-only" {
+        source = "keyword"
+        textForSearch = `\"` + text + `\"`
+    } else {
+        textForSearch = text
+    }
+
+    sRequest := &content.SearchRequest {
+        QueryType: source,
+        QueryText: textForSearch,
+        MaxArticles: 100,
+        MaxDurationMillis: 3000,
+        SearchOnly: true, // i.e. don't bother looking up articles
+    }
+
+    // fmt.Println("align.Search: sRequest=", sRequest) 
+
+    sapiResults := content.Search( sRequest )
+
+    // fmt.Println("align.Search: sapiResults=", sapiResults) 
+    // fmt.Println("align.Search: sapiResults.Articles=", sapiResults.Articles) 
 
     var (
         maxIndent int = 0
         phrases []PhraseBits = []PhraseBits{}
     )
 
-    for _, resultItem := range (*(*sapiResults).Items) {
+    for _, resultItem := range (*(*sapiResults).Articles) {
 
-        splitPhrase := FullOnPartial(resultItem.Phrase, params.Text)   
+        var phrase string
+
+        if source == "title-only" {
+            phrase = resultItem.Title
+        } else {
+            phrase = resultItem.Excerpt
+        }
+
+        splitPhrase := FullOnPartial(phrase, text)   
+
+        // fmt.Println("align.Search: resultItem.Excerpt=", resultItem.Excerpt, ", text=", text, ", splitPhrase=", splitPhrase) 
 
 		if splitPhrase.Indent >= 0 {
 			bits := &PhraseBits{
@@ -57,7 +93,7 @@ func Search(params sapi.SearchParams) *ResultParams {
 				After:       splitPhrase.After,
 				Excerpt:     resultItem.Excerpt,
 				Title:       resultItem.Title,
-				LocationUri: resultItem.LocationUri,
+				LocationUri: resultItem.SiteUrl,
 			}
 			phrases = append(phrases, *bits)
 
@@ -70,15 +106,26 @@ func Search(params sapi.SearchParams) *ResultParams {
     	sort.Sort(ByBeforeBit(phrases))
     } 
 
+    var (
+        titleOnlyChecked string = ""
+        anyChecked       string = ""
+    )
+
+    if source == "title-only" {
+        titleOnlyChecked = "checked"
+    } else {
+        anyChecked       = "checked"
+    }
+
 	p := &ResultParams{
-        Text:             params.Text, 
-        Source:           sapiResults.Source, 
+        Text:             text, 
+        Source:           source, 
         MaxIndent:        maxIndent, 
         Phrases:          phrases,
-        FtcomUrl:         sapiResults.FtcomUrl,
-        FtcomSearchUrl:   sapiResults.FtcomSearchUrl,
-        TitleOnlyChecked: sapiResults.TitleOnlyChecked,
-        AnyChecked:       sapiResults.AnyChecked,
+        FtcomUrl:         sapiResults.SiteUrl,
+        FtcomSearchUrl:   sapiResults.SiteSearchUrl,
+        TitleOnlyChecked: titleOnlyChecked,
+        AnyChecked:       anyChecked,
     }
 
     return p

@@ -11,9 +11,10 @@ import (
     // "strings"
     "strconv"
     "github.com/railsagainstignorance/alignment/align"
-    "github.com/railsagainstignorance/alignment/sapi"
+    // "github.com/railsagainstignorance/alignment/sapi"
     "github.com/railsagainstignorance/alignment/rhyme"
     "github.com/railsagainstignorance/alignment/article"
+    "github.com/railsagainstignorance/alignment/content"
 )
 
 // compile all templates and cache them
@@ -32,28 +33,27 @@ func alignFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func alignHandler(w http.ResponseWriter, r *http.Request) {
-    searchParams := sapi.SearchParams{
-        Text:   r.FormValue("text"),
-        Source: r.FormValue("source"),
-    }
-
-	p := align.Search( searchParams )
+    p := align.Search( r.FormValue("text"), r.FormValue("source") )
     templateExecuter( w, "alignedPage", p )
 }
 
 type ResultItemWithRhymeAndMeter struct {
-    ResultItem    *(sapi.ResultItem)
+    ResultItem    *(content.Article)
     RhymeAndMeter *(rhyme.RhymeAndMeter)
 }
 
 type SearchResultWithRhymeAndMeterList struct {
-    SearchResult *(sapi.SearchResult)
+    SearchResult *(content.SearchResponse)
     ResultItemsWithRhymeAndMeterList []*ResultItemWithRhymeAndMeter
     MatchMeter string
     EmphasisRegexp *(regexp.Regexp)
     EmphasisRegexpString string
     KnownUnknowns *[]string
     PhraseWordsRegexpString string
+    Text string
+    Source string
+    TitleOnlyChecked string
+    AnyChecked       string    
 }
 
 type RhymedResultItems []*ResultItemWithRhymeAndMeter
@@ -65,11 +65,46 @@ func (rri RhymedResultItems) Less(i, j int) bool { return rri[i].RhymeAndMeter.F
 var syllabi = rhyme.ConstructSyllabi(&[]string{"rhyme/cmudict-0.7b", "rhyme/cmudict-0.7b_my_additions"})
 
 func meterHandler(w http.ResponseWriter, r *http.Request) {
-    searchParams := sapi.SearchParams{
-        Text:   r.FormValue("text"),
-        Source: r.FormValue("source"),
+    // searchParams := sapi.SearchParams{
+    //     Text:   r.FormValue("text"),
+    //     Source: r.FormValue("source"),
+    // }
+    // sapiResult := sapi.Search( searchParams )
+
+    text := r.FormValue("text")
+    source := r.FormValue("source")
+
+    var textForSearch string
+
+    if source != "title-only" {
+        source = "keyword"
+        textForSearch = `\"` + text + `\"`
+    } else {
+        textForSearch = text
     }
-    sapiResult := sapi.Search( searchParams )
+
+    var (
+        titleOnlyChecked string = ""
+        anyChecked       string = ""
+    )
+
+    if source == "title-only" {
+        titleOnlyChecked = "checked"
+    } else {
+        anyChecked       = "checked"
+    }
+
+
+
+    sRequest := &content.SearchRequest {
+        QueryType: source,
+        QueryText: textForSearch,
+        MaxArticles: 100,
+        MaxDurationMillis: 3000,
+        SearchOnly: true, // i.e. don't bother looking up articles
+    }
+
+    sapiResult := content.Search( sRequest )
 
     matchMeter     := r.FormValue("meter")
     if matchMeter == "" {
@@ -80,8 +115,16 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
 
     riwfsList := []*ResultItemWithRhymeAndMeter{}
 
-    for _, item := range *(sapiResult.Items) {
-        rams := syllabi.RhymeAndMetersOfPhrase(item.Phrase, emphasisRegexp)
+    for _, item := range *(sapiResult.Articles) {
+        var phrase string
+
+        if source == "title-only" {
+            phrase = item.Title
+        } else {
+            phrase = item.Excerpt
+        }
+
+        rams := syllabi.RhymeAndMetersOfPhrase(phrase, emphasisRegexp)
 
         if rams != nil {
             for _,ram := range *rams {
@@ -107,6 +150,10 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
         EmphasisRegexpString: emphasisRegexp.String(),
         KnownUnknowns:        syllabi.KnownUnknowns(),
         PhraseWordsRegexpString: syllabi.PhraseWordsRegexpString,
+        Text: text,
+        Source: source,
+        TitleOnlyChecked: titleOnlyChecked,
+        AnyChecked: anyChecked,
     }
 
     templateExecuter( w, "meteredPage", &srwfs )
@@ -279,7 +326,7 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type ResultWithFinalSyllable struct {
-    *sapi.ResultItem
+    *content.Article
     FinalSyllableAZ string
     FirstOfNewRhyme bool
 }
@@ -306,16 +353,26 @@ func (fsc FSandCounts) Less(i, j int) bool { return (fsc[j].FinalSyllable == "")
 
 func rhymeHandler(w http.ResponseWriter, r *http.Request) {
     text := r.FormValue("text")
-    searchParams := sapi.SearchParams{
-        Text:   text,
-        Source: "any",
+    // searchParams := sapi.SearchParams{
+    //     Text:   text,
+    //     Source: "any",
+    // }
+
+    // sapiResult := sapi.Search( searchParams )
+
+    sRequest := &content.SearchRequest {
+        QueryType: "title",
+        QueryText: text,
+        MaxArticles: 100,
+        MaxDurationMillis: 3000,
+        SearchOnly: true, // i.e. don't bother looking up articles
     }
 
-    sapiResult := sapi.Search( searchParams )
+    sapiResult := content.Search( sRequest )
 
     finalSyllablesMap := map[string][]*ResultWithFinalSyllable{}
 
-    for _, item := range *(sapiResult.Items) {
+    for _, item := range *(sapiResult.Articles) {
         phrase := item.Title
         fs     := syllabi.FinalSyllableOfPhrase(phrase)
         fsAZ   := rhyme.KeepAZString( fs )
