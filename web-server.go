@@ -15,6 +15,7 @@ import (
     "github.com/railsagainstignorance/alignment/rhyme"
     "github.com/railsagainstignorance/alignment/article"
     "github.com/railsagainstignorance/alignment/content"
+    "github.com/railsagainstignorance/alignment/ontology"
 )
 
 // compile all templates and cache them
@@ -197,8 +198,9 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
     templateExecuter( w, "detailPage", pd )
 }
 
-func authorHandler(w http.ResponseWriter, r *http.Request) {
-    author := r.FormValue("author")
+func ontologyHandler(w http.ResponseWriter, r *http.Request) {
+    ontologyName  := r.FormValue("ontology")
+    ontologyvalue := r.FormValue("value")
     meter  := r.FormValue("meter")
 
     maxArticles := 10
@@ -208,120 +210,15 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
             maxArticles = i
         }
     }
-
-    if maxArticles < 1 {
-        maxArticles = 1
-    } else if maxArticles > 100 {
-        maxArticles = 100 
-    }
     
     maxMillis   := 3000
 
-    type MatchedPhraseWithUrlWithFirst struct {
-        *article.MatchedPhraseWithUrl
-        FirstOfNewRhyme bool
-    }
+    details, containsHaikus := ontology.GetDetails(syllabi, ontologyName, ontologyvalue, meter, maxArticles, maxMillis)
 
-    articles, matchedPhrasesWithUrl := article.GetArticlesByAuthorWithSentencesAndMeter(author, meter, syllabi, maxArticles, maxMillis )
-    type AuthorDetails struct {
-        Author                string
-        Meter                 string
-        Articles              *[]*article.ArticleWithSentencesAndMeter
-        MatchedPhrasesWithUrl    *[]*MatchedPhraseWithUrlWithFirst
-        BadMatchedPhrasesWithUrl *[]*MatchedPhraseWithUrlWithFirst
-        KnownUnknowns         *[]string
-        MaxArticles           int
-        NumArticles           int
-        SecondaryMatchedPhrasesWithUrl *[]*(article.MatchedPhraseWithUrl)
-        BadSecondaryMatchedPhrasesWithUrl *[]*(article.MatchedPhraseWithUrl)
-   }
-
-    finalSyllablesMap    := &map[string][]*(article.MatchedPhraseWithUrl){}
-    badFinalSyllablesMap := &map[string][]*(article.MatchedPhraseWithUrl){}
-    secondaryMatchedPhrasesWithUrl    := []*(article.MatchedPhraseWithUrl){}
-    badSecondaryMatchedPhrasesWithUrl := []*(article.MatchedPhraseWithUrl){}
-
-    for _,mpwu := range *matchedPhrasesWithUrl {
-
-        if mpwu.MatchesOnMeter.SecondaryMatch != nil {
-            // fwwiem := mpwu.MatchesOnMeter.SecondaryMatch.FinalWordWordInEachMatch
-
-            isBadEnd := false
-            for _,w := range *(mpwu.MatchesOnMeter.SecondaryMatch.FinalWordWordInEachMatch) {
-                if w.IsBadEnd {
-                    isBadEnd = true
-                    break
-                }
-            }
-            // isBadEnd := (*fwwiem)[len(*fwwiem)-1].IsBadEnd
-
-            if isBadEnd {
-                badSecondaryMatchedPhrasesWithUrl = append( badSecondaryMatchedPhrasesWithUrl, mpwu)
-            } else {
-                secondaryMatchedPhrasesWithUrl = append( secondaryMatchedPhrasesWithUrl, mpwu)
-            }
-        }
-
-        fsAZ     := mpwu.MatchesOnMeter.FinalDuringSyllableAZ
-        isBadEnd := (mpwu.MatchesOnMeter.FinalDuringWordWord == nil) || mpwu.MatchesOnMeter.FinalDuringWordWord.IsBadEnd
-
-        fsMap := finalSyllablesMap
-        if isBadEnd {
-            fsMap = badFinalSyllablesMap
-        }
-
-        if _, ok := (*fsMap)[fsAZ]; !ok {
-            (*fsMap)[fsAZ] = []*(article.MatchedPhraseWithUrl){}
-        }
-
-        (*fsMap)[fsAZ] = append((*fsMap)[fsAZ], mpwu)
-    }
-
-    processFSMapIntoSortedMPWUs := func( fsMap *map[string][]*(article.MatchedPhraseWithUrl) ) *[]*MatchedPhraseWithUrlWithFirst {
-        fsCounts := []*FSandCount{}
-
-        for fs, list := range (*fsMap) {
-            fsCounts = append(fsCounts, &FSandCount{fs, len(list)} )
-        }
-
-        sort.Sort(FSandCounts(fsCounts))
-
-        sortedMpwus := []*MatchedPhraseWithUrlWithFirst{}
-
-        for _, fsc := range fsCounts {
-            fsList := (*fsMap)[fsc.FinalSyllable]
-            for i,mpwu := range fsList {
-                isFirst := (i==0)
-                mpwuf := &MatchedPhraseWithUrlWithFirst{
-                    mpwu,
-                    isFirst,
-                }
-                sortedMpwus = append( sortedMpwus, mpwuf)
-            }
-        }
-        return &sortedMpwus
-    }
-
-    sortedMpwus    := processFSMapIntoSortedMPWUs(finalSyllablesMap)
-    sortedBadMpwus := processFSMapIntoSortedMPWUs(badFinalSyllablesMap)
-
-    ad := AuthorDetails{
-        Author:                author,
-        Meter:                 meter,
-        Articles:              articles,
-        MatchedPhrasesWithUrl:    sortedMpwus,
-        BadMatchedPhrasesWithUrl: sortedBadMpwus,
-        KnownUnknowns:         syllabi.KnownUnknowns(),
-        MaxArticles:           maxArticles,
-        NumArticles:           len(*articles),
-        SecondaryMatchedPhrasesWithUrl: &secondaryMatchedPhrasesWithUrl,
-        BadSecondaryMatchedPhrasesWithUrl: &badSecondaryMatchedPhrasesWithUrl,
-    }
-
-    if len(secondaryMatchedPhrasesWithUrl) > 0 {
-        templateExecuter( w, "authorHaikuPage", ad )
+    if containsHaikus {
+        templateExecuter( w, "ontologyHaikuPage", details )
     } else {
-        templateExecuter( w, "authorPage", ad )
+        templateExecuter( w, "ontologyPage", details )
     }
 }
 
@@ -439,7 +336,7 @@ func main() {
     http.HandleFunc("/meter",   log(meterHandler))
     http.HandleFunc("/article", log(articleHandler))
     http.HandleFunc("/detail",  log(detailHandler))
-    http.HandleFunc("/author",  log(authorHandler))
+    http.HandleFunc("/ontology", log(ontologyHandler))
     http.HandleFunc("/rhyme",   log(rhymeHandler))
 
 	http.ListenAndServe(":"+string(port), nil)

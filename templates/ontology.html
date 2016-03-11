@@ -1,4 +1,4 @@
-{{define "authorPage"}}
+{{define "ontologyPage"}}
 	<!DOCTYPE html>
 	<html>
     	{{template "head"}}
@@ -6,7 +6,7 @@
 	    	{{template "header"}}
  		    <div class="o-techdocs-hero">
 				<h2 class="o-techdocs-hero__title">
-					Looking at {{.NumArticles}} (max {{.MaxArticles}}) recent articles by the author, {{.Author}}.
+					Looking at {{.NumArticles}} (max {{.MaxArticles}}) recent articles of "{{.OntologyName}}": {{.OntologyValue}}.
 					<br>Parsing the articles for phrases which match the requested meter,
 					<br>and aligning on the matching phrases, sorted by final syllable.
 					<br>Can you catch any glimpses of poetry?
@@ -14,10 +14,12 @@
 			</div>
 
 			<div align="center" style="font-style: italic;">
-				<form action="/author" method="GET">
-					<br>author&nbsp;<input type="text" name="author" value="{{.Author}}"> max&nbsp;<input type="text" name="max" value="{{.MaxArticles}}">
+				<form action="/ontology" method="GET">
+					<br>ontology&nbsp;<input type="text" name="ontology" value="{{.OntologyName}}"> 
+					, value&nbsp;<input type="text" name="value" value="{{.OntologyValue}}"> 
 					<br>meter&nbsp;<input type="text" name="meter" value="{{.Meter}}">
-					<input type="submit" value="search for articles and align on matching meter">  (NB: there will be a bit of a delay)
+					, max&nbsp;<input type="text" name="max" value="{{.MaxArticles}}">
+					<br><input type="submit" value="search for articles and align on matching meter">  (NB: there will be a bit of a delay)
 				</form>
 			</div>
 			<br>
@@ -61,10 +63,10 @@
 				</table>
 			</div>
 			<br>
-			<h2>articles covered, by {{.Author}}</h2>
+			<h2>articles covered</h2>
 			<ul>
 				{{range $item := .Articles}}
-				<li><a href="{{ $item.Url }}">{{ $item.Title }}</a></li>
+				<li><a href="{{ $item.SiteUrl }}">{{ $item.Title }}</a> by {{$item.Author}}</li>
 				{{ end }}
 			</ul>
 			<br>

@@ -127,10 +127,10 @@ func GetArticle(uuid string) (*Article) {
     var jsonBody *[]byte
 
     if _, ok := uuidJsonBodyCache[uuid]; ok {
-        fmt.Println("capi.GetArticle: cache hit: uuid=", uuid)
+        fmt.Println("content.GetArticle: cache hit: uuid=", uuid)
         jsonBody = uuidJsonBodyCache[uuid]
     } else {
-        fmt.Println("capi.GetArticle: cache miss: uuid=", uuid)
+        fmt.Println("content.GetArticle: cache miss: uuid=", uuid)
         jsonBody = getCapiArticleJsonBody(uuid)
         uuidJsonBodyCache[uuid] = jsonBody
     }
