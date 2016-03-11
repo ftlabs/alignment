@@ -116,6 +116,10 @@ func (mpwus MatchedPhrasesWithUrl) Swap(i, j int)      { mpwus[i], mpwus[j] = mp
 func (mpwus MatchedPhrasesWithUrl) Less(i, j int) bool { return mpwus[i].MatchesOnMeter.FinalDuringSyllableAZ > mpwus[j].MatchesOnMeter.FinalDuringSyllableAZ }
 
 func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, syllabi *rhyme.Syllabi, maxArticles int, maxMillis int) (*[]*ArticleWithSentencesAndMeter, *[]*MatchedPhraseWithUrl) {
+	return GetArticlesByOntologyWithSentencesAndMeter("authors", author, meter, syllabi, maxArticles, maxMillis)
+}
+
+func GetArticlesByOntologyWithSentencesAndMeter(ontologyName string, ontologyValue string, meter string, syllabi *rhyme.Syllabi, maxArticles int, maxMillis int) (*[]*ArticleWithSentencesAndMeter, *[]*MatchedPhraseWithUrl) {
 	start := time.Now()
 	maxDurationNanoseconds := int64(maxMillis * 1e6)
 
@@ -136,8 +140,8 @@ func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, sylla
 	// }
 
     sRequest := &content.SearchRequest {
-        QueryType: "authors",
-        QueryText: author,
+        QueryType: ontologyName,
+        QueryText: ontologyValue,
         MaxArticles: maxArticles,
         MaxDurationMillis: maxMillis,
         SearchOnly: false, 
