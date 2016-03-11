@@ -1,0 +1,75 @@
+{{define "ontologyHaikuPage"}}
+	<!DOCTYPE html>
+	<html>
+    	{{template "head"}}
+		<body>
+	    	{{template "header"}}
+ 		    <div class="o-techdocs-hero">
+				<h2 class="o-techdocs-hero__title">
+					Looking at {{.NumArticles}} (max {{.MaxArticles}}) recent articles by "{{.OntologyName}}": {{.OntologyValue}}.
+					<br>Parsing the articles for phrases which match the requested meter.
+					<br>Can you catch any glimpses of poetry? Possibly some Haikus !?
+				</h2>
+			</div>
+
+			<div align="center" style="font-style: italic;">
+				<form action="/ontology" method="GET">
+					<br>ontology&nbsp;<input type="text" name="ontology" value="{{.OntologyName}}"> 
+					, value&nbsp;<input type="text" name="value" value="{{.OntologyValue}}"> 
+					<br>max&nbsp;<input type="text" name="max" value="{{.MaxArticles}}">
+					<input type="hidden" name="meter" value="{{.Meter}}">
+					<br><input type="submit" value="search for articles and align on matching meter">  (NB: there will be a bit of a delay)
+				</form>
+			</div>
+			<br>
+			<div align="center" style="overflow: hidden; font-size:large; font-family:Arial, Helvetica, sans-serif;">
+				<div style="float:left; font-size:small;">
+					<h2>articles covered</h2>
+					<ul>
+						{{range $item := .Articles}}
+						<li><a href="{{ $item.SiteUrl }}">{{ $item.Title }}</a> by {{$item.Author}}</li>
+						{{ end }}
+					</ul>
+				</div>
+				{{range $item := .SecondaryMatchedPhrasesWithUrl}}
+				<div style="float:left; text-align:left;  white-space: nowrap; padding: 30px; ">
+					<a href="{{$item.Url}}" style="text-decoration:none">
+						{{ range $line := $item.MatchesOnMeter.SecondaryMatch.PhraseInEachMatch }}
+						{{ $line }}<br>
+						{{ end }}
+					</a>
+				</div>
+				{{ end }}
+			</div>
+			<br>
+			<h3>... containing unlikely line-ending words</h3>
+			<div align="center" style="overflow: hidden; font-size:large; font-family:Arial, Helvetica, sans-serif;">
+				{{range $item := .BadSecondaryMatchedPhrasesWithUrl}}
+				<div style="float:left; text-align:left;  white-space: nowrap; padding: 15px; ">
+					<a href="{{$item.Url}}" style="text-decoration:none">
+						{{ range $line := $item.MatchesOnMeter.SecondaryMatch.PhraseInEachMatch }}
+						{{ $line }}<br>
+						{{ end }}
+					</a>
+				</div>
+				{{ end }}
+			</div>
+			<br>			
+			<h2>articles covered</h2>
+			<ul>
+				{{range $item := .Articles}}
+				<li><a href="{{ $item.SiteUrl }}">{{ $item.Title }}</a> by {{$item.Author}}</li>
+				{{ end }}
+			</ul>
+			<br>
+			<h2>unrecognised words</h2>
+			<p>... and which therefore cannot be matched by the meter regexp</p>
+			<ul>
+			{{range $item := .KnownUnknowns}}
+				<li>{{ $item }}</li>
+			{{ end }}
+			</ul>
+
+		</body>
+	</html>
+{{end}}

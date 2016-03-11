@@ -1,0 +1,83 @@
+{{define "ontologyPage"}}
+	<!DOCTYPE html>
+	<html>
+    	{{template "head"}}
+		<body>
+	    	{{template "header"}}
+ 		    <div class="o-techdocs-hero">
+				<h2 class="o-techdocs-hero__title">
+					Looking at {{.NumArticles}} (max {{.MaxArticles}}) recent articles by "{{.OntologyName}}": {{.OntologyValue}}.
+					<br>Parsing the articles for phrases which match the requested meter,
+					<br>and aligning on the matching phrases, sorted by final syllable.
+					<br>Can you catch any glimpses of poetry?
+				</h2>
+			</div>
+
+			<div align="center" style="font-style: italic;">
+				<form action="/ontology" method="GET">
+					<br>ontology&nbsp;<input type="text" name="ontology" value="{{.OntologyName}}"> 
+					, value&nbsp;<input type="text" name="value" value="{{.OntologyValue}}"> 
+					<br>meter&nbsp;<input type="text" name="meter" value="{{.Meter}}">
+					, max&nbsp;<input type="text" name="max" value="{{.MaxArticles}}">
+					<br><input type="submit" value="search for articles and align on matching meter">  (NB: there will be a bit of a delay)
+				</form>
+			</div>
+			<br>
+			<h3>... excluding bad end words</h3>
+			<div align="center"> 
+				<table>
+				{{range $item := .MatchedPhrasesWithUrl}}
+					<tr>
+						{{if $item.FirstOfNewRhyme}}
+						<tr>
+							<td></td>
+							<td style="text-align:right;">-{{$item.MatchesOnMeter.FinalDuringSyllableAZ}}</td>
+						</tr>
+						{{end}}
+
+						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.BeforeCropped }}</td>
+						<td style="text-align:center;  white-space: nowrap; font-style: italic; font-size: large"><a href="{{$item.Url}}">{{ $item.MatchesOnMeter.During }}</a></td>
+						<td style="text-align:left;  white-space: nowrap">{{ $item.MatchesOnMeter.AfterCropped }}</td>
+					</tr>
+				{{ end }}
+				</table>
+			</div>
+			<br>
+			<h3>... with bad end words</h3>
+			<div align="center"> 
+				<table>
+				{{range $item := .BadMatchedPhrasesWithUrl}}
+					<tr>
+						{{if $item.FirstOfNewRhyme}}
+						<tr>
+							<td></td>
+							<td style="text-align:right;">-{{$item.MatchesOnMeter.FinalDuringSyllableAZ}}</td>
+						</tr>
+						{{end}}
+
+						<td style="text-align:right;  white-space: nowrap">{{ $item.MatchesOnMeter.BeforeCropped }}</td>
+						<td style="text-align:center;  white-space: nowrap; font-style: italic; font-size: large"><a href="{{$item.Url}}">{{ $item.MatchesOnMeter.During }}</a></td>
+						<td style="text-align:left;  white-space: nowrap">{{ $item.MatchesOnMeter.AfterCropped }}</td>
+					</tr>
+				{{ end }}
+				</table>
+			</div>
+			<br>
+			<h2>articles covered</h2>
+			<ul>
+				{{range $item := .Articles}}
+				<li><a href="{{ $item.SiteUrl }}">{{ $item.Title }}</a> by {{$item.Author}}</li>
+				{{ end }}
+			</ul>
+			<br>
+			<h2>unrecognised words</h2>
+			<p>... and which therefore cannot be matched by the meter regexp</p>
+			<ul>
+			{{range $item := .KnownUnknowns}}
+				<li>{{ $item }}</li>
+			{{ end }}
+			</ul>
+
+		</body>
+	</html>
+{{end}}

@@ -15,6 +15,7 @@ import (
     "github.com/railsagainstignorance/alignment/rhyme"
     "github.com/railsagainstignorance/alignment/article"
     "github.com/railsagainstignorance/alignment/content"
+    "github.com/railsagainstignorance/alignment/ontology"
 )
 
 // compile all templates and cache them
@@ -325,6 +326,30 @@ func authorHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+func ontologyHandler(w http.ResponseWriter, r *http.Request) {
+    ontologyName  := r.FormValue("ontology")
+    ontologyvalue := r.FormValue("value")
+    meter  := r.FormValue("meter")
+
+    maxArticles := 10
+    if r.FormValue("max") != "" {
+        i, err := strconv.Atoi(r.FormValue("max"))
+        if err == nil {
+            maxArticles = i
+        }
+    }
+    
+    maxMillis   := 3000
+
+    details, containsHaikus := ontology.GetDetails(syllabi, ontologyName, ontologyvalue, meter, maxArticles, maxMillis)
+
+    if containsHaikus {
+        templateExecuter( w, "ontologyHaikuPage", details )
+    } else {
+        templateExecuter( w, "ontologyPage", details )
+    }
+}
+
 type ResultWithFinalSyllable struct {
     *content.Article
     FinalSyllableAZ string
@@ -440,6 +465,7 @@ func main() {
     http.HandleFunc("/article", log(articleHandler))
     http.HandleFunc("/detail",  log(detailHandler))
     http.HandleFunc("/author",  log(authorHandler))
+    http.HandleFunc("/ontology", log(ontologyHandler))
     http.HandleFunc("/rhyme",   log(rhymeHandler))
 
 	http.ListenAndServe(":"+string(port), nil)
