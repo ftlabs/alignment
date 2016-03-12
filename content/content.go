@@ -178,6 +178,8 @@ func convertStringsToQuotedCSV( sList []string ) string {
     return sCsv
 }
 
+var stringJsonBodyCache = map[string]*[]byte{}
+
 func getSapiResponseJsonBody(queryString string, maxResults int) (*[]byte) {
     curationsString := convertStringsToQuotedCSV( []string{ "ARTICLES", "BLOGS" } )
     aspectsString   := convertStringsToQuotedCSV( []string{ "title", "location", "summary", "lifecycle", "metadata", "editorial" } )
@@ -195,7 +197,16 @@ func getSapiResponseJsonBody(queryString string, maxResults int) (*[]byte) {
             `}` + 
         `}` )
 
-    jsonBody := constructSapiResponseJsonBody( &jsonStr )
+    var jsonBody *[]byte
+    jsonStrAsKey := string( jsonStr[:] )
+    if _, ok := stringJsonBodyCache[jsonStrAsKey]; ok {
+        fmt.Println("content.getSapiResponseJsonBody: cache hit: jsonStrAsKey=", jsonStrAsKey)
+        jsonBody = stringJsonBodyCache[jsonStrAsKey]
+    } else {
+        fmt.Println("content.getSapiResponseJsonBody: cache miss: jsonStrAsKey=", jsonStrAsKey)
+        jsonBody = constructSapiResponseJsonBody( &jsonStr )
+        stringJsonBodyCache[jsonStrAsKey] = jsonBody
+    }
 
     return jsonBody
 }
