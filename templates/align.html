@@ -42,32 +42,6 @@
 									 
 								</form>
 
-							<h2>align on matching meter</h2>
-								<p>
-									In addition to the search text (to locate some articles), you specify a meter. 
-									<br>If any of the results contain text conforming to that meter, they are aligned accordingly. 
-									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
-									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
-									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
-								</p>
-								<form action="/ontology" method="GET">
-									<table>
-										<tr>
-											<td style="text-align:right;">
-												<br>text&nbsp;<input type="text" name="value" value="can"> 
-												<br>meter&nbsp;<input type="text" name="meter" value="01010101">
-											</td>
-											<td>
-												<input type="radio" name="ontology" value="keyword"> any 
-												<br><input type="radio" name="ontology" value="title" checked> title-only
-											</td>
-											<td>
-												<br><input type="submit" value="get results and sort matching items by rhyme">
-											</td>
-										</tr>
-									</table>			
-								</form>
-
 							<h2>align an article's sentences matching meter</h2>
 								<p>
 									You identify an article (with a UUID from the url, by hand, sorry) and specify a meter. 
