@@ -106,7 +106,7 @@ func main() {
 
 	http.HandleFunc("/",        log(alignFormHandler))
     http.HandleFunc("/align",   log(alignHandler))
-    http.HandleFunc("/article", log(ontologyHandler))
+    // http.HandleFunc("/article", log(ontologyHandler))
     http.HandleFunc("/detail",  log(detailHandler))
     http.HandleFunc("/ontology", log(ontologyHandler))
 
