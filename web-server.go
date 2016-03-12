@@ -160,14 +160,6 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
     templateExecuter( w, "meteredPage", &srwfs )
 }
 
-func articleHandler(w http.ResponseWriter, r *http.Request) {
-    uuid  := r.FormValue("uuid")
-    meter := r.FormValue("meter")
-
-    p := article.GetArticleWithSentencesAndMeter(uuid, meter, syllabi )
-    templateExecuter( w, "articlePage", p )
-}
-
 func detailHandler(w http.ResponseWriter, r *http.Request) {
     phrase         := r.FormValue("phrase")
     sentences      := []string{ phrase }
@@ -200,7 +192,7 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
 
 func ontologyHandler(w http.ResponseWriter, r *http.Request) {
     ontologyName  := r.FormValue("ontology")
-    ontologyvalue := r.FormValue("value")
+    ontologyValue := r.FormValue("value")
     meter  := r.FormValue("meter")
 
     maxArticles := 10
@@ -213,7 +205,7 @@ func ontologyHandler(w http.ResponseWriter, r *http.Request) {
     
     maxMillis   := 3000
 
-    details, containsHaikus := ontology.GetDetails(syllabi, ontologyName, ontologyvalue, meter, maxArticles, maxMillis)
+    details, containsHaikus := ontology.GetDetails(syllabi, ontologyName, ontologyValue, meter, maxArticles, maxMillis)
 
     if containsHaikus {
         templateExecuter( w, "ontologyHaikuPage", details )
@@ -334,7 +326,7 @@ func main() {
 	http.HandleFunc("/",        log(alignFormHandler))
     http.HandleFunc("/align",   log(alignHandler))
     http.HandleFunc("/meter",   log(meterHandler))
-    http.HandleFunc("/article", log(articleHandler))
+    http.HandleFunc("/article", log(ontologyHandler))
     http.HandleFunc("/detail",  log(detailHandler))
     http.HandleFunc("/ontology", log(ontologyHandler))
     http.HandleFunc("/rhyme",   log(rhymeHandler))
