@@ -339,7 +339,7 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
     return &searchResponse
 }
 
-func lookupCapiArticles( sRequest *SearchRequest, sResponse *SearchResponse, startTiming time.Time ) *SearchResponse {
+func lookupCapiArticles( sRequest *SearchRequest, sResponse *SearchResponse, startTiming time.Time ) *[]*Article {
     maxDurationNanoseconds := int64(sRequest.MaxDurationMillis * 1e6)
     capiArticles := []*Article{}
 
@@ -356,25 +356,21 @@ func lookupCapiArticles( sRequest *SearchRequest, sResponse *SearchResponse, sta
                 break
             }
         }
-
-        sResponse.SetArticles(&capiArticles)
     }
 
-    return sResponse
+    return &capiArticles
 }
 
-func constructArticlesFromSearchResults( sRequest *SearchRequest, sResponse *SearchResponse ) *SearchResponse {
+func constructArticlesFromSearchResults( sRequest *SearchRequest, sResponse *SearchResponse ) *[]*Article {
     articles := []*Article{}
 
     if sRequest.MaxArticles > 0 {
         for _, sapiA := range *(sResponse.Articles) {
             articles = append( articles, sapiA )
         }
-
-        sResponse.SetArticles(&articles)
     }
 
-    return sResponse
+    return &articles
 }
 
 func Search(sRequest *SearchRequest) *SearchResponse {
@@ -383,12 +379,16 @@ func Search(sRequest *SearchRequest) *SearchResponse {
     queryString       := constructQueryString( sRequest )
     jsonBody          := getSapiResponseJsonBody(queryString, sRequest.MaxArticles)
     sResponse         := parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
+
+    var articles *[]*Article
     if !sRequest.SearchOnly {
-        sResponse = lookupCapiArticles(sRequest, sResponse, startTiming)
+        articles = lookupCapiArticles(sRequest, sResponse, startTiming)
     } else {
-        sResponse = constructArticlesFromSearchResults( sRequest, sResponse )
+        articles = constructArticlesFromSearchResults( sRequest, sResponse )
     }
-    
+
+    sResponse.SetArticles(articles)
+
     return sResponse
 }
 
