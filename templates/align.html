@@ -42,20 +42,6 @@
 									 
 								</form>
 
-							<h2>sort by rhyme</h2>
-								<p>
-									The search text used to identify the articles (via keyword search), and the results titles are sorted by rhyme.
-								</p>
-								<form action="/rhyme" method="GET">
-									<table>
-										<tr>
-											<td><input type="text" name="text" value="has its own"></td>
-											<td><input type="submit" value="search and sort titles by rhyme"></td>
-										</tr>
-									</table>
-									 
-								</form>
-
 							<h2>align on matching meter</h2>
 								<p>
 									In addition to the search text (to locate some articles), you specify a meter. 
@@ -64,19 +50,20 @@
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
 								</p>
-								<form action="/meter" method="GET">
+								<form action="/ontology" method="GET">
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												<input type="text" name="text" value="can">
-												<br>meter:&nbsp;<input type="text" name="meter" value="^1010101010">
+												<br>text&nbsp;<input type="text" name="value" value="can"> 
+												<br>meter&nbsp;<input type="text" name="meter" value="01010101">
 											</td>
-											<td>source:</td>
 											<td>
-												<input type="radio" name="source" value="any"> any 
-												<br><input type="radio" name="source" value="title-only" checked> title-only
+												<input type="radio" name="ontology" value="keyword"> any 
+												<br><input type="radio" name="ontology" value="title" checked> title-only
 											</td>
-											<td><input type="submit" value="search and align on matching meter"></td>
+											<td>
+												<br><input type="submit" value="get results and sort matching items by rhyme">
+											</td>
 										</tr>
 									</table>			
 								</form>
@@ -89,14 +76,17 @@
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
 								</p>
-								<form action="/article" method="GET">
+								<form action="/ontology" method="GET">
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												uuid&nbsp;<input type="text" name="uuid" value="b57fee24-cb3c-11e5-be0b-b7ece4e953a0">
-												<br>meter&nbsp;<input type="text" name="meter" value="^0101010101">
+												<input type="hidden" name="ontology" value="id"> 
+												<br>uuid&nbsp;<input type="text" name="value" value="b57fee24-cb3c-11e5-be0b-b7ece4e953a0"> 
+												<br>meter&nbsp;<input type="text" name="meter" value="01010101">
 											</td>
-											<td><input type="submit" value="get article and align on matching sentences"></td>
+											<td>
+												<br><input type="submit" value="get article and align on matching sentences">
+											</td>
 										</tr>
 									</table>			
 								</form>

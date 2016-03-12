@@ -264,7 +264,6 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
                     title   := ""
                     author  := ""
                     excerpt := ""
-                    body    := ""
                     pubDateString := ""
                     var pubDateTime *time.Time
 
@@ -301,6 +300,13 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
                             pubDateString = lastPublishDateTimeString
                             pubDateTime = parsePubDateString(pubDateString)
                         }
+                    }
+
+                    var body string
+                    if sReq.QueryType == "keyword" || sReq.QueryType == "" {
+                        body = excerpt
+                    } else {
+                        body = title
                     }
 
                     article := Article{
@@ -357,6 +363,20 @@ func lookupCapiArticles( sRequest *SearchRequest, sResponse *SearchResponse, sta
     return sResponse
 }
 
+func constructArticlesFromSearchResults( sRequest *SearchRequest, sResponse *SearchResponse ) *SearchResponse {
+    articles := []*Article{}
+
+    if sRequest.MaxArticles > 0 {
+        for _, sapiA := range *(sResponse.Articles) {
+            articles = append( articles, sapiA )
+        }
+
+        sResponse.SetArticles(&articles)
+    }
+
+    return sResponse
+}
+
 func Search(sRequest *SearchRequest) *SearchResponse {
     startTiming := time.Now()
 
@@ -365,6 +385,8 @@ func Search(sRequest *SearchRequest) *SearchResponse {
     sResponse         := parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
     if !sRequest.SearchOnly {
         sResponse = lookupCapiArticles(sRequest, sResponse, startTiming)
+    } else {
+        sResponse = constructArticlesFromSearchResults( sRequest, sResponse )
     }
     
     return sResponse

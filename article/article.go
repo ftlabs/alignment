@@ -150,7 +150,10 @@ func GetArticlesByOntologyWithSentencesAndMeter(ontologyName string, ontologyVal
     sapiResult := content.Search( sRequest )
 
 	if sapiResult != nil && *(sapiResult.Articles) != nil && len(*(sapiResult.Articles)) > 0 {
-		for _,item := range (*(sapiResult.Articles))[0:maxArticles] {
+		for i,item := range (*(sapiResult.Articles)) {
+			if i >= maxArticles {
+				break
+			}
 			if item != nil {
 				aws := GetArticleWithSentencesAndMeter(item.Uuid, meter, syllabi)
 				articles = append( articles, aws )
