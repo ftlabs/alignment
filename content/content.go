@@ -392,9 +392,19 @@ func constructArticlesFromSearchResults( sRequest *SearchRequest, sResponse *Sea
 func Search(sRequest *SearchRequest) *SearchResponse {
     startTiming := time.Now()
 
-    queryString       := constructQueryString( sRequest )
-    jsonBody          := getSapiResponseJsonBody(queryString, sRequest.MaxArticles)
-    sResponse         := parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
+    fmt.Println("content.Search: sRequest.QueryType==page")
+
+    var sResponse *SearchResponse
+    if sRequest.QueryType == "page" {
+        webUrl    := sRequest.QueryText
+        pageId    := getPageIdByWebUrl(webUrl)
+        jsonBody  := constructMainContentJsonBodyFromId(pageId)
+        sResponse  = parseMainContentJsonBody(jsonBody, sRequest, webUrl)
+    } else {
+        queryString := constructQueryString( sRequest )
+        jsonBody    := getSapiResponseJsonBody(queryString, sRequest.MaxArticles)
+        sResponse    = parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
+    }
 
     var articles *[]*Article
     if !sRequest.SearchOnly {
@@ -406,6 +416,157 @@ func Search(sRequest *SearchRequest) *SearchResponse {
     sResponse.SetArticles(articles)
 
     return sResponse
+}
+
+func constructGetResponseJsonBody(url string) (*[]byte) {
+    urlWithKey := url + "?apiKey=" + apiKey
+
+    req, err := http.NewRequest("GET", urlWithKey, nil)
+    req.Header.Set("Content-Type", "application/json")
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+
+    if resp.Status != "200 OK" {
+        fmt.Println("WARNING: content: constructGetResponseJsonBody: response Status:", resp.Status, ", url=", url)
+    }
+
+    jsonBody, _ := ioutil.ReadAll(resp.Body)
+
+    return &jsonBody
+}
+
+func constructAllPagesJsonBody() (*[]byte) {
+    return constructGetResponseJsonBody("http://api.ft.com/site/v1/pages")
+}
+
+func parseAllPagesJsonBody(jsonBody *[]byte) (*map[string]string) {
+
+    mapWebUrlToId := map[string]string{}
+
+    // locate results
+    var data interface{}
+    json.Unmarshal(*jsonBody, &data)
+
+    if pages, ok := data.(map[string]interface{})["pages"].([]interface{}); ok {
+        for _, p := range pages {
+            id     := ""
+            webUrl := ""
+
+            if _,ok := p.(map[string]interface{})["id"]; ok {
+                id = p.(map[string]interface{})["id"].(string)
+            }
+
+            if _,ok := p.(map[string]interface{})["webUrl"]; ok {
+                webUrl = p.(map[string]interface{})["webUrl"].(string)
+            }
+
+            mapWebUrlToId[webUrl] = id
+        }
+    }
+    return &mapWebUrlToId
+}
+
+var allKnownPageIdsByWebUrl *map[string]string
+
+func getAllPages() (*map[string]string) {
+    if allKnownPageIdsByWebUrl == nil {
+        jsonBody := constructAllPagesJsonBody()
+        allKnownPageIdsByWebUrl = parseAllPagesJsonBody(jsonBody)
+        fmt.Println("content.getAllPages: len(allKnownPageIdsByWebUrl)=", len(*allKnownPageIdsByWebUrl))
+    }
+
+    return allKnownPageIdsByWebUrl
+}
+
+func getPageIdByWebUrl(webUrl string) string {
+    return (*getAllPages())[webUrl]
+}
+
+func constructMainContentJsonBodyFromId(id string) (*[]byte) {
+    url := "http://api.ft.com/site/v1/pages/" + id + "/main-content"
+    return constructGetResponseJsonBody(url)
+}
+
+func parseMainContentJsonBody(jsonBody *[]byte, sReq *SearchRequest, webUrl string) *SearchResponse {
+
+    siteSearchUrl := "http://search.ft.com/"
+    numPossible   := 0
+    articles      := []*Article{}
+
+    // locate results
+    var data interface{}
+    json.Unmarshal(*jsonBody, &data)
+    if pageItems, ok := data.(map[string]interface{})["pageItems"].([]interface{}); ok {
+        for _, r := range pageItems {
+            siteUrl := ""
+            uuid    := ""
+            title   := ""
+            author  := ""
+            pubDateString := ""
+            var pubDateTime *time.Time
+
+            if id, ok := r.(map[string]interface{})["id"].(string); ok {
+                uuid = id
+            }
+
+            if titleOuter, ok := r.(map[string]interface{})["title"].(map[string]interface{}); ok {
+                if titleString, ok := titleOuter["title"].(string); ok {
+                    title = titleString
+                }
+            }
+
+            if location, ok := r.(map[string]interface{})["location"].(map[string]interface{}); ok {
+                if locationUri, ok := location["uri"].(string); ok {
+                    siteUrl = locationUri
+                }
+            }
+
+            if editorial, ok := r.(map[string]interface{})["editorial"].(map[string]interface{}); ok {
+                if byline, ok := editorial["byline"].(string); ok {
+                    author = byline
+                }
+            }
+
+            if lifecycle, ok := r.(map[string]interface{})["lifecycle"].(map[string]interface{}); ok {
+                if lastPublishDateTimeString, ok := lifecycle["lastPublishDateTime"].(string); ok {
+                    pubDateString = lastPublishDateTimeString
+                    pubDateTime = parsePubDateString(pubDateString)
+                }
+            }
+
+            body := title
+            excerpt := title
+
+            article := Article{
+                SiteUrl: siteUrl,
+                Uuid:    uuid,
+                Title:   title,
+                Author:  author,
+                Excerpt: excerpt,
+                Body:    body,
+                PubDateString: pubDateString,
+                PubDate:       pubDateTime,
+            }
+
+            articles = append( articles, &article )
+        }
+    }
+
+    searchResponse := SearchResponse{
+        SiteUrl:       webUrl,
+        SiteSearchUrl: siteSearchUrl,
+        NumArticles:   len(articles),
+        NumPossible:   numPossible,
+        Articles:      &articles,
+        QueryString:   "",
+        SearchRequest: sReq,
+    }
+
+    return &searchResponse
 }
 
 func main() {
