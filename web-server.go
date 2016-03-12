@@ -38,127 +38,7 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     templateExecuter( w, "alignedPage", p )
 }
 
-type ResultItemWithRhymeAndMeter struct {
-    ResultItem    *(content.Article)
-    RhymeAndMeter *(rhyme.RhymeAndMeter)
-}
-
-type SearchResultWithRhymeAndMeterList struct {
-    SearchResult *(content.SearchResponse)
-    ResultItemsWithRhymeAndMeterList []*ResultItemWithRhymeAndMeter
-    MatchMeter string
-    EmphasisRegexp *(regexp.Regexp)
-    EmphasisRegexpString string
-    KnownUnknowns *[]string
-    PhraseWordsRegexpString string
-    Text string
-    Source string
-    TitleOnlyChecked string
-    AnyChecked       string    
-}
-
-type RhymedResultItems []*ResultItemWithRhymeAndMeter
-
-func (rri RhymedResultItems) Len()          int  { return len(rri) }
-func (rri RhymedResultItems) Swap(i, j int)      { rri[i], rri[j] = rri[j], rri[i] }
-func (rri RhymedResultItems) Less(i, j int) bool { return rri[i].RhymeAndMeter.FinalSyllable > rri[j].RhymeAndMeter.FinalSyllable }
-
 var syllabi = rhyme.ConstructSyllabi(&[]string{"rhyme/cmudict-0.7b", "rhyme/cmudict-0.7b_my_additions"})
-
-func meterHandler(w http.ResponseWriter, r *http.Request) {
-    // searchParams := sapi.SearchParams{
-    //     Text:   r.FormValue("text"),
-    //     Source: r.FormValue("source"),
-    // }
-    // sapiResult := sapi.Search( searchParams )
-
-    text := r.FormValue("text")
-    source := r.FormValue("source")
-
-    var textForSearch string
-
-    if source != "title-only" {
-        source = "keyword"
-        textForSearch = `\"` + text + `\"`
-    } else {
-        textForSearch = text
-    }
-
-    var (
-        titleOnlyChecked string = ""
-        anyChecked       string = ""
-    )
-
-    if source == "title-only" {
-        titleOnlyChecked = "checked"
-    } else {
-        anyChecked       = "checked"
-    }
-
-
-
-    sRequest := &content.SearchRequest {
-        QueryType: source,
-        QueryText: textForSearch,
-        MaxArticles: 100,
-        MaxDurationMillis: 3000,
-        SearchOnly: true, // i.e. don't bother looking up articles
-    }
-
-    sapiResult := content.Search( sRequest )
-
-    matchMeter     := r.FormValue("meter")
-    if matchMeter == "" {
-        matchMeter = rhyme.DefaultMeter
-    }
-
-    emphasisRegexp, _ := rhyme.ConvertToEmphasisPointsStringRegexp(matchMeter)
-
-    riwfsList := []*ResultItemWithRhymeAndMeter{}
-
-    for _, item := range *(sapiResult.Articles) {
-        var phrase string
-
-        if source == "title-only" {
-            phrase = item.Title
-        } else {
-            phrase = item.Excerpt
-        }
-
-        rams := syllabi.RhymeAndMetersOfPhrase(phrase, emphasisRegexp)
-
-        if rams != nil {
-            for _,ram := range *rams {
-                if ram.EmphasisRegexpMatch2 != "" {
-                    riwfs := ResultItemWithRhymeAndMeter{
-                        ResultItem:    item,
-                        RhymeAndMeter: ram,
-                    }
-
-                    riwfsList = append( riwfsList, &riwfs)            
-                }
-            }
-        }
-    }
-
-    sort.Sort(RhymedResultItems(riwfsList))
-
-    srwfs := SearchResultWithRhymeAndMeterList{
-        SearchResult: sapiResult,
-        ResultItemsWithRhymeAndMeterList:  riwfsList,
-        MatchMeter:           matchMeter,
-        EmphasisRegexp:       emphasisRegexp,
-        EmphasisRegexpString: emphasisRegexp.String(),
-        KnownUnknowns:        syllabi.KnownUnknowns(),
-        PhraseWordsRegexpString: syllabi.PhraseWordsRegexpString,
-        Text: text,
-        Source: source,
-        TitleOnlyChecked: titleOnlyChecked,
-        AnyChecked: anyChecked,
-    }
-
-    templateExecuter( w, "meteredPage", &srwfs )
-}
 
 func detailHandler(w http.ResponseWriter, r *http.Request) {
     phrase         := r.FormValue("phrase")
@@ -325,7 +205,7 @@ func main() {
 
 	http.HandleFunc("/",        log(alignFormHandler))
     http.HandleFunc("/align",   log(alignHandler))
-    http.HandleFunc("/meter",   log(meterHandler))
+    // http.HandleFunc("/meter",   log(meterHandler))
     http.HandleFunc("/article", log(ontologyHandler))
     http.HandleFunc("/detail",  log(detailHandler))
     http.HandleFunc("/ontology", log(ontologyHandler))
