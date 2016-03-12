@@ -5,21 +5,19 @@ import (
 	"html/template"
 	"net/http"
 	"os"
-    "sort"
     "regexp"
     "fmt"
-    // "strings"
     "strconv"
     "github.com/railsagainstignorance/alignment/align"
-    // "github.com/railsagainstignorance/alignment/sapi"
     "github.com/railsagainstignorance/alignment/rhyme"
     "github.com/railsagainstignorance/alignment/article"
-    "github.com/railsagainstignorance/alignment/content"
     "github.com/railsagainstignorance/alignment/ontology"
 )
 
 // compile all templates and cache them
 var templates = template.Must(template.ParseGlob("templates/*"))
+// construct the syllable monster
+var syllabi   = rhyme.ConstructSyllabi(&[]string{"rhyme/cmudict-0.7b", "rhyme/cmudict-0.7b_my_additions"})
 
 func templateExecuter( w http.ResponseWriter, pageName string, data interface{} ){
     err := templates.ExecuteTemplate(w, pageName, data)
@@ -37,8 +35,6 @@ func alignHandler(w http.ResponseWriter, r *http.Request) {
     p := align.Search( r.FormValue("text"), r.FormValue("source") )
     templateExecuter( w, "alignedPage", p )
 }
-
-var syllabi = rhyme.ConstructSyllabi(&[]string{"rhyme/cmudict-0.7b", "rhyme/cmudict-0.7b_my_additions"})
 
 func detailHandler(w http.ResponseWriter, r *http.Request) {
     phrase         := r.FormValue("phrase")
@@ -94,101 +90,6 @@ func ontologyHandler(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-type ResultWithFinalSyllable struct {
-    *content.Article
-    FinalSyllableAZ string
-    FirstOfNewRhyme bool
-}
-
-func (f *ResultWithFinalSyllable) SetFirstOfNewRhyme(val bool) {
-    f.FirstOfNewRhyme = val
-}
-
-type ResultsWithFinalSyllable []*ResultWithFinalSyllable
-
-func (rwfs ResultsWithFinalSyllable) Len()          int  { return len(rwfs) }
-func (rwfs ResultsWithFinalSyllable) Swap(i, j int)      { rwfs[i], rwfs[j] = rwfs[j], rwfs[i] }
-func (rwfs ResultsWithFinalSyllable) Less(i, j int) bool { return rwfs[i].FinalSyllableAZ > rwfs[j].FinalSyllableAZ }
-
-type FSandCount struct {
-    FinalSyllable string
-    Count int
-}
-type FSandCounts []*FSandCount
-
-func (fsc FSandCounts) Len()          int  { return len(fsc) }
-func (fsc FSandCounts) Swap(i, j int)      { fsc[i], fsc[j] = fsc[j], fsc[i] }
-func (fsc FSandCounts) Less(i, j int) bool { return (fsc[j].FinalSyllable == "") || ((fsc[i].FinalSyllable != "") && (fsc[i].Count > fsc[j].Count)) }
-
-func rhymeHandler(w http.ResponseWriter, r *http.Request) {
-    text := r.FormValue("text")
-    // searchParams := sapi.SearchParams{
-    //     Text:   text,
-    //     Source: "any",
-    // }
-
-    // sapiResult := sapi.Search( searchParams )
-
-    sRequest := &content.SearchRequest {
-        QueryType: "title",
-        QueryText: text,
-        MaxArticles: 100,
-        MaxDurationMillis: 3000,
-        SearchOnly: true, // i.e. don't bother looking up articles
-    }
-
-    sapiResult := content.Search( sRequest )
-
-    finalSyllablesMap := map[string][]*ResultWithFinalSyllable{}
-
-    for _, item := range *(sapiResult.Articles) {
-        phrase := item.Title
-        fs     := syllabi.FinalSyllableOfPhrase(phrase)
-        fsAZ   := rhyme.KeepAZString( fs )
-        rwfs   := &ResultWithFinalSyllable{
-            item,
-            fsAZ,
-            false,
-        }
-        // rwfsList = append( rwfsList, rwfs )
-        if _, ok := finalSyllablesMap[fsAZ]; !ok {
-            finalSyllablesMap[fsAZ] = []*ResultWithFinalSyllable{}
-        }
-
-        finalSyllablesMap[fsAZ] = append(finalSyllablesMap[fsAZ], rwfs)
-    }
-
-    fsCounts := []*FSandCount{}
-
-    for fs, list := range finalSyllablesMap {
-        fsCounts = append(fsCounts, &FSandCount{fs, len(list)} )
-    }
-
-    sort.Sort(FSandCounts(fsCounts))
-    rwfsList := []*ResultWithFinalSyllable{}
-
-    for _, fsc := range fsCounts {
-        fsList := finalSyllablesMap[fsc.FinalSyllable]
-        for i,rwfs := range fsList {
-            isFirst := (i == 0)
-            rwfs.SetFirstOfNewRhyme( isFirst )
-            rwfsList = append( rwfsList, rwfs)
-        }
-    }
-
-    type Results struct {
-        Text string
-        ResultsWithFinalSyllable *[]*ResultWithFinalSyllable
-    }
-
-    p := Results{
-        Text: text,
-        ResultsWithFinalSyllable: &rwfsList,
-    }
-
-    templateExecuter( w, "rhymedPage", p )
-}
-
 func log(fn http.HandlerFunc) http.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request) {
     fmt.Println("REQUEST URL: ", r.URL)
@@ -205,11 +106,9 @@ func main() {
 
 	http.HandleFunc("/",        log(alignFormHandler))
     http.HandleFunc("/align",   log(alignHandler))
-    // http.HandleFunc("/meter",   log(meterHandler))
     http.HandleFunc("/article", log(ontologyHandler))
     http.HandleFunc("/detail",  log(detailHandler))
     http.HandleFunc("/ontology", log(ontologyHandler))
-    http.HandleFunc("/rhyme",   log(rhymeHandler))
 
 	http.ListenAndServe(":"+string(port), nil)
 }
