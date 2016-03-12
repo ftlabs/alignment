@@ -153,6 +153,30 @@
 									</table>			
 								</form>
 
+							<h2>find page's current articles' phrases matching the haiku meter, 5-7-5</h2>
+								<p>
+									You specify a sitepage. 
+									<br>If any of the sentences within the relevant articles contain text conforming to the haiku meter, 5-7-5, they are displayed. 
+									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
+									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
+									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
+								</p>
+								<form action="/ontology" method="GET">
+									<table>
+										<tr>
+											<td style="text-align:right;">
+												<input type="hidden" name="ontology" value="pages"> 
+												page&nbsp;<input type="text" name="value" value="http://www.ft.com/home/uk"> 
+												<br><input type="hidden" name="meter" value="..... ....... .....">
+											</td>
+											<td>
+												<input type="hidden" name="max" value="20">
+												<input type="submit" value="search for the page's articles and align on matching meter"> (NB: there will be a bit of a delay)
+											</td>
+										</tr>
+									</table>			
+								</form>
+								
 							<h2>explore phrases matching meter</h2>
 								<p>
 									You specify a phrase and a meter. 

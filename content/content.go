@@ -395,7 +395,7 @@ func Search(sRequest *SearchRequest) *SearchResponse {
     fmt.Println("content.Search: sRequest.QueryType==page")
 
     var sResponse *SearchResponse
-    if sRequest.QueryType == "page" {
+    if sRequest.QueryType == "pages" {
         webUrl    := sRequest.QueryText
         pageId    := getPageIdByWebUrl(webUrl)
         jsonBody  := constructMainContentJsonBodyFromId(pageId)
