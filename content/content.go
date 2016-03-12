@@ -178,10 +178,7 @@ func convertStringsToQuotedCSV( sList []string ) string {
     return sCsv
 }
 
-func getSapiResponseJsonBody(queryString string, maxResults int) ([]byte) {
-    url := "http://api.ft.com/content/search/v1?apiKey=" + apiKey
-
-    // fmt.Println("sapi: getSapiResponseJsonBody: queryString:", queryString)
+func getSapiResponseJsonBody(queryString string, maxResults int) (*[]byte) {
     curationsString := convertStringsToQuotedCSV( []string{ "ARTICLES", "BLOGS" } )
     aspectsString   := convertStringsToQuotedCSV( []string{ "title", "location", "summary", "lifecycle", "metadata", "editorial" } )
 
@@ -198,7 +195,15 @@ func getSapiResponseJsonBody(queryString string, maxResults int) ([]byte) {
             `}` + 
         `}` )
 
-    req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+    jsonBody := constructSapiResponseJsonBody( &jsonStr )
+
+    return jsonBody
+}
+
+func constructSapiResponseJsonBody(jsonStr *[]byte) (*[]byte) {
+    url := "http://api.ft.com/content/search/v1?apiKey=" + apiKey
+
+    req, err := http.NewRequest("POST", url, bytes.NewBuffer(*jsonStr))
     req.Header.Set("Content-Type", "application/json")
     client := &http.Client{}
     resp, err := client.Do(req)
@@ -213,7 +218,7 @@ func getSapiResponseJsonBody(queryString string, maxResults int) ([]byte) {
 
     jsonBody, _ := ioutil.ReadAll(resp.Body)
 
-    return jsonBody
+    return &jsonBody
 }
 
 type SearchResponse struct {
@@ -242,7 +247,7 @@ type Article struct {
     PubDate *time.Time
 }
 
-func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString string) *SearchResponse {
+func parseSapiResponseJsonBody(jsonBody *[]byte, sReq *SearchRequest, queryString string) *SearchResponse {
 
     siteUrl       := "http://www.ft.com"
     siteSearchUrl := "http://search.ft.com/search?queryText=" + strings.Replace(queryString, `\"`, `"`, -1)
@@ -251,7 +256,7 @@ func parseSapiResponseJsonBody(jsonBody []byte, sReq *SearchRequest, queryString
 
     // locate results
     var data interface{}
-    json.Unmarshal(jsonBody, &data)
+    json.Unmarshal(*jsonBody, &data)
     if outerResults, ok := data.(map[string]interface{})["results"].([]interface{}); ok {
         if results0, ok := outerResults[0].(map[string]interface{}); ok {
             if indexCount, ok := results0["indexCount"]; ok {
