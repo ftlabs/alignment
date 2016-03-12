@@ -23,7 +23,12 @@
 					<br><input type="submit" value="search for articles and align on matching meter">  (NB: there will be a bit of a delay)
 				</form>
 			</div>
-			<br>
+			<h2>articles covered</h2>
+			<ul>
+				{{range $item := .Articles}}
+				<li><a href="{{ $item.SiteUrl }}">{{ $item.Title }}</a> by {{$item.Author}}</li>
+				{{ end }}
+			</ul>
 			<h3>... excluding bad end words</h3>
 			<div align="center"> 
 				<table>
