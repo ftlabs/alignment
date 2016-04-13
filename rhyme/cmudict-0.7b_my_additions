@@ -26,11 +26,15 @@ UKIP'S  Y UW1 K IH1 P S
 ;;; e.g. us and US both map to US, the variant meaning you and I, losing the country variant.
 ;;; Also, some words do not map directly to the relevant entry in the phoneme map, e.g. '%'.
 ;;; This list pre-emptively maps a word to the correct entry in the phoneme map.
+;;; Usage: MAP:FROM  TO
+;;; In this example, if the word in the source text is 'from' (or 'FROM) it will be mapped to whatever is the entry for 'TO' in the dictionary.
 MAP:US  US(1)
 MAP:%  %PERCENT
 MAP:UN  UN(1)
 MAP:&  AND
 MAP:BLOGGER'S  BLOGGERS
+MAP:CRITICISED CRITICIZED
+MAP:CRITICISING CRITICIZING
 ;;;
 ;;; Extension 2:
 ;;; The default regexp to identify a word in the text is (\w+), which will miss terms such as '%'.
