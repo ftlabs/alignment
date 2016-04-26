@@ -2,6 +2,7 @@
 ;;; These are some additional words it would be useful to have phonemed:
 ;;; 
 NHS  EH1 N EY0 CH EH2 S
+NHS'S  EH1 N EY0 CH EH2 S IH0 Z
 UK  Y UW1 K EY1
 UK'S  Y UW1 K EY1 Z
 FT  EH1 F T IY1
@@ -27,6 +28,10 @@ DOMICILED  D AA1 M IH0 S AH2 L D
 ECOMMERCE  IY1 K AA2 M ER0 S
 EMOJI  AH0 M OW1 JH IH0
 ENCRYPTING  EH0 N K R IH1 P T IH0 NG
+BHS  B IY1 EY0 CH EH2 S
+BHS'S  B IY1 EY0 CH EH2 S IH0 Z
+BMA B IY1 EH0 M EY1
+BMA'S B IY1 EH0 M EY1 Z
 ;;;
 ;;; and now, bustin the format, to allow for some adjustment of the functionality
 ;;; Extension 1:
