@@ -30,8 +30,15 @@ EMOJI  AH0 M OW1 JH IH0
 ENCRYPTING  EH0 N K R IH1 P T IH0 NG
 BHS  B IY1 EY0 CH EH2 S
 BHS'S  B IY1 EY0 CH EH2 S IH0 Z
-BMA B IY1 EH0 M EY1
-BMA'S B IY1 EH0 M EY1 Z
+BMA B  IY1 EH0 M EY1
+BMA'S  B IY1 EH0 M EY1 Z
+ABE  AA1 R B EY0
+ABE'S  AA1 R B EY0 Z
+ABENOMICS  AA1 R B EY0 N AA1 M IH0 K S
+ECOMMERCE  IY1 K AA1 M ER0 S
+ECOMMERCE'S  IY1 K AA1 M ER0 S IH0 Z
+EUROZONE  Y UW1 R OW0 Z OW2 N
+EUROZONE'S  Y UW1 R OW0 Z OW2 N Z
 ;;;
 ;;; and now, bustin the format, to allow for some adjustment of the functionality
 ;;; Extension 1:
@@ -48,6 +55,7 @@ MAP:&  AND
 MAP:BLOGGER'S  BLOGGERS
 MAP:CRITICISED CRITICIZED
 MAP:CRITICISING CRITICIZING
+MAP:DIDDLY DIDDLEY
 ;;;
 ;;; Extension 2:
 ;;; The default regexp to identify a word in the text is (\w+), which will miss terms such as '%'.
