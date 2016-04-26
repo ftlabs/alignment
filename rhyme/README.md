@@ -32,3 +32,8 @@ and in John Keats' To Autumn:[1]
 
 To swell the gourd, and plump the hazel shells
 
+## unrecognised words
+
+Whilst the base CMUDict is huge, english as wot is wrote is huger, so lots of words escape the poetry filter. 
+
+At the foot of most of the web pages there is a list of 'unrecognised words'. These can be duly recognised by being added to cmudict-0.7b_my_additions, which extends the base CMUDict with extra words and features. The comments in that file should explain all.
