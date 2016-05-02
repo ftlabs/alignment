@@ -358,15 +358,20 @@ func ConstructSyllabi(sourceFilenames *[]string) (*Syllabi){
 		var word *Word
 		var stringAsKey string
 
-		if k,ok := stringsAsKeys[s]; ok {
+		// do any transforms first, e.g. to convert to use the CMUDict's apostrophe
+		for _, pair := range nameTransformPairs {
+			s = pair.Regexp.ReplaceAllString(s, pair.Replacement)
+		}
+		
+		// then convert to upper case
+		stringAsKey = strings.ToUpper(s)
+		
+		// then convert synonyms
+		if k,ok := stringsAsKeys[stringAsKey]; ok {
 			stringAsKey = k
-		} else {
-			for _, pair := range nameTransformPairs {
-				s = pair.Regexp.ReplaceAllString(s, pair.Replacement)
-			}
-			stringAsKey = strings.ToUpper(s)
 		}
 
+		// then look up the word in the master list
 		if w,ok := (*words)[stringAsKey]; ok {
 			word = w
 		} else {
