@@ -25,6 +25,7 @@ type Details struct {
     SecondaryMatchedPhrasesWithUrl    *[]*(article.MatchedPhraseWithUrl)
     BadSecondaryMatchedPhrasesWithUrl *[]*(article.MatchedPhraseWithUrl)
     MaxMillis             int
+    SecondaryMatchedPhrasesWithUrlArticlesAndMPWUs *[]*(ArticleAndMPWUs)
 }
 
 type FSandCount struct {
@@ -37,6 +38,10 @@ func (fsc FSandCounts) Len()          int  { return len(fsc) }
 func (fsc FSandCounts) Swap(i, j int)      { fsc[i], fsc[j] = fsc[j], fsc[i] }
 func (fsc FSandCounts) Less(i, j int) bool { return (fsc[j].FinalSyllable == "") || ((fsc[i].FinalSyllable != "") && (fsc[i].Count > fsc[j].Count)) }
 
+type ArticleAndMPWUs struct {
+    Article *article.ArticleWithSentencesAndMeter
+    MPWUs   *[]*article.MatchedPhraseWithUrl
+}
 
 func GetDetails(syllabi *rhyme.Syllabi, ontologyName string, ontologyValue string, meter string, maxArticles int, maxMillis int) (*Details, bool) {
 
@@ -52,6 +57,8 @@ func GetDetails(syllabi *rhyme.Syllabi, ontologyName string, ontologyValue strin
     badFinalSyllablesMap := &map[string][]*(article.MatchedPhraseWithUrl){}
     secondaryMatchedPhrasesWithUrl    := []*(article.MatchedPhraseWithUrl){}
     badSecondaryMatchedPhrasesWithUrl := []*(article.MatchedPhraseWithUrl){}
+
+    secondaryMatchedPhrasesWithUrlByUrl := map[string]*[]*(article.MatchedPhraseWithUrl){}
 
     for _,mpwu := range *matchedPhrasesWithUrl {
 
@@ -71,6 +78,14 @@ func GetDetails(syllabi *rhyme.Syllabi, ontologyName string, ontologyValue strin
                 badSecondaryMatchedPhrasesWithUrl = append( badSecondaryMatchedPhrasesWithUrl, mpwu)
             } else {
                 secondaryMatchedPhrasesWithUrl = append( secondaryMatchedPhrasesWithUrl, mpwu)
+                url := *mpwu.Url
+                if _,ok := secondaryMatchedPhrasesWithUrlByUrl[url]; ! ok {
+                    secondaryMatchedPhrasesWithUrlByUrl[url] = &[]*(article.MatchedPhraseWithUrl){}
+                }
+
+                listOfSMPWU := *(secondaryMatchedPhrasesWithUrlByUrl[url])
+                listOfSMPWU = append(listOfSMPWU, mpwu) 
+                secondaryMatchedPhrasesWithUrlByUrl[url] = &listOfSMPWU
             }
         }
 
@@ -117,6 +132,19 @@ func GetDetails(syllabi *rhyme.Syllabi, ontologyName string, ontologyValue strin
     sortedMpwus    := processFSMapIntoSortedMPWUs(finalSyllablesMap)
     sortedBadMpwus := processFSMapIntoSortedMPWUs(badFinalSyllablesMap)
 
+    listOfArticleAndMPWUs := []*(ArticleAndMPWUs){}
+
+    if len(secondaryMatchedPhrasesWithUrlByUrl) > 0 {
+        for _, article := range *articles {
+            url := article.SiteUrl
+            articleAndMPWUs := ArticleAndMPWUs{
+                Article: article,
+                MPWUs: secondaryMatchedPhrasesWithUrlByUrl[url],
+            }
+            listOfArticleAndMPWUs = append(listOfArticleAndMPWUs, &articleAndMPWUs)
+        }
+    }
+
     details := Details{
         OntologyName:          ontologyName,
         OntologyValue:         ontologyValue,
@@ -130,6 +158,7 @@ func GetDetails(syllabi *rhyme.Syllabi, ontologyName string, ontologyValue strin
         SecondaryMatchedPhrasesWithUrl: &secondaryMatchedPhrasesWithUrl,
         BadSecondaryMatchedPhrasesWithUrl: &badSecondaryMatchedPhrasesWithUrl,
         MaxMillis:             maxMillis,
+        SecondaryMatchedPhrasesWithUrlArticlesAndMPWUs: &listOfArticleAndMPWUs,
     }
 
     containsHaikus := (len(secondaryMatchedPhrasesWithUrl) > 0)
