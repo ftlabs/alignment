@@ -13,7 +13,7 @@
 				</h2>
 			</div>
 
-			<div align="center" style="font-style: italic;">
+			<div style="font-style: italic; text-align:center;">
 				<form action="/ontology" method="GET">
 					<br>ontology&nbsp;<input type="text" name="ontology" value="{{.OntologyName}}"> 
 					, value&nbsp;<input type="text" name="value" value="{{.OntologyValue}}"> 
@@ -23,7 +23,7 @@
 				</form>
 			</div>
 			<br>
-			<div align="left" style="font-size:large; font-family:Arial, Helvetica, sans-serif;">
+			<div style="font-size:large; font-family:Arial, Helvetica, sans-serif; text-align:left;" >
 				<h2>articles covered</h2>
 				<table>
 					{{range $item := .Articles}}
@@ -34,12 +34,13 @@
 					{{ end }}
 				</table>
 			</div>
-			<div align="left" style="font-size:large; font-family:Arial, Helvetica, sans-serif;">
+			<div style="font-size:large; font-family:Arial, Helvetica, sans-serif; text-align:left;">
 				<h2>haikus by article</h2>
 				{{range $aandmpwu := .SecondaryMatchedPhrasesWithUrlArticlesAndMPWUs}}
-				<p>
+					<div style=" text-align:left; clear: both;">
+						<a href="{{ $aandmpwu.Article.SiteUrl }}">{{ $aandmpwu.Article.Title }}</a> by {{$aandmpwu.Article.Author}}
+					</div>
 					<div style="float:left;">
-						<div align="left"><a href="{{ $aandmpwu.Article.SiteUrl }}">{{ $aandmpwu.Article.Title }}</a> by {{$aandmpwu.Article.Author}}</div>
 						{{range $item := $aandmpwu.MPWUs}}
 							<div style="float:left; text-align:left;  white-space: nowrap; padding: 30px; ">
 								<a href="{{$item.Url}}" style="text-decoration:none">
@@ -50,21 +51,25 @@
 							</div>
 						{{ end }}
 					</div>
-				</p>
 				{{ end }}
 			</div>
 			<br>
-			<h2>... and those containing unlikely line-ending words</h2>
-			<div align="center" style="overflow: hidden; font-size:large; font-family:Arial, Helvetica, sans-serif;">
-				{{range $item := .BadSecondaryMatchedPhrasesWithUrl}}
-				<div style="float:left; text-align:left;  white-space: nowrap; padding: 15px; ">
-					<a href="{{$item.Url}}" style="text-decoration:none">
-						{{ range $line := $item.MatchesOnMeter.SecondaryMatch.PhraseInEachMatch }}
-						{{ $line }}<br>
-						{{ end }}
-					</a>
+			<div style="font-size:large; font-family:Arial, Helvetica, sans-serif; text-align:left;">
+				<h2>... and those containing unlikely line-ending words</h2>
+				<div style=" text-align:left; clear: both;">
+					(including "the", "their", "and", ... )
 				</div>
-				{{ end }}
+				<div style=" float:left;">
+					{{range $item := .BadSecondaryMatchedPhrasesWithUrl}}
+					<div style="float:left; text-align:left;  white-space: nowrap; padding: 15px; ">
+						<a href="{{$item.Url}}" style="text-decoration:none">
+							{{ range $line := $item.MatchesOnMeter.SecondaryMatch.PhraseInEachMatch }}
+							{{ $line }}<br>
+							{{ end }}
+						</a>
+					</div>
+					{{ end }}
+				</div>
 			</div>
 			<br>			
 			<h2>articles covered</h2>
