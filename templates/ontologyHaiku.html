@@ -30,6 +30,7 @@
 					<tr>
 						<td style="text-align:right;"><a href="{{ $item.SiteUrl }}">{{ $item.Title }}</a></td>
 						<td style="text-align:left;">by {{$item.Author}}</td>
+						<td style="text-align:right;">{{$item.PubDateString}}</td>
 					</tr>
 					{{ end }}
 				</table>
@@ -38,7 +39,7 @@
 				<h2>haikus by article</h2>
 				{{range $aandmpwu := .SecondaryMatchedPhrasesWithUrlArticlesAndMPWUs}}
 					<div style=" text-align:left; clear: both;">
-						<a href="{{ $aandmpwu.Article.SiteUrl }}">{{ $aandmpwu.Article.Title }}</a> by {{$aandmpwu.Article.Author}}
+						<a href="{{ $aandmpwu.Article.SiteUrl }}">{{ $aandmpwu.Article.Title }}</a> by {{$aandmpwu.Article.Author}}, {{$aandmpwu.Article.PubDateString}}
 					</div>
 					<div style="float:left;">
 						{{range $item := $aandmpwu.MPWUs}}
