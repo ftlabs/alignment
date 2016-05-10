@@ -16,6 +16,7 @@ import (
 const longformPubDate     = "2006-01-02T15:04:05Z" // needs to be this exact string, according to http://stackoverflow.com/questions/25845172/parsing-date-string-in-golang
 const baseUriCapi         = "http://api.ft.com/content/items/v1/"
 const baseUriSapi         = "http://api.ft.com/content/search/v1"
+const newsFeedJsonUri     = "http://www.ft-static.com/contentapi/live/latestNews.json"
 const sapiKeyEnvParamName = "SAPI_KEY"
 
 func getApiKey() string {
@@ -212,7 +213,7 @@ func getSapiResponseJsonBody(queryString string, maxResults int) (*[]byte) {
 }
 
 func constructSapiResponseJsonBody(jsonStr *[]byte) (*[]byte) {
-    url := "http://api.ft.com/content/search/v1?apiKey=" + apiKey
+    url := baseUriSapi + "?apiKey=" + apiKey
 
     req, err := http.NewRequest("POST", url, bytes.NewBuffer(*jsonStr))
     req.Header.Set("Content-Type", "application/json")
@@ -361,8 +362,11 @@ func lookupCapiArticles( sRequest *SearchRequest, sResponse *SearchResponse, sta
 
     if sRequest.MaxArticles > 0 {
         for i, sapiA := range *(sResponse.Articles) {
+            articleLookupStartTiming := time.Now()
             capiA := GetArticle(sapiA.Uuid) 
             capiArticles = append( capiArticles, capiA )
+            articleLookupDuration := time.Since(articleLookupStartTiming).Nanoseconds()
+            fmt.Println("content.lookupCapiArticles: articleLookupDuration=", (articleLookupDuration/1000000))
             durationNanoseconds := time.Since(startTiming).Nanoseconds()
             if i > sRequest.MaxArticles {
                 break
@@ -397,14 +401,21 @@ func Search(sRequest *SearchRequest) *SearchResponse {
     var sResponse *SearchResponse
     if sRequest.QueryType == "pages" {
         webUrl    := sRequest.QueryText
-        pageId    := getPageIdByWebUrl(webUrl)
-        jsonBody  := constructMainContentJsonBodyFromId(pageId)
-        sResponse  = parseMainContentJsonBody(jsonBody, sRequest, webUrl)
+        if webUrl == "http://www.ft.com/news-feed" {
+            jsonBody  := constructGetResponseJsonBody(newsFeedJsonUri)
+            sResponse  = parseNewsFeedContentJsonBody(jsonBody, sRequest, webUrl)
+        } else {
+            pageId    := getPageIdByWebUrl(webUrl)
+            jsonBody  := constructMainContentJsonBodyFromId(pageId)
+            sResponse  = parseMainContentJsonBody(jsonBody, sRequest, webUrl)
+        }
     } else {
         queryString := constructQueryString( sRequest )
         jsonBody    := getSapiResponseJsonBody(queryString, sRequest.MaxArticles)
         sResponse    = parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
     }
+
+    fmt.Println("content.Search: found sResponse.NumArticles=", sResponse.NumArticles)
 
     var articles *[]*Article
     if !sRequest.SearchOnly {
@@ -414,6 +425,8 @@ func Search(sRequest *SearchRequest) *SearchResponse {
     }
 
     sResponse.SetArticles(articles)
+
+    fmt.Println("content.Search: fleshed out len(articles)=", len(*articles))
 
     return sResponse
 }
@@ -536,6 +549,74 @@ func parseMainContentJsonBody(jsonBody *[]byte, sReq *SearchRequest, webUrl stri
                     pubDateString = lastPublishDateTimeString
                     pubDateTime = parsePubDateString(pubDateString)
                 }
+            }
+
+            body := title
+            excerpt := title
+
+            article := Article{
+                SiteUrl: siteUrl,
+                Uuid:    uuid,
+                Title:   title,
+                Author:  author,
+                Excerpt: excerpt,
+                Body:    body,
+                PubDateString: pubDateString,
+                PubDate:       pubDateTime,
+            }
+
+            articles = append( articles, &article )
+        }
+    }
+
+    searchResponse := SearchResponse{
+        SiteUrl:       webUrl,
+        SiteSearchUrl: siteSearchUrl,
+        NumArticles:   len(articles),
+        NumPossible:   numPossible,
+        Articles:      &articles,
+        QueryString:   "",
+        SearchRequest: sReq,
+    }
+
+    return &searchResponse
+}
+
+func parseNewsFeedContentJsonBody(jsonBody *[]byte, sReq *SearchRequest, webUrl string) *SearchResponse {
+
+    siteSearchUrl := "http://search.ft.com/"
+    numPossible   := 0
+    articles      := []*Article{}
+
+    // locate results
+    var data interface{}
+    json.Unmarshal(*jsonBody, &data)
+    if nfArticles, ok := data.(map[string]interface{})["articles"].([]interface{}); ok {
+        for _, r := range nfArticles {
+            siteUrl := ""
+            uuid    := ""
+            title   := ""
+            author  := ""
+            pubDateString := ""
+            var pubDateTime *time.Time
+
+            if id, ok := r.(map[string]interface{})["id"].(string); ok {
+                uuid = id
+            }
+
+            if titleString, ok := r.(map[string]interface{})["title"].(string); ok {
+                title = titleString
+            }
+
+            if url, ok := r.(map[string]interface{})["url"].(string); ok {
+                siteUrl = url
+            }
+
+            author = "Soz. No author in news-feed."
+
+            if publishDate, ok := r.(map[string]interface{})["publishDate"].(string); ok {
+                pubDateString = publishDate
+                pubDateTime = parsePubDateString(pubDateString)
             }
 
             body := title

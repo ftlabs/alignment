@@ -144,7 +144,7 @@ func GetArticlesByOntologyWithSentencesAndMeter(ontologyName string, ontologyVal
         QueryText: ontologyValue,
         MaxArticles: maxArticles,
         MaxDurationMillis: maxMillis,
-        SearchOnly: false, 
+        SearchOnly: true, 
     }
 
     sapiResult := content.Search( sRequest )
