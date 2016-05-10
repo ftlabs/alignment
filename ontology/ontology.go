@@ -43,12 +43,14 @@ type ArticleAndMPWUs struct {
     MPWUs   *[]*article.MatchedPhraseWithUrl
 }
 
+const maxMaxArticles = 250
+
 func GetDetails(syllabi *rhyme.Syllabi, ontologyName string, ontologyValue string, meter string, maxArticles int, maxMillis int) (*Details, bool) {
 
     if maxArticles < 1 {
         maxArticles = 1
-    } else if maxArticles > 100 {
-        maxArticles = 100 
+    } else if maxArticles > maxMaxArticles {
+        maxArticles = maxMaxArticles 
     }
 
     articles, matchedPhrasesWithUrl := article.GetArticlesByOntologyWithSentencesAndMeter(ontologyName, ontologyValue, meter, syllabi, maxArticles, maxMillis )
