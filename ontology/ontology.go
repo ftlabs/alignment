@@ -137,11 +137,13 @@ func GetDetails(syllabi *rhyme.Syllabi, ontologyName string, ontologyValue strin
     if len(secondaryMatchedPhrasesWithUrlByUrl) > 0 {
         for _, article := range *articles {
             url := article.SiteUrl
-            articleAndMPWUs := ArticleAndMPWUs{
-                Article: article,
-                MPWUs: secondaryMatchedPhrasesWithUrlByUrl[url],
+            if mpwus,ok := secondaryMatchedPhrasesWithUrlByUrl[url]; ok {
+                articleAndMPWUs := ArticleAndMPWUs{
+                    Article: article,
+                    MPWUs: mpwus,
+                }
+                listOfArticleAndMPWUs = append(listOfArticleAndMPWUs, &articleAndMPWUs)
             }
-            listOfArticleAndMPWUs = append(listOfArticleAndMPWUs, &articleAndMPWUs)
         }
     }
 
