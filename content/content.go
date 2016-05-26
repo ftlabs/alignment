@@ -99,6 +99,12 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) (*Article) {
                 }
             }
 
+            if location, ok := item["location"].(map[string]interface{}); ok {
+                if uri, ok := location["uri"].(string); ok {
+                    aSiteUrl = uri
+                }
+            }
+
             if editorial, ok := item["editorial"].(map[string]interface{}); ok {
                 if byline, ok := editorial["byline"].(string); ok {
                     aAuthor = byline
