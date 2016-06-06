@@ -6,6 +6,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/Financial-Times/ft-s3o-go/s3o",
+			"Rev": "ffb0131a3e0f4d0813487c6deb6cd6945c221143"
+		},
+		{
 			"ImportPath": "github.com/joho/godotenv",
 			"Comment": "v1-10-g4ed1339",
 			"Rev": "4ed13390c0acd2ff4e371e64d8b97c8954138243"
