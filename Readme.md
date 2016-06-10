@@ -11,9 +11,10 @@ Currently (as of 07/02/2016) [deployed live](https://ftlabs-alignment.herokuapp.
 * download the latest stable golang version from https://golang.org/doc/install
 * clone this repo
 * ensure you have your $GOPATH set up ok, in particular with this project sitting in $GOPATH/src/github.com/railsagainstignorance/alignment
-* get and install the 3rd party import (which ends up in $GOPATH/src/... etc)
+* get and install the 3rd party imports (which ends up in $GOPATH/src/... etc)
    * $ go get     github.com/joho/godotenv
    * $ go install github.com/joho/godotenv
+   * ditto for github.com/Financial-Times/ft-s3o-go/s3o
 * create a .env file and add a valid FT Search API key
    * SAPI_KEY=...
 
