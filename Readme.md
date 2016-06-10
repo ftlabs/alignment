@@ -32,5 +32,5 @@ Currenly (as of 07/02/2016) [deployed live](https://ftlabs-alignment.herokuapp.c
 
 ## Notes
 
-* The article data is taken from the Financial Times' Search API. It is the most recent 100 (max) articles which contain the user-supplied phrase.
-* Error checking? Nope.
+* The article data is taken from the Financial Times' Search API and Content API.
+* Error checking? Nope, not much.
