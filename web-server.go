@@ -108,7 +108,6 @@ func main() {
 
 	http.HandleFunc("/", log(alignFormHandler))
 	http.HandleFunc("/align", log(alignHandler))
-	// http.HandleFunc("/article", log(ontologyHandler))
 	http.HandleFunc("/detail", log(detailHandler))
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
 
