@@ -4,7 +4,7 @@ Mostly an exercise to see if Go is usable (for me) as a Ruby+Sinatra replacement
 
 Uses the CMUDict to parse article bodies and titles in to phonemes and syllables (see the rhyme folder) and looks for poetic-y snippets in FT Articles.
 
-Currenly (as of 07/02/2016) [deployed live](https://ftlabs-alignment.herokuapp.com/) for playing with.
+Currently (as of 07/02/2016) [deployed live](https://ftlabs-alignment.herokuapp.com/) for playing with.
 
 ## installing (on Windows)
 
@@ -34,3 +34,4 @@ Currenly (as of 07/02/2016) [deployed live](https://ftlabs-alignment.herokuapp.c
 
 * The article data is taken from the Financial Times' Search API and Content API.
 * Error checking? Nope, not much.
+* The /ontology route is restricted by s3o, Staff Single Sign On, requiring signing in using FT Staff credentials. This restriction may be lifted sometime.
