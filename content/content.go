@@ -74,6 +74,8 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) (*Article) {
     aAuthor  := ""
     aBody    := ""
     aPubDateString := ""
+    aBrand   := ""
+    aGenre   := ""
     var aPubDate *time.Time
 
     if item, ok := data.(map[string]interface{})[`item`].(map[string]interface{}); ok {
@@ -108,6 +110,35 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) (*Article) {
             if editorial, ok := item["editorial"].(map[string]interface{}); ok {
                 if byline, ok := editorial["byline"].(string); ok {
                     aAuthor = byline
+                }
+            }
+
+            if metadata, ok := item["metadata"].(map[string]interface{}); ok {
+                if brandItems, ok := metadata["brand"].([]interface{}); ok {
+                    if len(brandItems) > 0 {
+                        if term, ok := brandItems[0].(map[string]interface{})["term"].(map[string]interface{}); ok {
+                            if name, ok := term["name"].(string); ok {
+                                aBrand = name
+                            }
+                        }
+                    }
+                }
+                if genreItems, ok := metadata["genre"].([]interface{}); ok {
+                    if len(genreItems) > 0 {
+                        if term, ok := genreItems[0].(map[string]interface{})["term"].(map[string]interface{}); ok {
+                            if name, ok := term["name"].(string); ok {
+                                aGenre = name
+                            }
+                        }
+                    }
+                }
+            }
+
+            if aAuthor == "" {
+                if aBrand != "" {
+                    aAuthor = aBrand
+                } else {
+                    aAuthor = aGenre
                 }
             }
         }
@@ -288,6 +319,8 @@ func parseSapiResponseJsonBody(jsonBody *[]byte, sReq *SearchRequest, queryStrin
                     author  := ""
                     excerpt := ""
                     pubDateString := ""
+                    brand   := ""
+                    genre   := ""
                     var pubDateTime *time.Time
 
                     if summary, ok := r.(map[string]interface{})["summary"].(map[string]interface{}); ok {
@@ -322,6 +355,35 @@ func parseSapiResponseJsonBody(jsonBody *[]byte, sReq *SearchRequest, queryStrin
                         if lastPublishDateTimeString, ok := lifecycle["lastPublishDateTime"].(string); ok {
                             pubDateString = lastPublishDateTimeString
                             pubDateTime = parsePubDateString(pubDateString)
+                        }
+                    }
+
+                    if metadata, ok := r.(map[string]interface{})["metadata"].(map[string]interface{}); ok {
+                        if brandItems, ok := metadata["brand"].([]interface{}); ok {
+                            if len(brandItems) > 0 {
+                                if term, ok := brandItems[0].(map[string]interface{})["term"].(map[string]interface{}); ok {
+                                    if name, ok := term["name"].(string); ok {
+                                        brand = name
+                                    }
+                                }
+                            }
+                        }
+                        if genreItems, ok := metadata["genre"].([]interface{}); ok {
+                            if len(genreItems) > 0 {
+                                if term, ok := genreItems[0].(map[string]interface{})["term"].(map[string]interface{}); ok {
+                                    if name, ok := term["name"].(string); ok {
+                                        genre = name
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if author == "" {
+                        if brand != "" {
+                            author = brand
+                        } else {
+                            author = genre
                         }
                     }
 
