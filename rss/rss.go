@@ -38,6 +38,7 @@ func getJsonBody(url string) *[]byte {
 	}
 	defer resp.Body.Close()
 	fmt.Println("rss: getJsonBody: response Status:", resp.Status)
+	fmt.Println("rss: getJsonBody: response:", resp)
 	jsonBody, _ := ioutil.ReadAll(resp.Body)
 
 	return &jsonBody
