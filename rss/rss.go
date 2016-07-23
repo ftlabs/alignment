@@ -9,7 +9,15 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"crypto/md5"
+    "encoding/hex"
 )
+
+func GetMD5Hash(text string) string {
+    hasher := md5.New()
+    hasher.Write([]byte(text))
+    return hex.EncodeToString(hasher.Sum(nil))
+}
 
 func getJsonUrl() string {
 	const jsonUrlEnvParamName = "HAIKU_JSON_URL"
@@ -92,7 +100,7 @@ func parseJsonToGenerateRss(jsonBody *[]byte, maxItems int) *string {
 		}
 
 		description := "<strong>" + haiku + "</strong>" + "<BR>" + "-" + author
-		guid := url + ";" + haiku
+		guid := url + "#" + GetMD5Hash(haiku)
 
 		created, _ := time.Parse("2006-01-02", dateSelected)
 
