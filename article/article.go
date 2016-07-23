@@ -4,12 +4,12 @@ import (
 	// "sort"
 	//    "regexp"
 	"fmt"
-	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
-	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/kennygrant/sanitize"
+	"github.com/joho/godotenv"
+	"github.com/kennygrant/sanitize"
 	// "github.com/railsagainstignorance/alignment/capi"
 	// "github.com/railsagainstignorance/alignment/sapi"
-	"github.com/railsagainstignorance/alignment/rhyme"
 	"github.com/railsagainstignorance/alignment/content"
+	"github.com/railsagainstignorance/alignment/rhyme"
 	"strings"
 	"time"
 )
@@ -63,7 +63,7 @@ type ArticleWithSentencesAndMeter struct {
 	*ArticleWithSentences
 	Meter          string
 	MatchedPhrases *[]*rhyme.RhymeAndMeter
-    KnownUnknowns *[]string
+	KnownUnknowns  *[]string
 }
 
 func FindRhymeAndMetersInSentences(sentences *[]string, meter string, syllabi *rhyme.Syllabi) *[]*rhyme.RhymeAndMeter {
@@ -78,10 +78,10 @@ func FindRhymeAndMetersInSentences(sentences *[]string, meter string, syllabi *r
 	for _, s := range *(sentences) {
 		syllabiRams := syllabi.RhymeAndMetersOfPhrase(s, emphasisRegexp, emphasisRegexpSecondary)
 
-		for _,ram := range *syllabiRams {
+		for _, ram := range *syllabiRams {
 			if ram.EmphasisRegexpMatch2 != "" {
 				rams = append(rams, ram)
-			}			
+			}
 		}
 	}
 
@@ -90,15 +90,15 @@ func FindRhymeAndMetersInSentences(sentences *[]string, meter string, syllabi *r
 
 func GetArticleWithSentencesAndMeter(uuid string, meter string, syllabi *rhyme.Syllabi) *ArticleWithSentencesAndMeter {
 	aws := getArticleWithSentences(uuid)
-	rams := FindRhymeAndMetersInSentences( aws.Sentences, meter, syllabi )
+	rams := FindRhymeAndMetersInSentences(aws.Sentences, meter, syllabi)
 
-    // sort.Sort(rhyme.RhymeAndMeters(*rams))
+	// sort.Sort(rhyme.RhymeAndMeters(*rams))
 
 	awsam := ArticleWithSentencesAndMeter{
 		aws,
 		meter,
 		rams,
-        syllabi.KnownUnknowns(),
+		syllabi.KnownUnknowns(),
 	}
 
 	return &awsam
@@ -111,9 +111,11 @@ type MatchedPhraseWithUrl struct {
 
 type MatchedPhrasesWithUrl []*MatchedPhraseWithUrl
 
-func (mpwus MatchedPhrasesWithUrl) Len()          int  { return len(mpwus) }
-func (mpwus MatchedPhrasesWithUrl) Swap(i, j int)      { mpwus[i], mpwus[j] = mpwus[j], mpwus[i] }
-func (mpwus MatchedPhrasesWithUrl) Less(i, j int) bool { return mpwus[i].MatchesOnMeter.FinalDuringSyllableAZ > mpwus[j].MatchesOnMeter.FinalDuringSyllableAZ }
+func (mpwus MatchedPhrasesWithUrl) Len() int      { return len(mpwus) }
+func (mpwus MatchedPhrasesWithUrl) Swap(i, j int) { mpwus[i], mpwus[j] = mpwus[j], mpwus[i] }
+func (mpwus MatchedPhrasesWithUrl) Less(i, j int) bool {
+	return mpwus[i].MatchesOnMeter.FinalDuringSyllableAZ > mpwus[j].MatchesOnMeter.FinalDuringSyllableAZ
+}
 
 func GetArticlesByAuthorWithSentencesAndMeter(author string, meter string, syllabi *rhyme.Syllabi, maxArticles int, maxMillis int) (*[]*ArticleWithSentencesAndMeter, *[]*MatchedPhraseWithUrl) {
 	return GetArticlesByOntologyWithSentencesAndMeter("authors", author, meter, syllabi, maxArticles, maxMillis)
@@ -126,7 +128,7 @@ func GetArticlesByOntologyWithSentencesAndMeter(ontologyName string, ontologyVal
 	// sapiResult := sapi.Search( sapi.SearchParams{ Author: author } )
 
 	articles := []*ArticleWithSentencesAndMeter{}
-	
+
 	// if sapiResult != nil && *(sapiResult.Items) != nil && len(*(sapiResult.Items)) > 0 {
 	// 	for _,item := range (*(sapiResult.Items))[0:maxArticles] {
 	// 		if item != nil {
@@ -139,24 +141,24 @@ func GetArticlesByOntologyWithSentencesAndMeter(ontologyName string, ontologyVal
 	// 	}
 	// }
 
-    sRequest := &content.SearchRequest {
-        QueryType: ontologyName,
-        QueryText: ontologyValue,
-        MaxArticles: maxArticles,
-        MaxDurationMillis: maxMillis,
-        SearchOnly: true, 
-    }
+	sRequest := &content.SearchRequest{
+		QueryType:         ontologyName,
+		QueryText:         ontologyValue,
+		MaxArticles:       maxArticles,
+		MaxDurationMillis: maxMillis,
+		SearchOnly:        true,
+	}
 
-    sapiResult := content.Search( sRequest )
+	sapiResult := content.Search(sRequest)
 
 	if sapiResult != nil && *(sapiResult.Articles) != nil && len(*(sapiResult.Articles)) > 0 {
-		for i,item := range (*(sapiResult.Articles)) {
+		for i, item := range *(sapiResult.Articles) {
 			if i >= maxArticles {
 				break
 			}
 			if item != nil {
 				aws := GetArticleWithSentencesAndMeter(item.Uuid, meter, syllabi)
-				articles = append( articles, aws )
+				articles = append(articles, aws)
 			}
 			if time.Since(start).Nanoseconds() > maxDurationNanoseconds {
 				break
@@ -166,20 +168,19 @@ func GetArticlesByOntologyWithSentencesAndMeter(ontologyName string, ontologyVal
 
 	mpwus := []*MatchedPhraseWithUrl{}
 
-	for _,article := range articles {
+	for _, article := range articles {
 		for _, mp := range *(article.MatchedPhrases) {
 			mpwu := &MatchedPhraseWithUrl{
 				mp,
 				&article.SiteUrl,
 			}
 
-			mpwus = append( mpwus, mpwu )
+			mpwus = append(mpwus, mpwu)
 		}
 	}
 
 	return &articles, &mpwus
 }
-
 
 func main() {
 	godotenv.Load()

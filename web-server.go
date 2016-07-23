@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/Financial-Times/ft-s3o-go/s3o"
-	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
+	"github.com/Financial-Times/ft-s3o-go/s3o"
+	"github.com/joho/godotenv"
 	"github.com/railsagainstignorance/alignment/align"
 	"github.com/railsagainstignorance/alignment/article"
 	"github.com/railsagainstignorance/alignment/ontology"
@@ -97,7 +97,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	maxItems := 20
 	rssText := rss.Generate(maxItems)
 	w.Header().Set("Content-Type", "application/rss+xml")
-    fmt.Fprintf(w, *rssText, r.URL.Path[1:])
+	fmt.Fprintf(w, *rssText, r.URL.Path[1:])
 }
 
 func log(fn http.HandlerFunc) http.HandlerFunc {
@@ -114,10 +114,10 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/",       log(alignFormHandler))
-	http.HandleFunc("/align",  log(alignHandler)    )
-	http.HandleFunc("/detail", log(detailHandler)   )
-	http.HandleFunc("/rss",    log(rssHandler)      )
+	http.HandleFunc("/", log(alignFormHandler))
+	http.HandleFunc("/align", log(alignHandler))
+	http.HandleFunc("/detail", log(detailHandler))
+	http.HandleFunc("/rss", log(rssHandler))
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
 
 	http.ListenAndServe(":"+string(port), nil)

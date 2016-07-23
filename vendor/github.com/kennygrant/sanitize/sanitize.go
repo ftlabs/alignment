@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	parser "github.com/railsagainstignorance/alignment/Godeps/_workspace/src/golang.org/x/net/html"
+	parser "golang.org/x/net/html"
 )
 
 var (

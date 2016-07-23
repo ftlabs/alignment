@@ -3,8 +3,8 @@ package rss
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/gorilla/feeds"
-	"github.com/railsagainstignorance/alignment/Godeps/_workspace/src/github.com/joho/godotenv"
+	. "github.com/gorilla/feeds"
+	"github.com/joho/godotenv"
 	"io/ioutil"
 	"net/http"
 	"os"

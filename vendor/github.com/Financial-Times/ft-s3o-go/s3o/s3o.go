@@ -88,14 +88,7 @@ func Handler(next http.Handler) http.Handler {
 			if r.TLS != nil {
 				proto = "https"
 			}
-			query := ""
-			if r.URL.RawQuery != "" {
-				query = "?" + r.URL.RawQuery
-			}
-			// not worrying about including r.URL.Fragment
-			
-			requrl := fmt.Sprintf("%s://%s%s%s", proto, r.Host, r.URL.Path, query)
-
+			requrl := fmt.Sprintf("%s://%s%s", proto, r.Host, r.URL.Path)
 			w.Header().Add("Cache-Control", "private, no-cache, no-store, must-revalidate")
 			w.Header().Add("Pragma", "no-cache")
 			w.Header().Add("Expires", "0")
