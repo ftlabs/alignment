@@ -42,7 +42,6 @@ func getJsonBody(url string) *[]byte {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("rss: getJsonBody: err:", err)
 		panic(err)
 	}
 	defer resp.Body.Close()

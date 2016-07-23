@@ -97,7 +97,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	maxItems := 20
 	rssText := rss.Generate(maxItems)
 	w.Header().Set("Content-Type", "application/rss+xml")
-	fmt.Fprintf(w, *rssText, r.URL.Path[1:])
+	fmt.Fprintf(w, *rssText)
 }
 
 func log(fn http.HandlerFunc) http.HandlerFunc {
