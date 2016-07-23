@@ -91,14 +91,17 @@ func parseJsonToGenerateRss(jsonBody *[]byte, maxItems int) *string {
 			dateSelected = mItem["dateselected"].(string)
 		}
 
+		description := "<strong>" + haiku + "</strong>" + "<BR>" + "-" + author
+		guid := url + ";" + haiku
+
 		created, _ := time.Parse("2006-01-02", dateSelected)
 
 		feed.Items = append(feed.Items, &Item{
 			Title:       title,
 			Link:        &Link{Href: url},
-			Description: "<it>" + haiku + "</it>",
-			Author:      &Author{Name: author},
+			Description: description,
 			Created:     created,
+			Id:          guid,
 		})
 	}
 
