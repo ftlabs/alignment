@@ -82,7 +82,7 @@ func parseJsonToGenerateRss( jsonBody *[]byte, maxItems int ) (*string) {
     	feed.Items = append( feed.Items, &Item{
     		Title:       title,
         	Link:        &Link{Href: url},
-        	Description: haiku,
+        	Description: "<it>" + haiku + "</it>",
        		Author:      &Author{Name: author},
        		Created:     created,
        		} )
