@@ -61,13 +61,10 @@ func parseJsonToGenerateRss( jsonBody *[]byte, maxItems int ) (*string) {
 
 	feed.Items = []*Item{}
 
-    fmt.Println("rss: parseJsonToGenerateRss: data[0]=", data.([]interface{})[0])
-
     for i, item := range data.([]interface{}) {
     	if i >= maxItems { break }
-	    mItem := item.(map[string]interface{})
-	    fmt.Println("rss: parseJsonToGenerateRss: i=", i, ", mItem=", mItem )
 
+	    mItem := item.(map[string]interface{})
 	    author       := "unknown author"
 	    title        := "unknown title"
 	    url          := hiddenHaikuUrl
@@ -95,16 +92,15 @@ func parseJsonToGenerateRss( jsonBody *[]byte, maxItems int ) (*string) {
     return &rss
 }
 
-func Generate() *string {
+func Generate(maxItems int) *string {
 	jsonBody  := getJsonBody(jsonUrl)
-	maxItems  := 10
 	rssString := parseJsonToGenerateRss( jsonBody, maxItems )
 	return rssString
 }
 
 func main() {
 	godotenv.Load()
-	rssString := Generate()
+	rssString := Generate(10)
 
 	fmt.Println("main: rssString=", *rssString)
 }

@@ -94,7 +94,9 @@ func ontologyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rssHandler(w http.ResponseWriter, r *http.Request) {
-	rssText := rss.Generate()
+	maxItems := 20
+	rssText := rss.Generate(maxItems)
+	w.Header().Set("Content-Type", "application/rss+xml")
     fmt.Fprintf(w, *rssText, r.URL.Path[1:])
 }
 
@@ -112,11 +114,11 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/", log(alignFormHandler))
-	http.HandleFunc("/align", log(alignHandler))
-	http.HandleFunc("/detail", log(detailHandler))
+	http.HandleFunc("/",       log(alignFormHandler))
+	http.HandleFunc("/align",  log(alignHandler)    )
+	http.HandleFunc("/detail", log(detailHandler)   )
+	http.HandleFunc("/rss",    log(rssHandler)      )
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
-	http.HandleFunc("/rss", log(rssHandler))
 
 	http.ListenAndServe(":"+string(port), nil)
 }
