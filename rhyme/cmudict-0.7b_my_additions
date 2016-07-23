@@ -169,7 +169,7 @@ MAP:STURGEON'S  STURGEONS
 WORD:%  \%
 WORD:'s  \w+['’][sStdmM]
 WORD:'s  \w+['’](re|RE|ve|VE|ll|LL)
-WORD:&  &
+WORD:&  &amp;
 ;;;
 ;;; Extension 3:
 ;;; This allows matched words to be transformed, e.g. to ensure the apostophe matches that used in the phoneme keys
@@ -177,6 +177,7 @@ WORD:&  &
 ;;; NB: the ToUpper step is invoked *after* all the TRANSFORM:... steps
 TRANSFORM:(\w+)’([sStTdDmM])  $1'$2
 TRANSFORM:(\w+)’(re|RE|ve|VE|ll|LL)  $1'$2
+TRANSFORM:&amp;  AND
 ;;;
 ;;; Extension 4:
 ;;; This marks a word as being considered as a 'bad' word, unsuited to terminating a phrase in poetry
