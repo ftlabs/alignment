@@ -69,7 +69,7 @@ func parseJsonToGenerateRss( jsonBody *[]byte, maxItems int ) (*string) {
 	    title        := "unknown title"
 	    url          := hiddenHaikuUrl
 	    haiku        := "unknown haiku"
-	    dateSelected := "2016-01-01"
+	    dateSelected := "2016-01-02"
 
 	    if mItem["by"          ] != nil { author       = mItem["by"          ].(string) }
     	if mItem["title"       ] != nil { title        = mItem["title"       ].(string) }
@@ -77,7 +77,7 @@ func parseJsonToGenerateRss( jsonBody *[]byte, maxItems int ) (*string) {
     	if mItem["haikuhtml"   ] != nil { haiku        = mItem["haikuhtml"   ].(string) }
     	if mItem["dateselected"] != nil { dateSelected = mItem["dateselected"].(string) }
 
-    	created, _   := time.Parse("2006-11-03", dateSelected )
+    	created, _  := time.Parse("2006-01-02", dateSelected )
 
     	feed.Items = append( feed.Items, &Item{
     		Title:       title,
