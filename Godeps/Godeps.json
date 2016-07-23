@@ -10,6 +10,10 @@
 			"Rev": "894b987556d270befee771f6c4d5ef8f440b4b36"
 		},
 		{
+			"ImportPath": "github.com/gorilla/feeds",
+			"Rev": "441264de03a8117ed530ae8e049d8f601a33a099"
+		},
+		{
 			"ImportPath": "github.com/joho/godotenv",
 			"Comment": "v1-10-g4ed1339",
 			"Rev": "4ed13390c0acd2ff4e371e64d8b97c8954138243"
