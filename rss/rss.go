@@ -1,4 +1,4 @@
-package main
+package rss
 
 import (
 	"fmt"
@@ -95,11 +95,16 @@ func parseJsonToGenerateRss( jsonBody *[]byte, maxItems int ) (*string) {
     return &rss
 }
 
-func main() {
-	godotenv.Load()
+func Generate() *string {
 	jsonBody  := getJsonBody(jsonUrl)
 	maxItems  := 10
 	rssString := parseJsonToGenerateRss( jsonBody, maxItems )
+	return rssString
+}
+
+func main() {
+	godotenv.Load()
+	rssString := Generate()
 
 	fmt.Println("main: rssString=", *rssString)
 }
