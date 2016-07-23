@@ -8,6 +8,7 @@ import (
 	"github.com/railsagainstignorance/alignment/article"
 	"github.com/railsagainstignorance/alignment/ontology"
 	"github.com/railsagainstignorance/alignment/rhyme"
+	"github.com/railsagainstignorance/alignment/rss"
 	"html/template"
 	"net/http"
 	"os"
@@ -92,6 +93,13 @@ func ontologyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func rssHandler(w http.ResponseWriter, r *http.Request) {
+	maxItems := 20
+	rssText := rss.Generate(maxItems)
+	w.Header().Set("Content-Type", "application/rss+xml")
+    fmt.Fprintf(w, *rssText, r.URL.Path[1:])
+}
+
 func log(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("REQUEST URL: ", r.URL)
@@ -106,9 +114,10 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/", log(alignFormHandler))
-	http.HandleFunc("/align", log(alignHandler))
-	http.HandleFunc("/detail", log(detailHandler))
+	http.HandleFunc("/",       log(alignFormHandler))
+	http.HandleFunc("/align",  log(alignHandler)    )
+	http.HandleFunc("/detail", log(detailHandler)   )
+	http.HandleFunc("/rss",    log(rssHandler)      )
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
 
 	http.ListenAndServe(":"+string(port), nil)
