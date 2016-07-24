@@ -11,6 +11,7 @@ import (
 	"time"
 	"crypto/md5"
     "encoding/hex"
+    "html/template"
 )
 
 func GetMD5Hash(text string) string {
@@ -52,23 +53,22 @@ func getJsonBody(url string) *[]byte {
 	return &jsonBody
 }
 
-func parseJsonToGenerateRss(jsonBody *[]byte, maxItems int) *string {
+type Haiku struct {
+	Author       string
+	Title        string
+	Url          string
+	Text         string
+	TextAsHtml   template.HTML
+	DateSelected string
+	Description  string
+}
+
+func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 	const hiddenHaikuUrl = "http://www.ft.com/hidden-haiku"
 	var data interface{}
 	json.Unmarshal(*jsonBody, &data)
 
-	now := time.Now()
-
-	feed := &Feed{
-		Title:       "Haiku found verbatim in Financial Times articles",
-		Link:        &Link{Href: hiddenHaikuUrl},
-		Description: "There are plenty more such haiku: identified by computer algorithm, selected by a human, and brought to light in ft.com/hidden-haiku.",
-		Author:      &Author{Name: "Chris Gathercole", Email: "chris.gathercole@ft.com"},
-		Created:     now,
-		Copyright:   "This work is copyright © Financial Times",
-	}
-
-	feed.Items = []*Item{}
+	items := []*Haiku {}
 
 	for i, item := range data.([]interface{}) {
 		if i >= maxItems {
@@ -99,14 +99,43 @@ func parseJsonToGenerateRss(jsonBody *[]byte, maxItems int) *string {
 		}
 
 		description := "<strong>" + haiku + "</strong>" + "<BR>" + "-" + author
-		guid := url + "#" + GetMD5Hash(haiku)
 
-		created, _ := time.Parse("2006-01-02", dateSelected)
+		items = append( items, &Haiku{
+			Author:       author,
+			Title:        title,
+			Url:          url,
+			Text:         haiku,
+			TextAsHtml:   template.HTML(haiku),
+			DateSelected: dateSelected,
+			Description:  description,
+			})
+	}
+	return &items
+}
+
+func itemsToRss(items *[]*Haiku) *string {
+	const hiddenHaikuUrl = "http://www.ft.com/hidden-haiku"
+	now := time.Now()
+
+	feed := &Feed{
+		Title:       "Haiku found verbatim in Financial Times articles",
+		Link:        &Link{Href: hiddenHaikuUrl},
+		Description: "There are plenty more such haiku: identified by computer algorithm, selected by a human, and brought to light in ft.com/hidden-haiku.",
+		Author:      &Author{Name: "Chris Gathercole", Email: "chris.gathercole@ft.com"},
+		Created:     now,
+		Copyright:   "This work is copyright © Financial Times",
+	}
+
+	feed.Items = []*Item{}
+
+	for _, item := range *items {
+		guid       := item.Url + "#" + GetMD5Hash(item.Text)
+		created, _ := time.Parse("2006-01-02", item.DateSelected)
 
 		feed.Items = append(feed.Items, &Item{
-			Title:       title,
-			Link:        &Link{Href: url},
-			Description: description,
+			Title:       item.Title,
+			Link:        &Link{Href: item.Url},
+			Description: item.Description,
 			Created:     created,
 			Id:          guid,
 		})
@@ -118,8 +147,15 @@ func parseJsonToGenerateRss(jsonBody *[]byte, maxItems int) *string {
 
 func Generate(maxItems int) *string {
 	jsonBody := getJsonBody(jsonUrl)
-	rssString := parseJsonToGenerateRss(jsonBody, maxItems)
+	items := parseJsonToGenerateItems( jsonBody, maxItems )
+	rssString := itemsToRss(items)
 	return rssString
+}
+
+func GenerateItems(maxItems int) *[]*Haiku {
+	jsonBody := getJsonBody(jsonUrl)
+	items := parseJsonToGenerateItems( jsonBody, maxItems )
+	return items
 }
 
 func main() {

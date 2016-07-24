@@ -1,0 +1,86 @@
+{{define "carouselPage"}}
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Hidden Haiku from FT.com</title>
+			<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.6.0/slick.css"/>
+		   	<style>
+body {
+    background-color: #fff1e0;
+}
+.haiku-carousel {
+    font-family: Corsiva, "Lucida Handwriting", serif;
+}
+.haiku {
+	margin-left: 50px;
+}
+.haiku-text {
+    font-size: 500%;
+}
+.details {
+	margin-left: 50px;
+}
+.author {
+    font-size: 300%;
+}
+.article {
+    font-size: 200%;
+}
+.title {
+	margin-left: 50px;
+}
+		   	</style>
+		</head>
+		<body>
+			<br>
+
+			<div class="haiku-carousel">
+			{{range .Items}}
+				<div class="haiku">
+					<div class="haiku-text">
+						{{ .TextAsHtml }}
+					</div>
+					<br>
+					<br>
+					<div class="details">
+						<div class="author">
+							{{ .Author }}
+						</div>
+						<div class="article">
+							"<a href="{{ .Url }}">{{ .Title }}</a>"
+						</div>
+						<br>
+						<br>
+						<div class="title">
+							<a href="http://www.ft.com/hidden-haiku">FT.com/hidden-haiku</a>
+						</div>
+					</div>
+				</div>
+			{{ end }}
+		   	</div>
+
+
+			<script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+			<script type="text/javascript" src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+			<script type="text/javascript" src="//cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
+
+			<script type="text/javascript">
+				$(document).ready(function(){
+			    $('.haiku-carousel').slick({
+					slidesToShow: 1,
+					slidesToScroll: 1,
+					autoplay: true,
+					autoplaySpeed: 10000,
+					infinite: true,
+					speed: 500,
+					fade: true,
+					cssEase: 'linear',
+					arrows: false,
+					centerMode: true,
+			    });
+			});
+			</script>
+
+		</body>
+	</html>
+{{end}}
