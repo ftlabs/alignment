@@ -137,6 +137,7 @@ func main() {
 	http.HandleFunc("/rss", log(rssHandler))
 	http.HandleFunc("/carousel", log(carouselHandler))
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./includes"))))
 
 	http.ListenAndServe(":"+string(port), nil)
 }

@@ -6,15 +6,16 @@
 			<!-- using http://kenwheeler.github.io/slick/ -->
 			<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.6.0/slick.css"/>
 			<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.6.0/slick-theme.css"/>
+			<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+			<script src="/static/js/flowtype.js"></script>
 		   	<style>
 body {
     background-color: #fff1e0;
+ 	font-size: 18px;
+}
+
 }
 .haiku-carousel {
-    font-family: Corsiva, "Lucida Handwriting", serif;
-	width: 768px ;
-	margin-left: auto ;
-	margin-right: auto ;
 }
 .haiku {
 }
@@ -83,9 +84,16 @@ body {
 					centerMode: true,
 					dots: true,
 			    });
+			    $('body').flowtype({
+					minimum   : 500,
+					maximum   : 1200,
+					minFont   : 12,
+					maxFont   : 40,
+					fontRatio : 30
+				});
+
 			});
 			</script>
-
 		</body>
 	</html>
 {{end}}
