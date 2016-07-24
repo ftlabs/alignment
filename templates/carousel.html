@@ -1,0 +1,27 @@
+{{define "carouselPage"}}
+	<!DOCTYPE html>
+	<html>
+    	{{template "head"}}
+		<body>
+	    	{{template "header"}}
+ 		    <div class="o-techdocs-hero">
+				<h2 class="o-techdocs-hero__title">
+					Looking at a carousel of haiku
+				</h2>
+			</div>
+
+			<ul>
+			{{range .Items}}
+				<li>
+					<div>
+						{{ .TextAsHtml }}
+						<br>
+						- <a href="{{ .Url }}">{{ .Author }}</a>
+					</div>
+				</li>
+			{{ end }}
+			</ul>
+
+		</body>
+	</html>
+{{end}}

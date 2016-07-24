@@ -100,6 +100,23 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, *rssText)
 }
 
+func carouselHandler(w http.ResponseWriter, r *http.Request) {
+	maxItems := 20
+	items := rss.GenerateItems(maxItems)
+
+	type CarouselDetails struct {
+		MaxItems int
+		Items	 *[]*rss.Haiku
+	}
+
+	cd := CarouselDetails{
+		MaxItems: maxItems,
+		Items:    items,
+	}
+
+	templateExecuter(w, "carouselPage", cd)
+}
+
 func log(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("REQUEST URL: ", r.URL)
@@ -118,6 +135,7 @@ func main() {
 	http.HandleFunc("/align", log(alignHandler))
 	http.HandleFunc("/detail", log(detailHandler))
 	http.HandleFunc("/rss", log(rssHandler))
+	http.HandleFunc("/carousel", log(carouselHandler))
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
 
 	http.ListenAndServe(":"+string(port), nil)
