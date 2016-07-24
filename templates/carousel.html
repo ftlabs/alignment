@@ -1,26 +1,45 @@
 {{define "carouselPage"}}
 	<!DOCTYPE html>
 	<html>
-    	{{template "head"}}
+  <head>
+  	<title>Looking at a carousel of haiku</title>
+	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.6.0/slick.css"/>
+  </head>
 		<body>
-	    	{{template "header"}}
- 		    <div class="o-techdocs-hero">
-				<h2 class="o-techdocs-hero__title">
+				<h2>
 					Looking at a carousel of haiku
 				</h2>
 			</div>
 
-			<ul>
+			<div class="haiku-carousel">
 			{{range .Items}}
-				<li>
-					<div>
-						{{ .TextAsHtml }}
-						<br>
-						- <a href="{{ .Url }}">{{ .Author }}</a>
-					</div>
-				</li>
+				<div>
+					{{ .TextAsHtml }}
+					<br>
+					- <a href="{{ .Url }}">{{ .Author }}</a>
+				</div>
 			{{ end }}
-			</ul>
+		   	</div>
+
+			<script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+			<script type="text/javascript" src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+			<script type="text/javascript" src="//cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>
+
+			<script type="text/javascript">
+				$(document).ready(function(){
+			    $('.haiku-carousel').slick({
+					slidesToShow: 1,
+					slidesToScroll: 1,
+					autoplay: true,
+					autoplaySpeed: 3000,
+					infinite: true,
+					speed: 500,
+					fade: true,
+					cssEase: 'linear',
+					arrows: false,
+			    });
+			});
+			</script>
 
 		</body>
 	</html>
