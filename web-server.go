@@ -82,7 +82,7 @@ func ontologyHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	maxMillis := 3000
+	maxMillis := 30000
 
 	details, containsHaikus := ontology.GetDetails(syllabi, ontologyName, ontologyValue, meter, maxArticles, maxMillis)
 
