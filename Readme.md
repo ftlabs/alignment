@@ -1,6 +1,8 @@
-# My First Go Program
+# Alignment and Haiku-detector
 
-Mostly an exercise to see if Go is usable (for me) as a Ruby+Sinatra replacement. Hence, lots of bad go. Idioms? What idioms?
+For a more polished write up of what this is all about, see this FT Labs blog post: http://labs.ft.com/2016/07/finding-hidden-haiku/
+
+Initially an exercise to see if Go is usable (for me) as a Ruby+Sinatra replacement. Hence, lots of bad go. Idioms? What idioms?
 
 Uses the CMUDict to parse article bodies and titles in to phonemes and syllables (see the rhyme folder) and looks for poetic-y snippets in FT Articles.
 
