@@ -76,6 +76,7 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 	aPubDateString := ""
 	aBrand := ""
 	aGenre := ""
+	aImgUrl := ""
 	var aPubDate *time.Time
 
 	if item, ok := data.(map[string]interface{})[`item`].(map[string]interface{}); ok {
@@ -134,6 +135,22 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 				}
 			}
 
+			if images, ok := item["images"].([]interface{}); ok {
+				fmt.Println("content: parseCapiArticleJsonBody: found images")
+				if len(images) > 0 {
+					fmt.Println("content: parseCapiArticleJsonBody: found images, len > 0")
+					for _, image := range images {
+						if imageType, ok := image.(map[string]interface{})["type"].(string); ok {
+							if imageType == "article" {
+								if imageUrl, ok := image.(map[string]interface{})["url"].(string); ok {
+									aImgUrl = imageUrl
+								}
+							}
+						}
+					}
+				}
+			}
+
 			if aAuthor == "" {
 				if aBrand != "" {
 					aAuthor = aBrand
@@ -154,7 +171,10 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 		Body:          aBody,
 		PubDateString: aPubDateString,
 		PubDate:       aPubDate,
+		ImageUrl:      aImgUrl,
 	}
+
+	fmt.Println("content: parseCapiArticleJsonBody: Uuid=", aUuid, ", ImageUrl=", aImgUrl)
 
 	return &article
 }
@@ -294,6 +314,7 @@ type Article struct {
 	Body          string
 	PubDateString string
 	PubDate       *time.Time
+	ImageUrl      string
 }
 
 func parseSapiResponseJsonBody(jsonBody *[]byte, sReq *SearchRequest, queryString string) *SearchResponse {
