@@ -12,6 +12,7 @@ import (
 	"crypto/md5"
     "encoding/hex"
     "html/template"
+	"regexp"
 )
 
 func GetMD5Hash(text string) string {
@@ -63,6 +64,7 @@ type Haiku struct {
 	Description  string
 	ImageUrl     string
 	Themes       *[]string
+	Uuid         string
 }
 
 func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
@@ -71,6 +73,8 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 	json.Unmarshal(*jsonBody, &data)
 
 	items := []*Haiku {}
+	
+	uuidRegex, _ := regexp.Compile("([0-9a-f]+-[0-9a-f]+-[0-9a-f]+-[0-9a-f]+-[0-9a-f]+)")
 
 	for i, item := range data.([]interface{}) {
 		if i >= maxItems {
@@ -85,6 +89,7 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 		dateSelected := "2016-01-02"
 		imageUrl := ""
 		themes := []string {}
+		uuid := ""
 
 		for key, value := range mItem {
 			if key == "by" && value != nil {
@@ -93,6 +98,9 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 				title = value.(string)
 			} else if key == "articleurl" && value != nil {
 				url = value.(string)
+				// https://www.ft.com/content/17999e1c-a836-11e6-8b69-02899e8bd9d1
+				// http://www.ft.com/cms/s/0/d2f40934-1792-11e6-b8d5-4c1fcdbe169f.html
+				uuid = uuidRegex.FindString(url)
 			} else if key == "haikuhtml" && value != nil {
 				haiku = value.(string)
 			} else if key == "dateselected" && value != nil {
@@ -118,9 +126,10 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 			Description:  description,
 			ImageUrl:     imageUrl,
 			Themes:       &themes,
+			Uuid:         uuid,
 			}
 
-		fmt.Println( "rss: parseJsonToGenerateItems: haikuStruct.Themes=", haikuStruct.Themes)
+		fmt.Println( "rss: parseJsonToGenerateItems: haikuStruct.Themes=", haikuStruct.Themes, ", uuid=", haikuStruct.Uuid)
 
 		items = append( items, &haikuStruct )
 	}
