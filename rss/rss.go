@@ -61,6 +61,8 @@ type Haiku struct {
 	TextAsHtml   template.HTML
 	DateSelected string
 	Description  string
+	ImageUrl     string
+	Themes       *[]string
 }
 
 func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
@@ -81,26 +83,32 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 		url := hiddenHaikuUrl
 		haiku := "unknown haiku"
 		dateSelected := "2016-01-02"
+		imageUrl := ""
+		themes := []string {}
 
-		if mItem["by"] != nil {
-			author = mItem["by"].(string)
-		}
-		if mItem["title"] != nil {
-			title = mItem["title"].(string)
-		}
-		if mItem["articleurl"] != nil {
-			url = mItem["articleurl"].(string)
-		}
-		if mItem["haikuhtml"] != nil {
-			haiku = mItem["haikuhtml"].(string)
-		}
-		if mItem["dateselected"] != nil {
-			dateSelected = mItem["dateselected"].(string)
+		for key, value := range mItem {
+			if key == "by" && value != nil {
+				author = value.(string)
+			} else if key == "title" && value != nil {
+				title = value.(string)
+			} else if key == "articleurl" && value != nil {
+				url = value.(string)
+			} else if key == "haikuhtml" && value != nil {
+				haiku = value.(string)
+			} else if key == "dateselected" && value != nil {
+				dateSelected = value.(string)
+			} else if key == "imageurl" && value != nil {
+				imageUrl = value.(string)
+			} else {
+				if value != nil && value == true {
+					themes = append( themes, key )
+				}
+			}
 		}
 
 		description := "<strong>" + haiku + "</strong>" + "<BR>" + "-" + author
 
-		items = append( items, &Haiku{
+		haikuStruct := Haiku{
 			Author:       author,
 			Title:        title,
 			Url:          url,
@@ -108,7 +116,13 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 			TextAsHtml:   template.HTML(haiku),
 			DateSelected: dateSelected,
 			Description:  description,
-			})
+			ImageUrl:     imageUrl,
+			Themes:       &themes,
+			}
+
+		fmt.Println( "rss: parseJsonToGenerateItems: haikuStruct.Themes=", haikuStruct.Themes)
+
+		items = append( items, &haikuStruct )
 	}
 	return &items
 }
