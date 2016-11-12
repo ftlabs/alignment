@@ -60,6 +60,7 @@ type Haiku struct {
 	Url          string
 	Text         string
 	TextAsHtml   template.HTML
+	TextRaw      string
 	DateSelected string
 	Description  string
 	ImageUrl     string
@@ -90,6 +91,7 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 		imageUrl := ""
 		themes := []string {}
 		uuid := ""
+		haikuRaw := ""
 
 		for key, value := range mItem {
 			if key == "by" && value != nil {
@@ -103,6 +105,8 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 				uuid = uuidRegex.FindString(url)
 			} else if key == "haikuhtml" && value != nil {
 				haiku = value.(string)
+			} else if key == "haiku" && value != nil {
+				haikuRaw = value.(string)
 			} else if key == "dateselected" && value != nil {
 				dateSelected = value.(string)
 			} else if key == "imageurl" && value != nil {
@@ -127,6 +131,7 @@ func parseJsonToGenerateItems(jsonBody *[]byte, maxItems int) *[]*Haiku {
 			ImageUrl:     imageUrl,
 			Themes:       &themes,
 			Uuid:         uuid,
+			TextRaw:      haikuRaw,
 			}
 
 		fmt.Println( "rss: parseJsonToGenerateItems: haikuStruct.Themes=", haikuStruct.Themes, ", uuid=", haikuStruct.Uuid)
