@@ -1,4 +1,4 @@
-package main
+package image
 
 import (
         "fmt"
@@ -118,18 +118,17 @@ type ProminentColour struct {
 }
 
 // via https://github.com/generaltso/vibrant
-func getVibrant(url string) *[]ProminentColour {
+func GetProminentColours(url string) *[]ProminentColour {
         img := *getDecodedImageByUrl( url )
 
         palette, err := vibrant.NewPaletteFromImage(img)
         checkErr(err)
 
         prominentColours := []ProminentColour {}
-
-        // example: create css stylesheet from image file
         swatches := palette.ExtractAwesome()
+
         for name, swatch := range swatches {
-          fmt.Printf("/* %s (population: %d) */\n%s\n\n", name, swatch.Population, swatch)
+          // fmt.Printf("/* %s (population: %d) */\n%s\n\n", name, swatch.Population, swatch)
           prominentColour := ProminentColour{
                 Name:       name,
                 Population: swatch.Population,
@@ -157,6 +156,6 @@ func main() {
         //         fmt.Printf("%3d) %s %5.2f %6d\n", i, c.RgbaCsv, c.Percentage, c.Count)
         // }
 
-        prominentColours := getVibrant( url )
+        prominentColours := GetProminentColours( url )
         fmt.Println( "image: main: prominentColours=", prominentColours)      
 }

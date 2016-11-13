@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
     "github.com/railsagainstignorance/alignment/rss"
     "github.com/railsagainstignorance/alignment/content"
+    "github.com/railsagainstignorance/alignment/image"
 )
 
 func getEnvParam(key string, defaultValue string) string {
@@ -42,9 +43,10 @@ func findKeywordMatches( text string ) *[]string {
 
 type MeditationHaiku struct {
 	rss.Haiku
-	PubDateString string
-	PubDateEpoch  int64
-	TextWithBreaks string
+	PubDateString    string
+	PubDateEpoch     int64
+	TextWithBreaks   string
+	ProminentColours *[]image.ProminentColour
 }
 
 
@@ -61,6 +63,7 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 				"",
 				0,
 				"",
+				nil,
 			}
 
 			if item.ImageUrl == "" {
@@ -92,6 +95,9 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 
 				item.Themes = &themes
 				fmt.Println("meditation: GetHaikusWithImages: item.Themes=", item.Themes)
+
+				item.ProminentColours = image.GetProminentColours( item.ImageUrl )
+
 				fmt.Println("meditation: GetHaikusWithImages: ", i, ") ", item.Title, ", imageUrl=", item.ImageUrl )
 			}
 		}
