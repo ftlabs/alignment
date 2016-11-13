@@ -39,14 +39,27 @@ func findKeywordMatches( text string ) *[]string {
 	return &matchingKeywords
 }
 
-func GetHaikusWithImages(maxItems int) *[]*rss.Haiku {
-	itemsIncludingMissingImages := rss.GenerateItems( maxItems )
-	items := []*rss.Haiku {}
+type MeditationHaiku struct {
+	rss.Haiku
+	PubDateString string
+	PubDateUnix   int
+}
 
-	for i, item := range *itemsIncludingMissingImages {
-		if item.Uuid == "" {
-			fmt.Println("meditation: GetHaikusWithImages: discarding (no Uuid) item=", item)
+
+func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
+	rssItemsIncludingMissingImages := rss.GenerateItems( maxItems )
+	items := []*MeditationHaiku {}
+
+	for i, rssItem := range *rssItemsIncludingMissingImages {
+		if rssItem.Uuid == "" {
+			fmt.Println("meditation: GetHaikusWithImages: discarding (no Uuid) rssItem=", rssItem)
 		} else {
+			item := &MeditationHaiku{
+				*rssItem,
+				"",
+				0,
+			}
+
 			if item.ImageUrl == "" {
 				capiArticle := content.GetArticle(item.Uuid)
 				item.ImageUrl = capiArticle.ImageUrl
@@ -55,6 +68,7 @@ func GetHaikusWithImages(maxItems int) *[]*rss.Haiku {
 				fmt.Println("meditation: GetHaikusWithImages: discarding (no ImageUrl) item=", item)
 			} else {
 				items = append( items, item )
+
 				item.Text        = ""
 				item.TextAsHtml  = ""
 				item.Description = ""
@@ -67,7 +81,6 @@ func GetHaikusWithImages(maxItems int) *[]*rss.Haiku {
 
 				item.Themes = &themes
 				fmt.Println("meditation: GetHaikusWithImages: item.Themes=", item.Themes)
-
 				fmt.Println("meditation: GetHaikusWithImages: ", i, ") ", item.Title, ", imageUrl=", item.ImageUrl )
 			}
 		}
