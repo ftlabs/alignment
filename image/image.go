@@ -8,7 +8,6 @@ import (
         _ "image/png"
         "log"
         "net/http"
-        "strings"
         "sort"
 )
 
@@ -81,13 +80,12 @@ func calcColourFrequencies(url string) *[]ColourStat {
         for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
                 for x := bounds.Min.X; x < bounds.Max.X; x++ {
                         r, g, b, a := m.At(x, y).RGBA()
-                        rgbaList := []string {
-                                fmt.Sprint((r>>12)<<4),
-                                fmt.Sprint((g>>12)<<4),
-                                fmt.Sprint((b>>12)<<4),
-                                fmt.Sprint((a>>12)<<4),
-                        }
-                        rgbaString := strings.Join(rgbaList, ",")
+                        rgbaString := fmt.Sprintf( "%03d,%03d,%03d,%03d",
+                                (r>>12)<<4,
+                                (g>>12)<<4,
+                                (b>>12)<<4,
+                                (a>>12)<<4,
+                                )
                         colourCounts[rgbaString]++
                         absCount ++
                 }
@@ -110,7 +108,7 @@ func calcColourFrequencies(url string) *[]ColourStat {
 }
 
 func main() {
-        url := "http://im.ft-static.com/content/images/2b173ba4-ca7c-4d32-8478-7a2094437eeb.img"
+        url := "http://im.ft-static.com/content/images/2a7f93c1-0276-4e3e-992d-d14a60bf60f4.img"
 
         histogram := calcHistogram(url)
         // Print the results.
@@ -121,6 +119,6 @@ func main() {
 
         colourStats := calcColourFrequencies( url )
         for i,c := range *colourStats{
-                fmt.Printf("%3d) %s %5.2f\n", i, c.RgbaCsv, c.Percentage)
+                fmt.Printf("%3d) %s %5.2f %6d\n", i, c.RgbaCsv, c.Percentage, c.Count)
         }
 }
