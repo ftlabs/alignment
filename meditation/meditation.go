@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"log"
 	"regexp"
 	"strings"
 	"encoding/json"
@@ -42,7 +43,8 @@ func findKeywordMatches( text string ) *[]string {
 type MeditationHaiku struct {
 	rss.Haiku
 	PubDateString string
-	PubDateUnix   int
+	PubDateEpoch  int64
+	TextWithBreaks string
 }
 
 
@@ -58,26 +60,35 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 				*rssItem,
 				"",
 				0,
+				"",
 			}
 
 			if item.ImageUrl == "" {
 				capiArticle := content.GetArticle(item.Uuid)
 				item.ImageUrl = capiArticle.ImageUrl
+				item.PubDateString = capiArticle.PubDateString
+				item.PubDateEpoch  = capiArticle.PubDate.Unix()
 			}
 			if item.ImageUrl == "" {
 				fmt.Println("meditation: GetHaikusWithImages: discarding (no ImageUrl) item=", item)
 			} else {
 				items = append( items, item )
 
-				item.Text        = ""
-				item.TextAsHtml  = ""
-				item.Description = ""
+				item.TextWithBreaks = strings.Replace(item.TextRaw, "\r\n", "<BR>", -1)
 
-				themes := *item.Themes
+				themes := []string {}
+				for _,theme := range *item.Themes {
+					themes = append(themes, strings.ToUpper(theme))
+				}
 				keywordMatches := findKeywordMatches( item.TextRaw )
 				for _,keyword := range *keywordMatches {
 					themes = append( themes, keyword )
 				}
+
+				item.Text        = ""
+				item.TextRaw     = ""
+				item.TextAsHtml  = ""
+				item.Description = ""
 
 				item.Themes = &themes
 				fmt.Println("meditation: GetHaikusWithImages: item.Themes=", item.Themes)
@@ -93,5 +104,11 @@ func main() {
 	haikus := GetHaikusWithImages( 5 )
 	haikusB, _ := json.Marshal(haikus)
 
-	fmt.Println("main: haikusB=", string(haikusB) )
+    ofile, err := os.Create("meditation_haiku.json")
+    if err != nil {
+        log.Fatal("meditation:main: Cannot create file", err)
+    }
+    defer ofile.Close()
+
+    fmt.Fprintf(ofile, string(haikusB))
 }
