@@ -117,6 +117,18 @@ type ProminentColour struct {
         RGBHex     string
 }
 
+type ByPopulation []ProminentColour
+
+func (s ByPopulation) Len() int {
+        return len(s)
+}
+func (s ByPopulation) Swap(i, j int) {
+        s[i], s[j] = s[j], s[i]
+}
+func (s ByPopulation) Less(i, j int) bool {
+        return s[i].Population > s[j].Population
+}
+
 // via https://github.com/generaltso/vibrant
 func GetProminentColours(url string) *[]ProminentColour {
         img := *getDecodedImageByUrl( url )
@@ -137,6 +149,9 @@ func GetProminentColours(url string) *[]ProminentColour {
 
           prominentColours = append( prominentColours, prominentColour )
         }
+
+        sort.Sort(ByPopulation(prominentColours))
+
 
         return &prominentColours
 }
