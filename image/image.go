@@ -9,7 +9,15 @@ import (
         "log"
         "net/http"
         "sort"
+        "github.com/generaltso/vibrant"
 )
+
+var checkErr = func(err error) { 
+        if err != nil { 
+                panic(err) 
+                log.Fatal(err)
+                } 
+        }
 
 func getDecodedImageByUrl(url string) *image.Image {
         fmt.Println("image: getDecodedImageByUrl: url=", url)
@@ -17,17 +25,13 @@ func getDecodedImageByUrl(url string) *image.Image {
         req, err := http.NewRequest("GET", url, nil)
         client := &http.Client{}
         resp, err := client.Do(req)
-        if err != nil {
-                panic(err)
-        }
+        checkErr( err )
         defer resp.Body.Close()
 
         fmt.Println("image: getDecodedImageByUrl: response Status:", resp.Status)
 
         m, _, err := image.Decode(resp.Body)
-        if err != nil {
-                log.Fatal(err)
-        }
+        checkErr( err )
         return &m
 }
 
@@ -107,18 +111,52 @@ func calcColourFrequencies(url string) *[]ColourStat {
         return &colourStats
 }
 
+type ProminentColour struct {
+        Name       string
+        Population int
+        RGBHex     string
+}
+
+// via https://github.com/generaltso/vibrant
+func getVibrant(url string) *[]ProminentColour {
+        img := *getDecodedImageByUrl( url )
+
+        palette, err := vibrant.NewPaletteFromImage(img)
+        checkErr(err)
+
+        prominentColours := []ProminentColour {}
+
+        // example: create css stylesheet from image file
+        swatches := palette.ExtractAwesome()
+        for name, swatch := range swatches {
+          fmt.Printf("/* %s (population: %d) */\n%s\n\n", name, swatch.Population, swatch)
+          prominentColour := ProminentColour{
+                Name:       name,
+                Population: swatch.Population,
+                RGBHex:     swatch.Color.RGBHex(),
+          }
+
+          prominentColours = append( prominentColours, prominentColour )
+        }
+
+        return &prominentColours
+}
+
 func main() {
         url := "http://im.ft-static.com/content/images/2a7f93c1-0276-4e3e-992d-d14a60bf60f4.img"
 
-        histogram := calcHistogram(url)
-        // Print the results.
-        fmt.Printf("%-14s %6s %6s %6s %6s\n", "bin", "red", "green", "blue", "alpha")
-        for i, x := range histogram {
-                fmt.Printf("0x%04x-0x%04x: %6d %6d %6d %6d\n", i<<12, (i+1)<<12-1, x[0], x[1], x[2], x[3])
-        }
+        // histogram := calcHistogram(url)
+        // // Print the results.
+        // fmt.Printf("%-14s %6s %6s %6s %6s\n", "bin", "red", "green", "blue", "alpha")
+        // for i, x := range histogram {
+        //         fmt.Printf("0x%04x-0x%04x: %6d %6d %6d %6d\n", i<<12, (i+1)<<12-1, x[0], x[1], x[2], x[3])
+        // }
 
-        colourStats := calcColourFrequencies( url )
-        for i,c := range *colourStats{
-                fmt.Printf("%3d) %s %5.2f %6d\n", i, c.RgbaCsv, c.Percentage, c.Count)
-        }
+        // colourStats := calcColourFrequencies( url )
+        // for i,c := range *colourStats{
+        //         fmt.Printf("%3d) %s %5.2f %6d\n", i, c.RgbaCsv, c.Percentage, c.Count)
+        // }
+
+        prominentColours := getVibrant( url )
+        fmt.Println( "image: main: prominentColours=", prominentColours)      
 }
