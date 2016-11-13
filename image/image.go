@@ -10,9 +10,8 @@ import (
         "net/http"
 )
 
-// taken from https://gist.github.com/tristanwietsma/c552e838f21f6fbb5800
-func calcHistogram(url string) *[16][4]int {
-        fmt.Println("image: calcHistogram: url=", url)
+func getDecodedImageByUrl(url string) *image.Image {
+        fmt.Println("image: getDecodedImageByUrl: url=", url)
 
         req, err := http.NewRequest("GET", url, nil)
         client := &http.Client{}
@@ -22,12 +21,18 @@ func calcHistogram(url string) *[16][4]int {
         }
         defer resp.Body.Close()
 
-        fmt.Println("image: calcHistogram: response Status:", resp.Status)
+        fmt.Println("image: getDecodedImageByUrl: response Status:", resp.Status)
 
         m, _, err := image.Decode(resp.Body)
         if err != nil {
                 log.Fatal(err)
         }
+        return &m
+}
+
+// taken from https://gist.github.com/tristanwietsma/c552e838f21f6fbb5800
+func calcHistogram(url string) *[16][4]int {
+        m := *getDecodedImageByUrl( url )
         bounds := m.Bounds()
 
         var histogram [16][4]int
