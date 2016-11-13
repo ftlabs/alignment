@@ -42,7 +42,13 @@ func findKeywordMatches( text string ) *[]string {
 }
 
 type MeditationHaiku struct {
-	rss.Haiku
+	Author       string
+	Title        string
+	Url          string
+	DateSelected string
+	ImageUrl     string
+	Themes       *[]string
+	Uuid         string
 	PubDateString    string
 	PubDateEpoch     int64
 	TextWithBreaks   string
@@ -59,11 +65,13 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 			fmt.Println("meditation: GetHaikusWithImages: discarding (no Uuid) rssItem=", rssItem)
 		} else {
 			item := &MeditationHaiku{
-				*rssItem,
-				"",
-				0,
-				"",
-				nil,
+				Author:       rssItem.Author,
+				Title:        rssItem.Title,
+				Url:          rssItem.Url,
+				DateSelected: rssItem.DateSelected,
+				ImageUrl:     rssItem.ImageUrl,
+				Themes:       rssItem.Themes,
+				Uuid:         rssItem.Uuid,
 			}
 
 			if item.ImageUrl == "" {
@@ -77,21 +85,16 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 			} else {
 				items = append( items, item )
 
-				item.TextWithBreaks = strings.Replace(item.TextRaw, "\r\n", "<BR>", -1)
+				item.TextWithBreaks = strings.Replace(rssItem.TextRaw, "\r\n", "<BR>", -1)
 
 				themes := []string {}
 				for _,theme := range *item.Themes {
 					themes = append(themes, strings.ToUpper(theme))
 				}
-				keywordMatches := findKeywordMatches( item.TextRaw )
+				keywordMatches := findKeywordMatches( rssItem.TextRaw )
 				for _,keyword := range *keywordMatches {
 					themes = append( themes, keyword )
 				}
-
-				item.Text        = ""
-				item.TextRaw     = ""
-				item.TextAsHtml  = ""
-				item.Description = ""
 
 				item.Themes = &themes
 				fmt.Println("meditation: GetHaikusWithImages: item.Themes=", item.Themes)
