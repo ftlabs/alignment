@@ -93,39 +93,29 @@ var Meditation = (function() {
 		// - text
 		// - author
 		// - buttons
+		// -- create a Next/Previous button, and the remaining theme buttons
 		// inject into page 
 		var id = getRandomIntInclusive(1,numHaiku);
+		var haiku = haikuById[id];
 
 		var cardElt = document.getElementsByClassName("haiku-card")[0];
-		var prominentColor = haikuById[id]['ProminentColours'][0];
-		if ('LightMuted' in haikuById[id]['ProminentColoursByName']) {
-			prominentColor = haikuById[id]['ProminentColoursByName']['LightMuted'];
+		var prominentColor = haiku['ProminentColours'][0];
+		if ('LightMuted' in haiku['ProminentColoursByName']) {
+			prominentColor = haiku['ProminentColoursByName']['LightMuted'];
 		};
 		cardElt.style.backgroundColor = prominentColor['RGBHex'];
 
 		var textElt = document.getElementsByClassName("haiku-text")[0];
-		textElt.innerHTML = haikuById[id]['TextWithBreaks'];
+		textElt.innerHTML = haiku['TextWithBreaks'];
 
 		var imgElt = document.getElementsByClassName("haiku-image")[0];
-		imgElt.src = haikuById[id]['ImageUrl'];
+		imgElt.src = haiku['ImageUrl'];
 
 		var authorElt = document.getElementsByClassName("haiku-author")[0];
-		authorElt.innerHTML = haikuById[id]['Author'];
+		authorElt.innerHTML = haiku['Author'];
 
-		// var title           = urlParam('title') || "Carousel";
-		// var titleElement    = $('.title');
-		// titleElement.html(decodeURIComponent(title).replace(/"/g,""));
-		// var footerText      = urlParam('footer') || "Financial Times";
-		// var footerElement   = $('.footer-text');
-		// footerElement.html(decodeURIComponent(footerText).replace(/"/g,""));
-		// if (this.status == 200) {
-		//     var data            = JSON.parse(this.responseText);
-		//     var carouselElement = $('.carousel');
-		//     var htmlList        = data.map(function(it){
-		//     	return "\n" + '<div class="item"><div class="text">' + it['text'].replace(/\n/g, '<BR>') + '</div></div>';
-		//     });
-		//     carouselElement.html(htmlList);
-		// }
+		var navElt = document.getElementsByClassName("haiku-nav")[0];
+		navElt.innerHTML = haiku['Themes'].join(', ');
 	}
 
 	return {
