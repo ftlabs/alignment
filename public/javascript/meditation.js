@@ -46,6 +46,12 @@ var Meditation = (function() {
 					count = count + 1;
 					var id = count; // for now, the haiku id is the index of it in the input data
 					haikuById[id] = haiku;
+
+					haiku['ProminentColoursByName'] = {};
+					haiku['ProminentColours'].forEach(function(pc){
+						haiku['ProminentColoursByName'][pc['Name']] = pc;
+					});
+
 					haiku['Themes'].forEach(function(theme){
 						if (! (theme in knownCoreThemes)) {
 							haikuListsByTheme[theme] = [];
@@ -89,7 +95,14 @@ var Meditation = (function() {
 		// - buttons
 		// inject into page 
 		var id = getRandomIntInclusive(1,numHaiku);
-		
+
+		var cardElt = document.getElementsByClassName("haiku-card")[0];
+		var prominentColor = haikuById[id]['ProminentColours'][0];
+		if ('LightMuted' in haikuById[id]['ProminentColoursByName']) {
+			prominentColor = haikuById[id]['ProminentColoursByName']['LightMuted'];
+		};
+		cardElt.style.backgroundColor = prominentColor['RGBHex'];
+
 		var textElt = document.getElementsByClassName("haiku-text")[0];
 		textElt.innerHTML = haikuById[id]['TextWithBreaks'];
 
