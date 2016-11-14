@@ -143,7 +143,8 @@ func main() {
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
 	http.HandleFunc("/meditation", log(meditationHandler))
     
-    http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("./public"))))
+    http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("./public/javascript"))))
+    http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("./public/data"))))
 
 
 	http.ListenAndServe(":"+string(port), nil)
