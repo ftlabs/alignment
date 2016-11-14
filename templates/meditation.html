@@ -1,0 +1,59 @@
+{{define "meditationPage"}}
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Hidden Haiku from FT.com</title>
+			<link rel="stylesheet" href="//origami-build.ft.com/v2/bundles/css?modules=o-fonts@^2" />
+		   	<style>
+html {
+    font-family: BentonSans, sans-serif;
+}
+h1 {
+    font-family: MillerDisplay, serif;
+}
+body {
+    background-color: #fff1e0;
+}
+.haiku-card {
+	margin: auto;
+	max-width: 700px;
+}
+.haiku-text {
+	margin: auto;
+	max-width: 650px;
+    font-size: 300%;
+    font-size: 5.0vw;
+}
+.haiku-author {
+	margin: auto;
+	max-width: 650px;
+    font-size: 300%;
+    font-size: 5.0vw;
+}
+.haiku-brand {
+	max-width: 700px;
+	text-align: right;
+	font-size: 200%;
+    font-size: 5.0vw;
+}
+		   	</style>
+		</head>
+		<body>
+			<div class="haiku-card">
+				<img class="haiku-image" src="https://www.ft.com/__origami/service/image/v2/images/raw/http%3A%2F%2Fprod-upp-image-read.ft.com%2F69f10230-2272-11e6-aa98-db1e01fabc0c?source=next&fit=scale-down&compression=best&width=600">
+				<div class="haiku-text">
+					words are written once<BR>but FT's Hidden Haiku<BR>lets us read them twice
+				</div>
+				<BR>
+				<div class="haiku-author">
+					-Chris
+				</div>
+		   	</div>
+			<div class="haiku-brand">
+				<a href="http://www.ft.com/hidden-haiku">FT.com/hidden-haiku</a>
+			</div>
+
+			<script type="text/javascript" src="/javascript/meditation.js"></script>
+		</body>
+	</html>
+{{end}}

@@ -117,6 +117,10 @@ func carouselHandler(w http.ResponseWriter, r *http.Request) {
 	templateExecuter(w, "carouselPage", cd)
 }
 
+func meditationHandler(w http.ResponseWriter, r *http.Request) {
+	templateExecuter(w, "meditationPage", nil)
+}
+
 func log(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("REQUEST URL: ", r.URL)
@@ -137,6 +141,10 @@ func main() {
 	http.HandleFunc("/rss", log(rssHandler))
 	http.HandleFunc("/carousel", log(carouselHandler))
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
+	http.HandleFunc("/meditation", log(meditationHandler))
+    
+    http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("./public"))))
+
 
 	http.ListenAndServe(":"+string(port), nil)
 }
