@@ -53,12 +53,15 @@ type MeditationHaiku struct {
 	PubDateEpoch     int64
 	TextWithBreaks   string
 	ProminentColours *[]image.ProminentColour
+	Id           string
 }
 
 
 func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 	rssItemsIncludingMissingImages := rss.GenerateItems( maxItems )
 	items := []*MeditationHaiku {}
+
+	re := regexp.MustCompile("(?i)[a-z]")
 
 	for i, rssItem := range *rssItemsIncludingMissingImages {
 		if rssItem.Uuid == "" {
@@ -86,6 +89,9 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 				items = append( items, item )
 
 				item.TextWithBreaks = strings.Replace(rssItem.TextRaw, "\r\n", "<BR>", -1)
+
+				haikuPieces := re.FindAllString(rssItem.TextRaw, -1)
+				item.Id = string( strings.Join(haikuPieces, "") )
 
 				themes := []string {}
 				for _,theme := range *item.Themes {
