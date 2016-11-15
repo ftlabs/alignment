@@ -61,7 +61,8 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 	rssItemsIncludingMissingImages := rss.GenerateItems( maxItems )
 	items := []*MeditationHaiku {}
 
-	re := regexp.MustCompile("(?i)[a-z]")
+	reHaikuPieces := regexp.MustCompile("(?i)[a-z]")
+	reLineBreaks  := regexp.MustCompile("\r?\n")
 
 	for i, rssItem := range *rssItemsIncludingMissingImages {
 		if rssItem.Uuid == "" {
@@ -88,9 +89,9 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 			} else {
 				items = append( items, item )
 
-				item.TextWithBreaks = strings.Replace(rssItem.TextRaw, "\r\n", "<BR>", -1)
+				item.TextWithBreaks = reLineBreaks.ReplaceAllString(rssItem.TextRaw, "<BR>")
 
-				haikuPieces := re.FindAllString(rssItem.TextRaw, -1)
+				haikuPieces := reHaikuPieces.FindAllString(rssItem.TextRaw, -1)
 				item.Id = string( strings.Join(haikuPieces, "") )
 
 				themes := []string {}
@@ -116,7 +117,7 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 
 func main() {
 	godotenv.Load()
-	haikus := GetHaikusWithImages( 5 )
+	haikus := GetHaikusWithImages( 1000 )
 	haikusB, _ := json.Marshal(haikus)
 
     ofile, err := os.Create("meditation_haiku.json")
