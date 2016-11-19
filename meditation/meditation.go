@@ -36,7 +36,6 @@ func findKeywordMatches( text string ) *[]string {
 			matchingKeywords = append( matchingKeywords, keyword )
 		}
 	}
-	fmt.Println("meditation: findKeywordMatches: text=", text, ", matchingKeywords=", matchingKeywords)
 
 	return &matchingKeywords
 }
@@ -46,12 +45,15 @@ type MeditationHaiku struct {
 	Title        string
 	Url          string
 	DateSelected string
-	ImageUrl     string
-	ImageWidth   int
-	PromoImageUrl string
-	PromoImageWidth int
-	NonPromoImageUrl string
-	NonPromoImageWidth int
+	ImageUrl      string
+	ImageWidth    int
+	ImageHeight   int
+	PromoImageUrl    string
+	PromoImageWidth  int
+	PromoImageHeight int
+	NonPromoImageUrl    string
+	NonPromoImageWidth  int
+	NonPromoImageHeight int
 	Themes       *[]string
 	Uuid         string
 	PubDateString    string
@@ -85,12 +87,15 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 
 			// if item.ImageUrl == "" {
 				capiArticle := content.GetArticle(item.Uuid)
-				item.ImageUrl        = capiArticle.ImageUrl
-				item.ImageWidth      = capiArticle.ImageWidth
-				item.PromoImageUrl   = capiArticle.PromoImageUrl
-				item.PromoImageWidth = capiArticle.PromoImageWidth
-				item.NonPromoImageUrl   = capiArticle.NonPromoImageUrl
-				item.NonPromoImageWidth = capiArticle.NonPromoImageWidth
+				item.ImageUrl      = capiArticle.ImageUrl
+				item.ImageWidth    = capiArticle.ImageWidth
+				item.ImageHeight   = capiArticle.ImageHeight
+				item.PromoImageUrl    = capiArticle.PromoImageUrl
+				item.PromoImageWidth  = capiArticle.PromoImageWidth
+				item.PromoImageHeight = capiArticle.PromoImageHeight
+				item.NonPromoImageUrl    = capiArticle.NonPromoImageUrl
+				item.NonPromoImageWidth  = capiArticle.NonPromoImageWidth
+				item.NonPromoImageHeight = capiArticle.NonPromoImageHeight
 				item.PubDateString = capiArticle.PubDateString
 				item.PubDateEpoch  = capiArticle.PubDate.Unix()
 			// }
