@@ -76,10 +76,11 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 	aPubDateString := ""
 	aBrand := ""
 	aGenre := ""
-	aImgUrl := ""
 	var aPubDate *time.Time
 
-	// look for widest promo and non-promo imgs
+	// look for article img, widest promo img, and widest non-promo img
+	aArticleImgUrl    := ""
+	aArticleImgWidth  := 0
 	aNonPromoImgUrl   := ""
 	aNonPromoImgWidth := 0
 	aPromoImgUrl      := ""
@@ -154,6 +155,10 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 								if imageWidthFloat64, ok := image.(map[string]interface{})["width"].(float64); ok {
 									imageWidth := int(imageWidthFloat64)
 									fmt.Println("content: parseCapiArticleJsonBody: imageWidth=", imageWidth)
+									if imageType == "article" {
+										aArticleImgWidth = imageWidth
+										aArticleImgUrl   = imageUrl										
+									}
 									if imageType == "promo" {
 										if imageWidth > aPromoImgWidth {
 											aPromoImgWidth = imageWidth
@@ -168,6 +173,10 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 								}
 							}
 						}
+					}
+					if aArticleImgUrl == "" {
+						aArticleImgWidth = aNonPromoImgWidth
+						aArticleImgUrl   = aNonPromoImgUrl										
 					}
 				}
 			}
@@ -192,13 +201,15 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 		Body:          aBody,
 		PubDateString: aPubDateString,
 		PubDate:       aPubDate,
-		ImageUrl:      aNonPromoImgUrl,
-		ImageWidth:    aNonPromoImgWidth,
-		PromoImageUrl: aPromoImgUrl,
+		ImageUrl:      aArticleImgUrl,
+		ImageWidth:    aArticleImgWidth,
+		PromoImageUrl:   aPromoImgUrl,
 		PromoImageWidth: aPromoImgWidth,
+		NonPromoImageUrl:   aNonPromoImgUrl,
+		NonPromoImageWidth: aNonPromoImgWidth,
 	}
 
-	fmt.Println("content: parseCapiArticleJsonBody: Uuid=", aUuid, ", ImageUrl=", aImgUrl)
+	fmt.Println("content: parseCapiArticleJsonBody: Uuid=", aUuid, ", ImageUrl=", aArticleImgUrl)
 
 	return &article
 }
@@ -340,6 +351,8 @@ type Article struct {
 	PubDate       *time.Time
 	ImageUrl      string
 	ImageWidth    int
+	NonPromoImageUrl   string
+	NonPromoImageWidth int
 	PromoImageUrl   string
 	PromoImageWidth int
 }

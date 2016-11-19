@@ -50,6 +50,8 @@ type MeditationHaiku struct {
 	ImageWidth   int
 	PromoImageUrl string
 	PromoImageWidth int
+	NonPromoImageUrl string
+	NonPromoImageWidth int
 	Themes       *[]string
 	Uuid         string
 	PubDateString    string
@@ -87,6 +89,8 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 				item.ImageWidth      = capiArticle.ImageWidth
 				item.PromoImageUrl   = capiArticle.PromoImageUrl
 				item.PromoImageWidth = capiArticle.PromoImageWidth
+				item.NonPromoImageUrl   = capiArticle.NonPromoImageUrl
+				item.NonPromoImageWidth = capiArticle.NonPromoImageWidth
 				item.PubDateString = capiArticle.PubDateString
 				item.PubDateEpoch  = capiArticle.PubDate.Unix()
 			// }
@@ -123,7 +127,7 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 
 func main() {
 	godotenv.Load()
-	haikus := GetHaikusWithImages( 1000 )
+	haikus := GetHaikusWithImages( 20 )
 	haikusB, _ := json.Marshal(haikus)
 
     ofile, err := os.Create("meditation_haiku.json")
