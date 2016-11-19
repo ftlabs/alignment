@@ -47,6 +47,9 @@ type MeditationHaiku struct {
 	Url          string
 	DateSelected string
 	ImageUrl     string
+	ImageWidth   int
+	PromoImageUrl string
+	PromoImageWidth int
 	Themes       *[]string
 	Uuid         string
 	PubDateString    string
@@ -78,12 +81,15 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 				Uuid:         rssItem.Uuid,
 			}
 
-			if item.ImageUrl == "" {
+			// if item.ImageUrl == "" {
 				capiArticle := content.GetArticle(item.Uuid)
-				item.ImageUrl = capiArticle.ImageUrl
+				item.ImageUrl        = capiArticle.ImageUrl
+				item.ImageWidth      = capiArticle.ImageWidth
+				item.PromoImageUrl   = capiArticle.PromoImageUrl
+				item.PromoImageWidth = capiArticle.PromoImageWidth
 				item.PubDateString = capiArticle.PubDateString
 				item.PubDateEpoch  = capiArticle.PubDate.Unix()
-			}
+			// }
 			if item.ImageUrl == "" {
 				fmt.Println("meditation: GetHaikusWithImages: discarding (no ImageUrl) item=", item)
 			} else {

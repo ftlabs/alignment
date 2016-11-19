@@ -79,6 +79,12 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 	aImgUrl := ""
 	var aPubDate *time.Time
 
+	// look for widest promo and non-promo imgs
+	aNonPromoImgUrl   := ""
+	aNonPromoImgWidth := 0
+	aPromoImgUrl      := ""
+	aPromoImgWidth    := 0
+
 	if item, ok := data.(map[string]interface{})[`item`].(map[string]interface{}); ok {
 		if uuid, ok := item["id"].(string); ok {
 			aUuid = uuid
@@ -139,11 +145,26 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 				fmt.Println("content: parseCapiArticleJsonBody: found images")
 				if len(images) > 0 {
 					fmt.Println("content: parseCapiArticleJsonBody: found images, len > 0")
+
 					for _, image := range images {
 						if imageType, ok := image.(map[string]interface{})["type"].(string); ok {
-							if imageType == "article" {
-								if imageUrl, ok := image.(map[string]interface{})["url"].(string); ok {
-									aImgUrl = imageUrl
+							fmt.Println("content: parseCapiArticleJsonBody: imageType=", imageType)
+							if imageUrl, ok := image.(map[string]interface{})["url"].(string); ok {
+								fmt.Println("content: parseCapiArticleJsonBody: imageUrl=", imageUrl)
+								if imageWidthFloat64, ok := image.(map[string]interface{})["width"].(float64); ok {
+									imageWidth := int(imageWidthFloat64)
+									fmt.Println("content: parseCapiArticleJsonBody: imageWidth=", imageWidth)
+									if imageType == "promo" {
+										if imageWidth > aPromoImgWidth {
+											aPromoImgWidth = imageWidth
+											aPromoImgUrl   = imageUrl
+										}
+									} else {
+										if imageWidth > aNonPromoImgWidth {
+											aNonPromoImgWidth = imageWidth
+											aNonPromoImgUrl   = imageUrl
+										}
+									}
 								}
 							}
 						}
@@ -171,7 +192,10 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 		Body:          aBody,
 		PubDateString: aPubDateString,
 		PubDate:       aPubDate,
-		ImageUrl:      aImgUrl,
+		ImageUrl:      aNonPromoImgUrl,
+		ImageWidth:    aNonPromoImgWidth,
+		PromoImageUrl: aPromoImgUrl,
+		PromoImageWidth: aPromoImgWidth,
 	}
 
 	fmt.Println("content: parseCapiArticleJsonBody: Uuid=", aUuid, ", ImageUrl=", aImgUrl)
@@ -315,6 +339,9 @@ type Article struct {
 	PubDateString string
 	PubDate       *time.Time
 	ImageUrl      string
+	ImageWidth    int
+	PromoImageUrl   string
+	PromoImageWidth int
 }
 
 func parseSapiResponseJsonBody(jsonBody *[]byte, sReq *SearchRequest, queryString string) *SearchResponse {
