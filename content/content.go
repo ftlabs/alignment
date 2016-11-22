@@ -79,12 +79,15 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 	var aPubDate *time.Time
 
 	// look for article img, widest promo img, and widest non-promo img
-	aArticleImgUrl    := ""
-	aArticleImgWidth  := 0
-	aNonPromoImgUrl   := ""
-	aNonPromoImgWidth := 0
-	aPromoImgUrl      := ""
-	aPromoImgWidth    := 0
+	aArticleImgUrl     := ""
+	aArticleImgWidth   := 0
+	aArticleImgHeight  := 0
+	aNonPromoImgUrl    := ""
+	aNonPromoImgWidth  := 0
+	aNonPromoImgHeight := 0
+	aPromoImgUrl       := ""
+	aPromoImgWidth     := 0
+	aPromoImgHeight    := 0
 
 	if item, ok := data.(map[string]interface{})[`item`].(map[string]interface{}); ok {
 		if uuid, ok := item["id"].(string); ok {
@@ -143,31 +146,33 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 			}
 
 			if images, ok := item["images"].([]interface{}); ok {
-				fmt.Println("content: parseCapiArticleJsonBody: found images")
 				if len(images) > 0 {
 					fmt.Println("content: parseCapiArticleJsonBody: found images, len > 0")
 
 					for _, image := range images {
 						if imageType, ok := image.(map[string]interface{})["type"].(string); ok {
-							fmt.Println("content: parseCapiArticleJsonBody: imageType=", imageType)
 							if imageUrl, ok := image.(map[string]interface{})["url"].(string); ok {
-								fmt.Println("content: parseCapiArticleJsonBody: imageUrl=", imageUrl)
 								if imageWidthFloat64, ok := image.(map[string]interface{})["width"].(float64); ok {
 									imageWidth := int(imageWidthFloat64)
-									fmt.Println("content: parseCapiArticleJsonBody: imageWidth=", imageWidth)
-									if imageType == "article" {
-										aArticleImgWidth = imageWidth
-										aArticleImgUrl   = imageUrl										
-									}
-									if imageType == "promo" {
-										if imageWidth > aPromoImgWidth {
-											aPromoImgWidth = imageWidth
-											aPromoImgUrl   = imageUrl
+									if imageHeightFloat64, ok := image.(map[string]interface{})["height"].(float64); ok {
+										imageHeight := int(imageHeightFloat64)
+										if imageType == "article" {
+											aArticleImgWidth  = imageWidth
+											aArticleImgHeight = imageHeight
+											aArticleImgUrl    = imageUrl										
 										}
-									} else {
-										if imageWidth > aNonPromoImgWidth {
-											aNonPromoImgWidth = imageWidth
-											aNonPromoImgUrl   = imageUrl
+										if imageType == "promo" {
+											if imageWidth > aPromoImgWidth {
+												aPromoImgWidth  = imageWidth
+												aPromoImgHeight = imageHeight
+												aPromoImgUrl    = imageUrl
+											}
+										} else {
+											if imageWidth > aNonPromoImgWidth {
+												aNonPromoImgWidth  = imageWidth
+												aNonPromoImgHeight = imageHeight
+												aNonPromoImgUrl    = imageUrl
+											}
 										}
 									}
 								}
@@ -175,8 +180,9 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 						}
 					}
 					if aArticleImgUrl == "" {
-						aArticleImgWidth = aNonPromoImgWidth
-						aArticleImgUrl   = aNonPromoImgUrl										
+						aArticleImgWidth  = aNonPromoImgWidth
+						aArticleImgHeight = aNonPromoImgHeight
+						aArticleImgUrl    = aNonPromoImgUrl										
 					}
 				}
 			}
@@ -203,10 +209,13 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 		PubDate:       aPubDate,
 		ImageUrl:      aArticleImgUrl,
 		ImageWidth:    aArticleImgWidth,
-		PromoImageUrl:   aPromoImgUrl,
-		PromoImageWidth: aPromoImgWidth,
-		NonPromoImageUrl:   aNonPromoImgUrl,
-		NonPromoImageWidth: aNonPromoImgWidth,
+		ImageHeight:   aArticleImgHeight,
+		PromoImageUrl:    aPromoImgUrl,
+		PromoImageWidth:  aPromoImgWidth,
+		PromoImageHeight: aPromoImgHeight,
+		NonPromoImageUrl:    aNonPromoImgUrl,
+		NonPromoImageWidth:  aNonPromoImgWidth,
+		NonPromoImageHeight: aNonPromoImgHeight,
 	}
 
 	fmt.Println("content: parseCapiArticleJsonBody: Uuid=", aUuid, ", ImageUrl=", aArticleImgUrl)
@@ -349,12 +358,15 @@ type Article struct {
 	Body          string
 	PubDateString string
 	PubDate       *time.Time
-	ImageUrl      string
-	ImageWidth    int
-	NonPromoImageUrl   string
-	NonPromoImageWidth int
-	PromoImageUrl   string
-	PromoImageWidth int
+	ImageUrl    string
+	ImageWidth  int
+	ImageHeight int
+	NonPromoImageUrl    string
+	NonPromoImageWidth  int
+	NonPromoImageHeight int
+	PromoImageUrl    string
+	PromoImageWidth  int
+	PromoImageHeight int
 }
 
 func parseSapiResponseJsonBody(jsonBody *[]byte, sReq *SearchRequest, queryString string) *SearchResponse {

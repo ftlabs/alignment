@@ -24,7 +24,7 @@ func getEnvParam(key string, defaultValue string) string {
 	return value
 }
 
-var keywordsCsv = getEnvParam("KEYWORDS_CSV", "if,and,but")
+var keywordsCsv = getEnvParam("KEYWORDS_CSV", "if,and,but,light,you")
 var keywords    = strings.Split(keywordsCsv, ",")
 
 func findKeywordMatches( text string ) *[]string {
@@ -132,7 +132,7 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 
 func main() {
 	godotenv.Load()
-	haikus := GetHaikusWithImages( 20 )
+	haikus := GetHaikusWithImages( 1000 )
 	haikusB, _ := json.Marshal(haikus)
 
     ofile, err := os.Create("meditation_haiku.json")
