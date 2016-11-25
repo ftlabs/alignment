@@ -262,6 +262,12 @@ func constructQueryString(sr *SearchRequest) string {
 		queryString = sr.QueryText
 	case "title-only":
 		queryString = "title" + `:\"` + sr.QueryText + `\"`
+	case "before":
+		if sr.QueryText == "" || sr.QueryText == "now" {
+			queryString = ""
+		} else {
+			queryString = "lastPublishDateTime:<" + sr.QueryText
+		}
 	default:
 		queryString = sr.QueryType + `:\"` + sr.QueryText + `\"`
 	}
