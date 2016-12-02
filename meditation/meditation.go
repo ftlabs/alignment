@@ -26,6 +26,9 @@ func getEnvParam(key string, defaultValue string) string {
 
 var keywordsCsv = getEnvParam("KEYWORDS_CSV", "if,and,but,light,you")
 var keywords    = strings.Split(keywordsCsv, ",")
+var defaultImageUrl    = "https://www.ft.com/__origami/service/image/v2/images/raw/http%3A%2F%2Fprod-upp-image-read.ft.com%2F69f10230-2272-11e6-aa98-db1e01fabc0c?source=next&fit=scale-down&compression=best&width=600"
+var defaultImageWidth  = 600
+var defaultImageHeight = 338
 
 func findKeywordMatches( text string ) *[]string {
 	matchingKeywords := []string {}
@@ -85,46 +88,50 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 				Uuid:         rssItem.Uuid,
 			}
 
-			// if item.ImageUrl == "" {
-				capiArticle := content.GetArticle(item.Uuid)
-				item.ImageUrl      = capiArticle.ImageUrl
-				item.ImageWidth    = capiArticle.ImageWidth
-				item.ImageHeight   = capiArticle.ImageHeight
-				item.PromoImageUrl    = capiArticle.PromoImageUrl
-				item.PromoImageWidth  = capiArticle.PromoImageWidth
-				item.PromoImageHeight = capiArticle.PromoImageHeight
-				item.NonPromoImageUrl    = capiArticle.NonPromoImageUrl
-				item.NonPromoImageWidth  = capiArticle.NonPromoImageWidth
-				item.NonPromoImageHeight = capiArticle.NonPromoImageHeight
-				item.PubDateString = capiArticle.PubDateString
-				item.PubDateEpoch  = capiArticle.PubDate.Unix()
-			// }
+			capiArticle := content.GetArticle(item.Uuid)
+			item.ImageUrl      = capiArticle.ImageUrl
+			item.ImageWidth    = capiArticle.ImageWidth
+			item.ImageHeight   = capiArticle.ImageHeight
+			item.PromoImageUrl    = capiArticle.PromoImageUrl
+			item.PromoImageWidth  = capiArticle.PromoImageWidth
+			item.PromoImageHeight = capiArticle.PromoImageHeight
+			item.NonPromoImageUrl    = capiArticle.NonPromoImageUrl
+			item.NonPromoImageWidth  = capiArticle.NonPromoImageWidth
+			item.NonPromoImageHeight = capiArticle.NonPromoImageHeight
+			item.PubDateString = capiArticle.PubDateString
+			item.PubDateEpoch  = capiArticle.PubDate.Unix()
+
+			item.Title = capiArticle.Title // cos is sometimes missing from the rss feed
+
 			if item.ImageUrl == "" {
-				fmt.Println("meditation: GetHaikusWithImages: discarding (no ImageUrl) item=", item)
-			} else {
-				items = append( items, item )
+				fmt.Println("meditation: GetHaikusWithImages: no ImageUrl: item=", item)
+				item.ImageUrl    = defaultImageUrl
+				item.ImageWidth  = defaultImageWidth
+				item.ImageHeight = defaultImageHeight
+			} 
 
-				item.TextWithBreaks = reLineBreaks.ReplaceAllString(rssItem.TextRaw, "<BR>")
+			items = append( items, item )
 
-				haikuPieces := reHaikuPieces.FindAllString(rssItem.TextRaw, -1)
-				item.Id = string( strings.Join(haikuPieces, "") )
+			item.TextWithBreaks = reLineBreaks.ReplaceAllString(rssItem.TextRaw, "<BR>")
 
-				themes := []string {}
-				for _,theme := range *item.Themes {
-					themes = append(themes, strings.ToUpper(theme))
-				}
-				keywordMatches := findKeywordMatches( rssItem.TextRaw )
-				for _,keyword := range *keywordMatches {
-					themes = append( themes, keyword )
-				}
+			haikuPieces := reHaikuPieces.FindAllString(rssItem.TextRaw, -1)
+			item.Id = string( strings.Join(haikuPieces, "") )
 
-				item.Themes = &themes
-				fmt.Println("meditation: GetHaikusWithImages: item.Themes=", item.Themes)
-
-				item.ProminentColours = image.GetProminentColours( item.ImageUrl )
-
-				fmt.Println("meditation: GetHaikusWithImages: ", i, ") ", item.Title, ", imageUrl=", item.ImageUrl )
+			themes := []string {}
+			for _,theme := range *item.Themes {
+				themes = append(themes, strings.ToUpper(theme))
 			}
+			keywordMatches := findKeywordMatches( rssItem.TextRaw )
+			for _,keyword := range *keywordMatches {
+				themes = append( themes, keyword )
+			}
+
+			item.Themes = &themes
+			fmt.Println("meditation: GetHaikusWithImages: item.Themes=", item.Themes)
+
+			item.ProminentColours = image.GetProminentColours( item.ImageUrl )
+
+			fmt.Println("meditation: GetHaikusWithImages: ", i, ") ", item.Title, ", imageUrl=", item.ImageUrl )
 		}
 	}
 	return &items
