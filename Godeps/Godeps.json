@@ -1,10 +1,7 @@
 {
 	"ImportPath": "github.com/railsagainstignorance/alignment",
-	"GoVersion": "go1.6",
-	"GodepVersion": "v74",
-	"Packages": [
-		"./..."
-	],
+	"GoVersion": "go1.7",
+	"GodepVersion": "v75",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Financial-Times/ft-s3o-go/s3o",
