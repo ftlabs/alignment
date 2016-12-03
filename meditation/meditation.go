@@ -26,7 +26,7 @@ func getEnvParam(key string, defaultValue string) string {
 
 var keywordsCsv = getEnvParam("KEYWORDS_CSV", "if,and,but,light,you")
 var keywords    = strings.Split(keywordsCsv, ",")
-var defaultImageUrl    = "https://www.ft.com/__origami/service/image/v2/images/raw/http%3A%2F%2Fprod-upp-image-read.ft.com%2F69f10230-2272-11e6-aa98-db1e01fabc0c?source=next&fit=scale-down&compression=best&width=600"
+var defaultImageUrl    = `https://www.ft.com/__origami/service/image/v2/images/raw/http%3A%2F%2Fprod-upp-image-read.ft.com%2F69f10230-2272-11e6-aa98-db1e01fabc0c?source=next&fit=scale-down&compression=best&width=600`
 var defaultImageWidth  = 600
 var defaultImageHeight = 338
 
@@ -148,5 +148,5 @@ func main() {
     }
     defer ofile.Close()
 
-    fmt.Fprintf(ofile, string(haikusB))
+    fmt.Fprint(ofile, string(haikusB))
 }
