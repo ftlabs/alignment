@@ -6,6 +6,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"strconv"
 	"encoding/json"
 	"github.com/joho/godotenv"
     "github.com/railsagainstignorance/alignment/rss"
@@ -139,7 +140,9 @@ func GetHaikusWithImages(maxItems int) *[]*MeditationHaiku {
 
 func main() {
 	godotenv.Load()
-	haikus := GetHaikusWithImages( 1000 )
+	var maxItems, _ = strconv.Atoi( getEnvParam("MAX_ITEMS", "1000") )
+
+	haikus := GetHaikusWithImages( maxItems )
 	haikusB, _ := json.Marshal(haikus)
 
     ofile, err := os.Create("meditation_haiku.json")
