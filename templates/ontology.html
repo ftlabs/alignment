@@ -25,11 +25,11 @@
 				</form>
 			</div>
 			<h2>articles covered</h2>
-			<ul>
+			<ol>
 				{{range $item := .Articles}}
-				<li><a href="{{ $item.SiteUrl }}">{{ $item.Title }}</a> by {{$item.Author}}</li>
+				<li><a href="{{ $item.SiteUrl }}">{{ $item.Title }}</a> by {{$item.Author}}, {{$item.PubDateString}}</li>
 				{{ end }}
-			</ul>
+			</ol>
 			<h3>... excluding bad end words</h3>
 			<div align="center"> 
 				<table>
