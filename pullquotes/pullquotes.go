@@ -119,10 +119,12 @@ func pullQuotesToRss(pullQuotes *[]*PullQuote) *string {
 		for pqAssetI, pqAsset := range *pq.PullQuoteAssets {
 			guid       := pq.Url + "#" + strconv.Itoa(pqAssetI)
 			var description string
+			imgHtml := "<img src=" + pq.ImageUrl + "/>"
+
 			if pqAsset.Attribution == "" {
-				description = pqAsset.Body
+				description = imgHtml + pqAsset.Body
 			} else {
-				description = pqAsset.Body + "<p>" + pqAsset.Attribution + "</p>"
+				description = imgHtml + pqAsset.Body + "<p>" + pqAsset.Attribution + "</p>"
 			}
 
 			feed.Items = append(feed.Items, &Item{
