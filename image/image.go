@@ -129,14 +129,24 @@ func (s ByPopulation) Less(i, j int) bool {
         return s[i].Population > s[j].Population
 }
 
+var imgProminentColoursCache = map[string]*[]ProminentColour{}
+
 // via https://github.com/generaltso/vibrant
 func GetProminentColours(url string) *[]ProminentColour {
+    var prominentColours *[]ProminentColour
+    
+    if _, ok := imgProminentColoursCache[url]; ok {
+        fmt.Println("image.GetProminentColours: cache hit: url=", url)
+        prominentColours = imgProminentColoursCache[url]
+    } else {
+        fmt.Println("image.GetProminentColours: cache miss: url=", url)
+
+        prominentColours = &([]ProminentColour {})
         img := *getDecodedImageByUrl( url )
 
         palette, err := vibrant.NewPaletteFromImage(img)
         checkErr(err)
 
-        prominentColours := []ProminentColour {}
         swatches := palette.ExtractAwesome()
 
         for name, swatch := range swatches {
@@ -147,13 +157,15 @@ func GetProminentColours(url string) *[]ProminentColour {
                 RGBHex:     swatch.Color.RGBHex(),
           }
 
-          prominentColours = append( prominentColours, prominentColour )
+          *prominentColours = append( *prominentColours, prominentColour )
         }
 
-        sort.Sort(ByPopulation(prominentColours))
+        sort.Sort(ByPopulation(*prominentColours))
 
+        imgProminentColoursCache[url] = prominentColours
+    }
 
-        return &prominentColours
+    return prominentColours
 }
 
 func main() {
@@ -171,6 +183,8 @@ func main() {
         //         fmt.Printf("%3d) %s %5.2f %6d\n", i, c.RgbaCsv, c.Percentage, c.Count)
         // }
 
-        prominentColours := GetProminentColours( url )
-        fmt.Println( "image: main: prominentColours=", prominentColours)      
+        prominentColours1 := GetProminentColours( url )
+        fmt.Println( "image: main: prominentColours1=", prominentColours1)      
+        prominentColours2 := GetProminentColours( url )
+        fmt.Println( "image: main: prominentColours2=", prominentColours2)      
 }
