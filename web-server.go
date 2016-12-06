@@ -9,11 +9,13 @@ import (
 	"github.com/railsagainstignorance/alignment/ontology"
 	"github.com/railsagainstignorance/alignment/rhyme"
 	"github.com/railsagainstignorance/alignment/rss"
+	"github.com/railsagainstignorance/alignment/pullquotes"
 	"html/template"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
+	"encoding/json"
 )
 
 // compile all templates and cache them
@@ -93,6 +95,46 @@ func ontologyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func pullquotesRssHandler(w http.ResponseWriter, r *http.Request) {
+	ontologyName := r.FormValue("ontology")
+	ontologyValue := r.FormValue("value")
+
+	maxArticles := 10
+	if r.FormValue("max") != "" {
+		i, err := strconv.Atoi(r.FormValue("max"))
+		if err == nil {
+			maxArticles = i
+		}
+	}
+
+	maxMillis := 30000
+
+	rssText := pullquotes.GenerateRss(ontologyName, ontologyValue, maxArticles, maxMillis)
+	w.Header().Set("Content-Type", "application/rss+xml")
+	fmt.Fprintf(w, *rssText)
+}
+
+func pullquotesJsonHandler(w http.ResponseWriter, r *http.Request) {
+	ontologyName := r.FormValue("ontology")
+	ontologyValue := r.FormValue("value")
+
+	maxArticles := 10
+	if r.FormValue("max") != "" {
+		i, err := strconv.Atoi(r.FormValue("max"))
+		if err == nil {
+			maxArticles = i
+		}
+	}
+
+	maxMillis := 30000
+
+	pullQuotes := pullquotes.GetPullQuotesWithImages(ontologyName, ontologyValue, maxArticles, maxMillis)
+	pqJsonB, _ := json.Marshal(pullQuotes)
+
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, string(pqJsonB))
+}
+
 func rssHandler(w http.ResponseWriter, r *http.Request) {
 	maxItems := 20
 	rssText := rss.Generate(maxItems)
@@ -142,6 +184,8 @@ func main() {
 	http.HandleFunc("/carousel", log(carouselHandler))
 	http.Handle("/ontology", s3o.Handler(http.HandlerFunc(log(ontologyHandler))))
 	http.HandleFunc("/meditation", log(meditationHandler))
+	http.HandleFunc("/pullquotes/rss", log(pullquotesRssHandler))
+	http.HandleFunc("/pullquotes/json", log(pullquotesJsonHandler))
     
     http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("./public/javascript"))))
     http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("./public/data"))))
