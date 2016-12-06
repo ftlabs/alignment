@@ -2,3 +2,4 @@
 .env
 meditation/*.json
 web-server
+pullquotes/*.json
