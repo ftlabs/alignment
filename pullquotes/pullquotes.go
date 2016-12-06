@@ -24,33 +24,22 @@ func getEnvParam(key string, defaultValue string) string {
 	return value
 }
 
-// var keywordsCsv = getEnvParam("KEYWORDS_CSV", "if,and,but,light,you")
-// var keywords    = strings.Split(keywordsCsv, ",")
-// var defaultImageUrl    = `https://www.ft.com/__origami/service/image/v2/images/raw/http%3A%2F%2Fprod-upp-image-read.ft.com%2F69f10230-2272-11e6-aa98-db1e01fabc0c?source=next&fit=scale-down&compression=best&width=600`
-// var defaultImageWidth  = 600
-// var defaultImageHeight = 338
+var defaultImageUrl    = `https://www.ft.com/__origami/service/image/v2/images/raw/http%3A%2F%2Fprod-upp-image-read.ft.com%2F69f10230-2272-11e6-aa98-db1e01fabc0c?source=next&fit=scale-down&compression=best&width=600`
+var defaultImageWidth  = 600
+var defaultImageHeight = 338
 
 type PullQuote struct {
-	Author       string
-	Title        string
-	Url          string
-	DateSelected string
-	ImageUrl      string
-	ImageWidth    int
-	ImageHeight   int
-	PromoImageUrl    string
-	PromoImageWidth  int
-	PromoImageHeight int
-	NonPromoImageUrl    string
-	NonPromoImageWidth  int
-	NonPromoImageHeight int
-	Themes       *[]string
-	Uuid         string
-	PubDateString    string
-	PubDateEpoch     int64
-	TextWithBreaks   string
+	Author         string
+	Title          string
+	Url            string
+	Uuid           string
+	PubDateString  string
+	PubDateEpoch   int64
+	TextWithBreaks string
+	ImageUrl       string
+	ImageWidth     int
+	ImageHeight    int
 	ProminentColours *[]image.ProminentColour
-	Id           string
 }
 
 func GetPullQuotesWithImages(ontologyName string, ontologyValue string, maxArticles int, maxMillis int) *[]*PullQuote {
@@ -71,6 +60,29 @@ func GetPullQuotesWithImages(ontologyName string, ontologyValue string, maxArtic
 
 	for i, article := range *(sapiResult.Articles) {
 		fmt.Println("GetPullQuotesWithImages: ", i, ") ", article.Title)
+
+		item := &PullQuote{
+				Author:        article.Author,
+				Title:         article.Title,
+				Url:           article.SiteUrl,
+				Uuid:          article.Uuid,
+				ImageUrl:      article.ImageUrl,
+				ImageWidth:    article.ImageWidth,
+				ImageHeight:   article.ImageHeight,
+				PubDateString: article.PubDateString,
+				PubDateEpoch:  article.PubDate.Unix(),
+		}
+
+		if item.ImageUrl == "" {
+			item.ImageUrl    = defaultImageUrl
+			item.ImageWidth  = defaultImageWidth
+			item.ImageHeight = defaultImageHeight
+		} 
+
+		item.ProminentColours = image.GetProminentColours( item.ImageUrl )
+
+		items = append( items, item )
+
 	}
 
 	// for i, rssItem := range *rssItemsIncludingMissingImages {
