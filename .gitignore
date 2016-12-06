@@ -3,3 +3,4 @@
 meditation/*.json
 web-server
 pullquotes/*.json
+pullquotes/*.rss

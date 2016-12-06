@@ -7,8 +7,10 @@ import (
 	// "regexp"
 	// "strings"
 	"strconv"
-	"encoding/json"
+	"time"
+	// "encoding/json"
 	"github.com/joho/godotenv"
+	. "github.com/gorilla/feeds"
     "github.com/railsagainstignorance/alignment/content"
     "github.com/railsagainstignorance/alignment/image"
 )
@@ -95,19 +97,76 @@ func GetPullQuotesWithImages(ontologyName string, ontologyValue string, maxArtic
 	return &items
 }
 
+func pullQuotesToRss(pullQuotes *[]*PullQuote) *string {
+	const siteUrl = "http://www.ft.com/"
+	now := time.Now()
+
+	feed := &Feed{
+		Title:       "Pull Quotes from the latest Financial Times articles",
+		Link:        &Link{Href: siteUrl},
+		Description: "Exploring the visceral impact of Pull Quotes in Financial Times articles.",
+		Author:      &Author{Name: "Chris Gathercole", Email: "chris.gathercole@ft.com"},
+		Created:     now,
+		Copyright:   "This work is copyright © Financial Times",
+	}
+
+	feed.Items = []*Item{}
+
+	for _, pq := range *pullQuotes {
+
+		created, _ := time.Parse("2006-01-02", pq.PubDateString)
+
+		for pqAssetI, pqAsset := range *pq.PullQuoteAssets {
+			guid       := pq.Url + "#" + strconv.Itoa(pqAssetI)
+			var description string
+			if pqAsset.Attribution == "" {
+				description = pqAsset.Body
+			} else {
+				description = pqAsset.Body + "<p>" + pqAsset.Attribution + "</p>"
+			}
+
+			feed.Items = append(feed.Items, &Item{
+				Title:       pq.Title,
+				Link:        &Link{Href: pq.Url},
+				Description: description,
+				Created:     created,
+				Id:          guid,
+			})
+		}
+	}
+
+	rss, _ := feed.ToRss()
+	return &rss
+}
+
+func GenerateRss(ontologyName string, ontologyValue string, maxArticles int, maxMillis int) *string {
+	pqs := GetPullQuotesWithImages( ontologyName, ontologyValue, maxArticles, maxMillis )
+	rssString := pullQuotesToRss( pqs )
+	return rssString
+}
+
 func main() {
 	godotenv.Load()
 	var maxArticles, _ = strconv.Atoi( getEnvParam("MAX_ARTICLES",   "10") )
 	var maxMillis,   _ = strconv.Atoi( getEnvParam("MAX_MILLIS",   "3000") )
 
-	pqs := GetPullQuotesWithImages( "before", "2016-12-06T19:00:00Z", maxArticles, maxMillis )
-	pqsB, _ := json.Marshal(pqs)
+	// pqs := GetPullQuotesWithImages( "before", "2016-12-06T19:00:00Z", maxArticles, maxMillis )
+	// pqsB, _ := json.Marshal(pqs)
 
-    ofile, err := os.Create("pullquotes.json")
+ //    ofile, err := os.Create("pullquotes.json")
+ //    if err != nil {
+ //        log.Fatal("pullquotes:main: Cannot create file", err)
+ //    }
+ //    defer ofile.Close()
+
+	rssString := GenerateRss( "before", "2016-12-06T19:00:00Z", maxArticles, maxMillis )
+
+    ofile, err := os.Create("pullquotes.rss")
     if err != nil {
         log.Fatal("pullquotes:main: Cannot create file", err)
     }
     defer ofile.Close()
 
-    fmt.Fprint(ofile, string(pqsB))
+
+    fmt.Fprint(ofile, *rssString)
 }
