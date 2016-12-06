@@ -63,6 +63,11 @@ func parsePubDateString(pds string) *time.Time {
 	return pubDateTime
 }
 
+type PullQuoteAsset struct {
+	Body        string 
+	Attribution string
+}
+
 func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 
 	var data interface{}
@@ -88,6 +93,7 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 	aPromoImgUrl       := ""
 	aPromoImgWidth     := 0
 	aPromoImgHeight    := 0
+	aPullQuoteAssets   := []PullQuoteAsset{}
 
 	if item, ok := data.(map[string]interface{})[`item`].(map[string]interface{}); ok {
 		if uuid, ok := item["id"].(string); ok {
@@ -139,6 +145,32 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 						if term, ok := genreItems[0].(map[string]interface{})["term"].(map[string]interface{}); ok {
 							if name, ok := term["name"].(string); ok {
 								aGenre = name
+							}
+						}
+					}
+				}
+			}
+
+			if assets, ok := item["assets"].([]interface{}); ok {
+				if len(assets) > 0 {
+					fmt.Println("content: parseCapiArticleJsonBody: found assets, len > 0")
+
+					for _, asset := range assets {
+						if assetType, ok := asset.(map[string]interface{})["type"].(string); ok {
+							if assetType == "pullQuote" {
+								if assetFields, ok := asset.(map[string]interface{})["fields"]; ok {
+									if assetBody, ok := assetFields.(map[string]interface{})["body"].(string); ok {
+										pqAsset := PullQuoteAsset{
+											Body:        assetBody,
+											Attribution: "",
+										}
+										if assetAttribution, ok := assetFields.(map[string]interface{})["attribution"].(string); ok {
+											pqAsset.Attribution = assetAttribution
+										} 
+
+										aPullQuoteAssets = append( aPullQuoteAssets, pqAsset )
+									}
+								}
 							}
 						}
 					}
@@ -216,6 +248,7 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 		NonPromoImageUrl:    aNonPromoImgUrl,
 		NonPromoImageWidth:  aNonPromoImgWidth,
 		NonPromoImageHeight: aNonPromoImgHeight,
+		PullQuoteAssets: &aPullQuoteAssets,
 	}
 
 	fmt.Println("content: parseCapiArticleJsonBody: Uuid=", aUuid, ", ImageUrl=", aArticleImgUrl)
@@ -373,6 +406,7 @@ type Article struct {
 	PromoImageUrl    string
 	PromoImageWidth  int
 	PromoImageHeight int
+	PullQuoteAssets *[]PullQuoteAsset
 }
 
 func parseSapiResponseJsonBody(jsonBody *[]byte, sReq *SearchRequest, queryString string) *SearchResponse {

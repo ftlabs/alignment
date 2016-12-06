@@ -40,6 +40,7 @@ type PullQuote struct {
 	ImageWidth     int
 	ImageHeight    int
 	ProminentColours *[]image.ProminentColour
+	PullQuoteAssets *[]content.PullQuoteAsset
 }
 
 func GetPullQuotesWithImages(ontologyName string, ontologyValue string, maxArticles int, maxMillis int) *[]*PullQuote {
@@ -61,90 +62,36 @@ func GetPullQuotesWithImages(ontologyName string, ontologyValue string, maxArtic
 	for i, article := range *(sapiResult.Articles) {
 		fmt.Println("GetPullQuotesWithImages: ", i, ") ", article.Title)
 
-		item := &PullQuote{
-				Author:        article.Author,
-				Title:         article.Title,
-				Url:           article.SiteUrl,
-				Uuid:          article.Uuid,
-				ImageUrl:      article.ImageUrl,
-				ImageWidth:    article.ImageWidth,
-				ImageHeight:   article.ImageHeight,
-				PubDateString: article.PubDateString,
-				PubDateEpoch:  article.PubDate.Unix(),
+		if len(*article.PullQuoteAssets) == 0 {
+			fmt.Println("GetPullQuotesWithImages: found no PullQuoteAssets")
+		} else {
+			fmt.Println("GetPullQuotesWithImages: found some PullQuoteAssets")
+			
+			item := &PullQuote{
+					Author:          article.Author,
+					Title:           article.Title,
+					Url:             article.SiteUrl,
+					Uuid:            article.Uuid,
+					ImageUrl:        article.ImageUrl,
+					ImageWidth:      article.ImageWidth,
+					ImageHeight:     article.ImageHeight,
+					PubDateString:   article.PubDateString,
+					PubDateEpoch:    article.PubDate.Unix(),
+					PullQuoteAssets: article.PullQuoteAssets,
+			}
+
+			if item.ImageUrl == "" {
+				item.ImageUrl    = defaultImageUrl
+				item.ImageWidth  = defaultImageWidth
+				item.ImageHeight = defaultImageHeight
+			} 
+
+			item.ProminentColours = image.GetProminentColours( item.ImageUrl )
+
+			items = append( items, item )
 		}
-
-		if item.ImageUrl == "" {
-			item.ImageUrl    = defaultImageUrl
-			item.ImageWidth  = defaultImageWidth
-			item.ImageHeight = defaultImageHeight
-		} 
-
-		item.ProminentColours = image.GetProminentColours( item.ImageUrl )
-
-		items = append( items, item )
-
 	}
 
-	// for i, rssItem := range *rssItemsIncludingMissingImages {
-	// 	if rssItem.Uuid == "" {
-	// 		fmt.Println("meditation: GetHaikusWithImages: discarding (no Uuid) rssItem=", rssItem)
-	// 	} else {
-	// 		item := &MeditationHaiku{
-	// 			Author:       rssItem.Author,
-	// 			Title:        rssItem.Title,
-	// 			Url:          rssItem.Url,
-	// 			DateSelected: rssItem.DateSelected,
-	// 			ImageUrl:     rssItem.ImageUrl,
-	// 			Themes:       rssItem.Themes,
-	// 			Uuid:         rssItem.Uuid,
-	// 		}
-
-	// 		capiArticle := content.GetArticle(item.Uuid)
-	// 		item.ImageUrl      = capiArticle.ImageUrl
-	// 		item.ImageWidth    = capiArticle.ImageWidth
-	// 		item.ImageHeight   = capiArticle.ImageHeight
-	// 		item.PromoImageUrl    = capiArticle.PromoImageUrl
-	// 		item.PromoImageWidth  = capiArticle.PromoImageWidth
-	// 		item.PromoImageHeight = capiArticle.PromoImageHeight
-	// 		item.NonPromoImageUrl    = capiArticle.NonPromoImageUrl
-	// 		item.NonPromoImageWidth  = capiArticle.NonPromoImageWidth
-	// 		item.NonPromoImageHeight = capiArticle.NonPromoImageHeight
-	// 		item.PubDateString = capiArticle.PubDateString
-	// 		item.PubDateEpoch  = capiArticle.PubDate.Unix()
-
-	// 		item.Title = capiArticle.Title // cos is sometimes missing from the rss feed
-
-	// 		if item.ImageUrl == "" {
-	// 			fmt.Println("meditation: GetHaikusWithImages: no ImageUrl: item=", item)
-	// 			item.ImageUrl    = defaultImageUrl
-	// 			item.ImageWidth  = defaultImageWidth
-	// 			item.ImageHeight = defaultImageHeight
-	// 		} 
-
-	// 		items = append( items, item )
-
-	// 		item.TextWithBreaks = reLineBreaks.ReplaceAllString(rssItem.TextRaw, "<BR>")
-
-	// 		haikuPieces := reHaikuPieces.FindAllString(rssItem.TextRaw, -1)
-	// 		item.Id = string( strings.Join(haikuPieces, "") )
-
-	// 		themes := []string {}
-	// 		for _,theme := range *item.Themes {
-	// 			themes = append(themes, strings.ToUpper(theme))
-	// 		}
-	// 		keywordMatches := findKeywordMatches( rssItem.TextRaw )
-	// 		for _,keyword := range *keywordMatches {
-	// 			themes = append( themes, keyword )
-	// 		}
-
-	// 		item.Themes = &themes
-	// 		fmt.Println("meditation: GetHaikusWithImages: item.Themes=", item.Themes)
-
-	// 		item.ProminentColours = image.GetProminentColours( item.ImageUrl )
-
-	// 		fmt.Println("meditation: GetHaikusWithImages: ", i, ") ", item.Title, ", imageUrl=", item.ImageUrl )
-	// 	}
-	// }
 	return &items
 }
 
@@ -153,7 +100,7 @@ func main() {
 	var maxArticles, _ = strconv.Atoi( getEnvParam("MAX_ARTICLES",   "10") )
 	var maxMillis,   _ = strconv.Atoi( getEnvParam("MAX_MILLIS",   "3000") )
 
-	pqs := GetPullQuotesWithImages( "before", "2014-03-18T19:00:00Z", maxArticles, maxMillis )
+	pqs := GetPullQuotesWithImages( "before", "2016-12-06T19:00:00Z", maxArticles, maxMillis )
 	pqsB, _ := json.Marshal(pqs)
 
     ofile, err := os.Create("pullquotes.json")
