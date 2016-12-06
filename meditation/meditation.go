@@ -18,7 +18,7 @@ func getEnvParam(key string, defaultValue string) string {
 	godotenv.Load()
 	value := os.Getenv(key)
 
-	if key == "" {
+	if value == "" {
 		value = defaultValue
 	}
 
