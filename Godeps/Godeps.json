@@ -8,6 +8,15 @@
 			"Rev": "894b987556d270befee771f6c4d5ef8f440b4b36"
 		},
 		{
+			"ImportPath": "github.com/generaltso/sadbox/color",
+			"Rev": "27893f92b8ce8ff6fe913af4422216027fe5a4a7"
+		},
+		{
+			"ImportPath": "github.com/generaltso/vibrant",
+			"Comment": "v1.0-2-g2269745",
+			"Rev": "2269745dd7bcc375606483ce227c1feb86958b7d"
+		},
+		{
 			"ImportPath": "github.com/gorilla/feeds",
 			"Rev": "441264de03a8117ed530ae8e049d8f601a33a099"
 		},
@@ -20,6 +29,10 @@
 			"ImportPath": "github.com/kennygrant/sanitize",
 			"Comment": "v1.0",
 			"Rev": "ce9fd1f6ce32afaa38b51feea32320fc8875e8e4"
+		},
+		{
+			"ImportPath": "github.com/nfnt/resize",
+			"Rev": "891127d8d1b52734debe1b3c3d7e747502b6c366"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
