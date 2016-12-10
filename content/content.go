@@ -18,6 +18,7 @@ const baseUriCapi = "http://api.ft.com/content/items/v1/"
 const baseUriSapi = "http://api.ft.com/content/search/v1"
 const newsFeedJsonUri = "http://www.ft-static.com/contentapi/live/latestNews.json"
 const sapiKeyEnvParamName = "SAPI_KEY"
+const maxSapiSearchSize = 100
 
 func getApiKey() string {
 	godotenv.Load()
@@ -321,7 +322,7 @@ func convertStringsToQuotedCSV(sList []string) string {
 
 var stringJsonBodyCache = map[string]*[]byte{}
 
-func getSapiResponseJsonBody(queryString string, maxResults int) *[]byte {
+func getSapiResponseJsonBody(queryString string, maxResults int, offset int) *[]byte {
 	curationsString := convertStringsToQuotedCSV([]string{"ARTICLES", "BLOGS"})
 	aspectsString := convertStringsToQuotedCSV([]string{"title", "location", "summary", "lifecycle", "metadata", "editorial"})
 
@@ -331,7 +332,7 @@ func getSapiResponseJsonBody(queryString string, maxResults int) *[]byte {
 			`"queryContext" : {"curations" : [ ` + curationsString + ` ]},` +
 			`"resultContext" : {` +
 			`"maxResults" : "` + strconv.Itoa(maxResults) + `",` +
-			`"offset" : "0",` +
+			`"offset" : "` + strconv.Itoa(offset) + `",` +
 			`"aspects" : [ ` + aspectsString + `],` +
 			`"sortOrder": "DESC",` +
 			`"sortField": "lastPublishDateTime"` +
@@ -574,6 +575,44 @@ func constructArticlesFromSearchResults(sRequest *SearchRequest, sResponse *Sear
 	return &articles
 }
 
+// combine multiple SAPI requests to overcome SAPI's max request size
+func getAndParseMultipleSapiResponses(sRequest *SearchRequest) *SearchResponse {
+	queryString := constructQueryString(sRequest)
+	maxResults := sRequest.MaxArticles
+
+	offset := 0
+	exceededNumPossible := false
+	
+	sResponses := []*SearchResponse{}
+
+	for offset < maxResults && !exceededNumPossible {
+		numRequestedArticles := maxResults - offset
+		if numRequestedArticles > maxSapiSearchSize {
+			numRequestedArticles = maxSapiSearchSize
+		}
+
+		fmt.Println("getAndParseMultipleSapiResponses: offset=", offset, ", maxResults=", maxResults, ", numRequestedArticles=", numRequestedArticles)
+
+		jsonBody := getSapiResponseJsonBody(queryString, numRequestedArticles, offset)
+		sResponse := parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
+		sResponses = append( sResponses, sResponse )	
+
+		offset += numRequestedArticles
+		exceededNumPossible = (offset > sResponse.NumPossible)
+	}
+
+	articles := []*Article{}
+	for _, sResponse := range sResponses {
+		articles = append(articles, *sResponse.Articles...)
+	}
+
+	sResponse := sResponses[0]
+	sResponse.Articles = &articles
+	sResponse.NumArticles = len(articles)
+
+	return sResponse
+}
+
 func Search(sRequest *SearchRequest) *SearchResponse {
 	startTiming := time.Now()
 
@@ -591,9 +630,7 @@ func Search(sRequest *SearchRequest) *SearchResponse {
 			sResponse = parseMainContentJsonBody(jsonBody, sRequest, webUrl)
 		}
 	} else {
-		queryString := constructQueryString(sRequest)
-		jsonBody := getSapiResponseJsonBody(queryString, sRequest.MaxArticles)
-		sResponse = parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
+		sResponse = getAndParseMultipleSapiResponses(sRequest)
 	}
 
 	fmt.Println("content.Search: found sResponse.NumArticles=", sResponse.NumArticles)
