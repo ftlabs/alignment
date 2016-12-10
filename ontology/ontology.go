@@ -43,7 +43,7 @@ type ArticleAndMPWUs struct {
     MPWUs   *[]*article.MatchedPhraseWithUrl
 }
 
-const maxMaxArticles = 250
+const maxMaxArticles = 1000
 
 func GetDetails(syllabi *rhyme.Syllabi, ontologyName string, ontologyValue string, meter string, maxArticles int, maxMillis int) (*Details, bool) {
 
