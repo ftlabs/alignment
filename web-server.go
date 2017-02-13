@@ -133,7 +133,7 @@ func pullquotesJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	fmt.Fprintf(w, string(pqJsonB))
+	w.Write(pqJsonB)
 }
 
 func rssHandler(w http.ResponseWriter, r *http.Request) {
@@ -141,7 +141,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	rssText := rss.Generate(maxItems)
 	w.Header().Set("Content-Type", "application/rss+xml")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-
+	
 	fmt.Fprintf(w, *rssText)
 }
 
