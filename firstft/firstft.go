@@ -49,7 +49,7 @@ func getFirstFTArticles(maxArticles int) *[]*content.Article {
 		// - attributions, e.g. (FT, Miami Herald)</p> --> (by the FT and Miami Herald)
 		// - item title: span class=&#34;ft-bold&#34;&gt;Indian phone fraud?&lt;/span&gt; --> append ":"
 
-		
+
 
 		// scan the firstFT article for FT article links, get the uuid
 		// - e.g. &lt;a href=&#34;https://www.ft.com/content/1f9974ea-f9e7-11e6-9516-2d969e0d3b65&#34;&gt;German business leader&lt;/a&gt;s -> 1f9974ea-f9e7-11e6-9516-2d969e0d3b65
@@ -115,7 +115,7 @@ func articlesToRss(articles *[]*content.Article) *string {
 			Link:        &Link{Href: article.SiteUrl},
 			Description: article.Body,
 			Created:     created,
-			Id:          article.Uuid,
+			Id:          article.SiteUrl,
 		})
 
 	}

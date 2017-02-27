@@ -179,7 +179,7 @@ func firstftRssHandler(w http.ResponseWriter, r *http.Request) {
 
 	rssText := firstft.GenerateRss( maxArticles )
 	w.Header().Set("Content-Type", "application/rss+xml")
-	fmt.Fprintf(w, *rssText)
+	fmt.Fprint(w, *rssText)
 }
 
 func log(fn http.HandlerFunc) http.HandlerFunc {
