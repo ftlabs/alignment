@@ -10,6 +10,7 @@ import (
 	"github.com/railsagainstignorance/alignment/rhyme"
 	"github.com/railsagainstignorance/alignment/rss"
 	"github.com/railsagainstignorance/alignment/pullquotes"
+	"github.com/railsagainstignorance/alignment/firstft"
 	"html/template"
 	"net/http"
 	"os"
@@ -141,7 +142,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	rssText := rss.Generate(maxItems)
 	w.Header().Set("Content-Type", "application/rss+xml")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	
+
 	fmt.Fprintf(w, *rssText)
 }
 
@@ -164,6 +165,21 @@ func carouselHandler(w http.ResponseWriter, r *http.Request) {
 
 func meditationHandler(w http.ResponseWriter, r *http.Request) {
 	templateExecuter(w, "meditationPage", nil)
+}
+
+func firstftRssHandler(w http.ResponseWriter, r *http.Request) {
+
+	maxArticles := 2
+	if r.FormValue("max") != "" {
+		i, err := strconv.Atoi(r.FormValue("max"))
+		if err == nil {
+			maxArticles = i
+		}
+	}
+
+	rssText := firstft.GenerateRss( maxArticles )
+	w.Header().Set("Content-Type", "application/rss+xml")
+	fmt.Fprintf(w, *rssText)
 }
 
 func log(fn http.HandlerFunc) http.HandlerFunc {
@@ -189,7 +205,8 @@ func main() {
 	http.HandleFunc("/meditation", log(meditationHandler))
 	http.HandleFunc("/pullquotes/rss", log(pullquotesRssHandler))
 	http.HandleFunc("/pullquotes/json", log(pullquotesJsonHandler))
-    
+	http.HandleFunc("/firstft/rss", log(firstftRssHandler))
+
     http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("./public/javascript"))))
     http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("./public/data"))))
 

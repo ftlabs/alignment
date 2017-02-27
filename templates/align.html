@@ -36,18 +36,18 @@
 										<tr>
 											<td><input type="text" name="text" value="has its own"></td>
 											<td>source:</td>
-											<td><input type="radio" name="source" value="any" checked> any 
+											<td><input type="radio" name="source" value="any" checked> any
 												<br><input type="radio" name="source" value="title-only"> title-only</td>
 											<td><input type="submit" value="search and align on matching phrase"></td>
 										</tr>
 									</table>
-									 
+
 								</form>
 
 							<h2>align an article's sentences matching meter</h2>
 								<p>
-									You identify an article (with a UUID from the url, by hand, sorry) and specify a meter. 
-									<br>If any of the sentences within that article body contain text conforming to that meter, they are aligned accordingly. 
+									You identify an article (with a UUID from the url, by hand, sorry) and specify a meter.
+									<br>If any of the sentences within that article body contain text conforming to that meter, they are aligned accordingly.
 									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
@@ -56,21 +56,21 @@
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												<input type="hidden" name="ontology" value="id"> 
-												<br>uuid&nbsp;<input type="text" name="value" value="b57fee24-cb3c-11e5-be0b-b7ece4e953a0"> 
+												<input type="hidden" name="ontology" value="id">
+												<br>uuid&nbsp;<input type="text" name="value" value="b57fee24-cb3c-11e5-be0b-b7ece4e953a0">
 												<br>meter&nbsp;<input type="text" name="meter" value="01010101">
 											</td>
 											<td>
 												<br><input type="submit" value="get article and align on matching sentences">
 											</td>
 										</tr>
-									</table>			
+									</table>
 								</form>
 
 							<h2>find author's recent articles' phrases matching the meter</h2>
 								<p>
-									You identify an author and specify a meter. 
-									<br>If any of the sentences within recent articles by that author contain text conforming to that meter, they are aligned accordingly. 
+									You identify an author and specify a meter.
+									<br>If any of the sentences within recent articles by that author contain text conforming to that meter, they are aligned accordingly.
 									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
@@ -79,20 +79,20 @@
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												<input type="hidden" name="ontology" value="authors"> 
-												<br>author&nbsp;<input type="text" name="value" value="Lucy Kellaway"> 
+												<input type="hidden" name="ontology" value="authors">
+												<br>author&nbsp;<input type="text" name="value" value="Lucy Kellaway">
 												<br>meter&nbsp;<input type="text" name="meter" value="0101010101">
 											</td>
 											<td>max&nbsp;<input type="text" name="max" value="10">
 												<br><input type="submit" value="search for articles and align on matching meter"> (NB: there will be a bit of a delay)</td>
 										</tr>
-									</table>			
+									</table>
 								</form>
 
 							<h2>find author's recent articles' phrases matching the haiku meter, 5-7-5</h2>
 								<p>
-									You identify an author. 
-									<br>If any of the sentences within recent articles by that author contain text conforming to the haiku meter, 5-7-5, they are displayed. 
+									You identify an author.
+									<br>If any of the sentences within recent articles by that author contain text conforming to the haiku meter, 5-7-5, they are displayed.
 									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
@@ -101,20 +101,20 @@
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												<input type="hidden" name="ontology" value="authors"> 
-												<br>author&nbsp;<input type="text" name="value" value="Lucy Kellaway"> 
+												<input type="hidden" name="ontology" value="authors">
+												<br>author&nbsp;<input type="text" name="value" value="Lucy Kellaway">
 												<input type="hidden" name="meter" value="..... ....... .....">
 											</td>
 											<td>max&nbsp;<input type="text" name="max" value="10">
 												<br><input type="submit" value="search for articles and align on matching meter"> (NB: there will be a bit of a delay)</td>
 										</tr>
-									</table>			
+									</table>
 								</form>
 
 							<h2>find ontology's recent articles' phrases matching the meter</h2>
 								<p>
-									You identify an ontology and value, and a meter. 
-									<br>If any of the sentences within the relevant recent articles contain text conforming to that meter, they are aligned accordingly. 
+									You identify an ontology and value, and a meter.
+									<br>If any of the sentences within the relevant recent articles contain text conforming to that meter, they are aligned accordingly.
 									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
@@ -123,20 +123,20 @@
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												ontology&nbsp;<input type="text" name="ontology" value="brand"> 
-												<br>value&nbsp;<input type="text" name="value" value="Lunch with the FT"> 
+												ontology&nbsp;<input type="text" name="ontology" value="brand">
+												<br>value&nbsp;<input type="text" name="value" value="Lunch with the FT">
 												<br>meter&nbsp;<input type="text" name="meter" value="0101010101">
 											</td>
 											<td>max&nbsp;<input type="text" name="max" value="10">
 												<br><input type="submit" value="search for articles and align on matching meter"> (NB: there will be a bit of a delay)</td>
 										</tr>
-									</table>			
+									</table>
 								</form>
 
 							<h2>find ontology's recent articles' phrases matching the haiku meter, 5-7-5</h2>
 								<p>
-									You specify an ontology and value. 
-									<br>If any of the sentences within the relevant recent articles contain text conforming to the haiku meter, 5-7-5, they are displayed. 
+									You specify an ontology and value.
+									<br>If any of the sentences within the relevant recent articles contain text conforming to the haiku meter, 5-7-5, they are displayed.
 									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
@@ -145,20 +145,20 @@
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												ontology&nbsp;<input type="text" name="ontology" value="brand"> 
-												<br>value&nbsp;<input type="text" name="value" value="Lunch with the FT"> 
+												ontology&nbsp;<input type="text" name="ontology" value="brand">
+												<br>value&nbsp;<input type="text" name="value" value="Lunch with the FT">
 												<br><input type="hidden" name="meter" value="..... ....... .....">
 											</td>
 											<td>max&nbsp;<input type="text" name="max" value="10">
 												<br><input type="submit" value="search for articles and align on matching meter"> (NB: there will be a bit of a delay)</td>
 										</tr>
-									</table>			
+									</table>
 								</form>
 
 							<h2>find page's current articles' phrases matching the haiku meter, 5-7-5</h2>
 								<p>
-									You specify a sitepage. 
-									<br>If any of the sentences within the relevant articles contain text conforming to the haiku meter, 5-7-5, they are displayed. 
+									You specify a sitepage.
+									<br>If any of the sentences within the relevant articles contain text conforming to the haiku meter, 5-7-5, they are displayed.
 									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
@@ -167,8 +167,8 @@
 									<table>
 										<tr>
 											<td style="text-align:right;">
-												<input type="hidden" name="ontology" value="pages"> 
-												page&nbsp;<input type="text" name="value" value="http://www.ft.com/home/uk"> 
+												<input type="hidden" name="ontology" value="pages">
+												page&nbsp;<input type="text" name="value" value="http://www.ft.com/home/uk">
 												<br><input type="hidden" name="meter" value="..... ....... .....">
 											</td>
 											<td>
@@ -176,9 +176,9 @@
 												<input type="submit" value="search for the page's articles and align on matching meter"> (NB: there will be a bit of a delay)
 											</td>
 										</tr>
-									</table>			
+									</table>
 								</form>
-								
+
 							<h2>for articles before the date, find phrases matching the haiku meter, 5-7-5</h2>
 								<p>
 									You identify an date.
@@ -203,10 +203,10 @@
 
 							<h2>explore phrases matching meter</h2>
 								<p>
-									You specify a phrase and a meter. 
+									You specify a phrase and a meter.
 									<br>Details extracted from the phrase and the meter are displayed, mostly for debugging purposes,
 									<br>but it is interesting to see how the words are fragmented into phonemes and syllables.
-									<br>If any parts of the phrase contain text conforming to that meter, they are aligned accordingly. 
+									<br>If any parts of the phrase contain text conforming to that meter, they are aligned accordingly.
 									<br>Meter, you ask? See <a href="http://examples.yourdictionary.com/examples-of-iambic-pentameter.html">the internet</a> for some examples.
 									<br>You specify the meter as a sequence of 0s and 1s, where 1 is the emphasised beat.
 									<br>You can anchor the meter to the ^start or end$ of the text, or leave it free to match anywhere.
@@ -217,7 +217,7 @@
 										<li>Its a bug - in which case, feel free to let me know</li>
 										<li>The phonemes are based on American pronounciation, and they do speak funny. So, sorry, but, shrug.</li>
 										<li>The phonemes' emphasis points are perhaps too rigid to allow sufficient slack for the word to be spoken in a poetic context. Again, sorry, shrug.</li>
-									</ol>	
+									</ol>
 								</p>
 								<form action="/detail" method="GET">
 									<table>
@@ -228,19 +228,26 @@
 											</td>
 											<td><input type="submit" value="find meter within the phrase"></td>
 										</tr>
-									</table>			
+									</table>
 								</form>
 
 							<h2>Caveats</h2>
 								<p>
 									<ul>
 										<li>It has very little error handling</li>
-										<li>It can not work for an excitingly wide variety of reasons. 
+										<li>It can not work for an excitingly wide variety of reasons.
 										<li>Perhaps the main reason for flakiness is that this is MyFirstGoProgram.</li>
 									</ul>
 									... so choose wisely.
 								</p>
 
+								<hr>
+							<h2>extras</h2>
+							<ul>
+								<li><a href="/pullquotes/rss">/pullquotes/rss</a></li>
+								<li><a href="/pullquotes/json">/pullquotes/json</a></li>
+								<li><a href="/firstft/rss">/firstft/rss</a></li>
+							</ul>
 							<hr>
 							<h2>Simply interesting</h2>
 							<ul>
