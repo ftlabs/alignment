@@ -61,7 +61,9 @@ func getFirstFTArticles(maxArticles int) *[]*content.Article {
 			for _,m := range matches {
 				uuid := m[1]
 				a := content.GetArticle(uuid)
-				articles = append( articles, a )
+				if a.Title != "" {
+					articles = append( articles, a )
+				}
 			}
 		}
 
