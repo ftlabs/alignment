@@ -9,6 +9,7 @@ import (
 	// "encoding/json"
 	"github.com/joho/godotenv"
 	. "github.com/gorilla/feeds"
+	"regexp"
     "github.com/railsagainstignorance/alignment/content"
 )
 
@@ -39,9 +40,31 @@ func getFirstFTArticles(maxArticles int) *[]*content.Article {
 
 	articles := []*content.Article {}
 
+	hrefRegexp := regexp.MustCompile(`href="https:\/\/www\.ft\.com\/content\/([0-9a-f\-]+)"`)
+
 	for i, article := range *(sapiResult.Articles) {
 		fmt.Println("getFirstFTArticles: ", i, ") ", article.Title)
 		articles = append( articles, article )
+		// rewrite the firstFT article
+		// - attributions, e.g. (FT, Miami Herald)</p> --> (by the FT and Miami Herald)
+		// - item title: span class=&#34;ft-bold&#34;&gt;Indian phone fraud?&lt;/span&gt; --> append ":"
+
+		
+
+		// scan the firstFT article for FT article links, get the uuid
+		// - e.g. &lt;a href=&#34;https://www.ft.com/content/1f9974ea-f9e7-11e6-9516-2d969e0d3b65&#34;&gt;German business leader&lt;/a&gt;s -> 1f9974ea-f9e7-11e6-9516-2d969e0d3b65
+		// - lookup in CAPI, append to list
+
+		matches := hrefRegexp.FindAllStringSubmatch(article.Body, -1)
+		if matches != nil {
+			fmt.Println("getFirstFTArticles: found ", len(matches), " references to FT articles) ")
+			for _,m := range matches {
+				uuid := m[1]
+				a := content.GetArticle(uuid)
+				articles = append( articles, a )
+			}
+		}
+
 	}
 
 	return &articles
