@@ -109,14 +109,11 @@ func articlesToRss(articles *[]*content.Article) *string {
 	feed.Items = []*Item{}
 
 	for _, article := range *articles {
-
-		created, _ := time.Parse("2006-01-02", article.PubDateString)
-
 		feed.Items = append(feed.Items, &Item{
 			Title:       article.Title,
 			Link:        &Link{Href: article.SiteUrl},
 			Description: article.Body,
-			Created:     created,
+			Created:     *article.PubDate,
 			Id:          article.SiteUrl,
 		})
 
