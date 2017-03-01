@@ -115,6 +115,7 @@ func articlesToRss(articles *[]*content.Article) *string {
 			Description: article.Body,
 			Created:     *article.PubDate,
 			Id:          article.SiteUrl,
+			Author:      &Author{Name: article.Author},
 		})
 
 	}
