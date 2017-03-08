@@ -65,7 +65,7 @@ func parsePubDateString(pds string) *time.Time {
 }
 
 type PullQuoteAsset struct {
-	Body        string 
+	Body        string
 	Attribution string
 }
 
@@ -167,7 +167,7 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 										}
 										if assetAttribution, ok := assetFields.(map[string]interface{})["attribution"].(string); ok {
 											pqAsset.Attribution = assetAttribution
-										} 
+										}
 
 										aPullQuoteAssets = append( aPullQuoteAssets, pqAsset )
 									}
@@ -192,7 +192,7 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 										if imageType == "article" {
 											aArticleImgWidth  = imageWidth
 											aArticleImgHeight = imageHeight
-											aArticleImgUrl    = imageUrl										
+											aArticleImgUrl    = imageUrl
 										}
 										if imageType == "promo" {
 											if imageWidth > aPromoImgWidth {
@@ -215,7 +215,7 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 					if aArticleImgUrl == "" {
 						aArticleImgWidth  = aNonPromoImgWidth
 						aArticleImgHeight = aNonPromoImgHeight
-						aArticleImgUrl    = aNonPromoImgUrl										
+						aArticleImgUrl    = aNonPromoImgUrl
 					}
 				}
 			}
@@ -320,7 +320,7 @@ func convertStringsToQuotedCSV(sList []string) string {
 	return sCsv
 }
 
-var stringJsonBodyCache = map[string]*[]byte{}
+// var stringJsonBodyCache = map[string]*[]byte{}
 
 func getSapiResponseJsonBody(queryString string, maxResults int, offset int) *[]byte {
 	curationsString := convertStringsToQuotedCSV([]string{"ARTICLES", "BLOGS"})
@@ -340,15 +340,18 @@ func getSapiResponseJsonBody(queryString string, maxResults int, offset int) *[]
 			`}`)
 
 	var jsonBody *[]byte
-	jsonStrAsKey := string(jsonStr[:])
-	if _, ok := stringJsonBodyCache[jsonStrAsKey]; ok {
-		fmt.Println("content.getSapiResponseJsonBody: cache hit: jsonStrAsKey=", jsonStrAsKey)
-		jsonBody = stringJsonBodyCache[jsonStrAsKey]
-	} else {
-		fmt.Println("content.getSapiResponseJsonBody: cache miss: jsonStrAsKey=", jsonStrAsKey)
-		jsonBody = constructSapiResponseJsonBody(&jsonStr)
-		stringJsonBodyCache[jsonStrAsKey] = jsonBody
-	}
+	// jsonStrAsKey := string(jsonStr[:])
+	// if _, ok := stringJsonBodyCache[jsonStrAsKey]; ok {
+	// 	fmt.Println("content.getSapiResponseJsonBody: cache hit: jsonStrAsKey=", jsonStrAsKey)
+	// 	jsonBody = stringJsonBodyCache[jsonStrAsKey]
+	// } else {
+	// 	fmt.Println("content.getSapiResponseJsonBody: cache miss: jsonStrAsKey=", jsonStrAsKey)
+	// 	jsonBody = constructSapiResponseJsonBody(&jsonStr)
+	// 	stringJsonBodyCache[jsonStrAsKey] = jsonBody
+	// }
+
+	jsonBody = constructSapiResponseJsonBody(&jsonStr)
+
 
 	return jsonBody
 }
@@ -582,7 +585,7 @@ func getAndParseMultipleSapiResponses(sRequest *SearchRequest) *SearchResponse {
 
 	offset := 0
 	exceededNumPossible := false
-	
+
 	sResponses := []*SearchResponse{}
 
 	for offset < maxResults && !exceededNumPossible {
@@ -595,7 +598,7 @@ func getAndParseMultipleSapiResponses(sRequest *SearchRequest) *SearchResponse {
 
 		jsonBody := getSapiResponseJsonBody(queryString, numRequestedArticles, offset)
 		sResponse := parseSapiResponseJsonBody(jsonBody, sRequest, queryString)
-		sResponses = append( sResponses, sResponse )	
+		sResponses = append( sResponses, sResponse )
 
 		offset += numRequestedArticles
 		exceededNumPossible = (offset > sResponse.NumPossible)
