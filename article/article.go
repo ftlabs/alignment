@@ -41,15 +41,12 @@ type ArticleWithSentences struct {
 }
 
 func getArticleWithSentences(uuid string) *ArticleWithSentences {
-	// article := capi.GetArticle(uuid)
-	article := content.GetArticle(uuid)
+	latest := false
+	article := content.GetArticle(uuid, latest)
 
 	tidyBody := sanitize.HTML(article.Body)
 
 	sentences := splitTextIntoSentences(tidyBody)
-	// for _, s := range *sentences {
-	// 	fmt.Println("main: s=", s)
-	// }
 
 	aws := ArticleWithSentences{
 		article,

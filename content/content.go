@@ -259,10 +259,10 @@ func parseCapiArticleJsonBody(jsonBody *[]byte) *Article {
 
 var uuidJsonBodyCache = map[string]*[]byte{}
 
-func GetArticle(uuid string) *Article {
+func GetArticle(uuid string, latest bool) *Article {
 	var jsonBody *[]byte
 
-	if _, ok := uuidJsonBodyCache[uuid]; ok {
+	if _, ok := uuidJsonBodyCache[uuid]; ok && ! latest {
 		fmt.Println("content.GetArticle: cache hit: uuid=", uuid)
 		jsonBody = uuidJsonBodyCache[uuid]
 	} else {
@@ -545,10 +545,11 @@ func lookupCapiArticles(sRequest *SearchRequest, sResponse *SearchResponse, star
 	maxDurationNanoseconds := int64(sRequest.MaxDurationMillis * 1e6)
 	capiArticles := []*Article{}
 
+	latest := false
 	if sRequest.MaxArticles > 0 {
 		for i, sapiA := range *(sResponse.Articles) {
 			articleLookupStartTiming := time.Now()
-			capiA := GetArticle(sapiA.Uuid)
+			capiA := GetArticle(sapiA.Uuid, latest)
 			capiArticles = append(capiArticles, capiA)
 			articleLookupDuration := time.Since(articleLookupStartTiming).Nanoseconds()
 			fmt.Println("content.lookupCapiArticles: articleLookupDuration=", (articleLookupDuration / 1000000))
@@ -874,8 +875,8 @@ func parseNewsFeedContentJsonBody(jsonBody *[]byte, sReq *SearchRequest, webUrl 
 func main() {
 	godotenv.Load()
 	uuid := "b57fee24-cb3c-11e5-be0b-b7ece4e953a0"
-
-	article := GetArticle(uuid)
+	latest := false
+	article := GetArticle(uuid, latest)
 	fmt.Println("main: article.Title=", article.Title)
 
 	sRequest := &SearchRequest{

@@ -177,7 +177,9 @@ func firstftRssHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	rssText := firstft.GenerateRss( maxArticles )
+	includeActualFirstFTArticle := false
+
+	rssText := firstft.GenerateRss( maxArticles, includeActualFirstFTArticle )
 	w.Header().Set("Content-Type", "application/rss+xml")
 	fmt.Fprint(w, *rssText)
 }
