@@ -42,6 +42,8 @@ func getFirstFTArticles(maxArticles int, includeActualFirstFTArticle bool) *[]*c
 
 	hrefRegexp := regexp.MustCompile(`href="https:\/\/www\.ft\.com\/content\/([0-9a-f\-]+)"`)
 
+	latest := true
+
 	for i, article := range *(sapiResult.Articles) {
 		fmt.Println("getFirstFTArticles: ", i, ") ", article.Title)
 
@@ -58,7 +60,7 @@ func getFirstFTArticles(maxArticles int, includeActualFirstFTArticle bool) *[]*c
 			fmt.Println("getFirstFTArticles: found ", len(matches), " references to FT articles) ")
 			for _,m := range matches {
 				uuid := m[1]
-				a := content.GetArticle(uuid)
+				a := content.GetArticle(uuid, latest)
 				if a.Title != "" {
 					articles = append( articles, a )
 				}
