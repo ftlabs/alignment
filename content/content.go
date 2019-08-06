@@ -14,8 +14,8 @@ import (
 )
 
 const longformPubDate = "2006-01-02T15:04:05Z" // needs to be this exact string, according to http://stackoverflow.com/questions/25845172/parsing-date-string-in-golang
-const baseUriCapi = "http://api.ft.com/content/items/v1/"
-const baseUriSapi = "http://api.ft.com/content/search/v1"
+const baseUriCapi = "https://api.ft.com/content/items/v1/"
+const baseUriSapi = "https://api.ft.com/content/search/v1"
 const newsFeedJsonUri = "http://www.ft-static.com/contentapi/live/latestNews.json"
 const sapiKeyEnvParamName = "SAPI_KEY"
 const maxSapiSearchSize = 100
@@ -675,7 +675,7 @@ func constructGetResponseJsonBody(url string) *[]byte {
 }
 
 func constructAllPagesJsonBody() *[]byte {
-	return constructGetResponseJsonBody("http://api.ft.com/site/v1/pages")
+	return constructGetResponseJsonBody("https://api.ft.com/site/v1/pages")
 }
 
 func parseAllPagesJsonBody(jsonBody *[]byte) *map[string]string {
@@ -722,7 +722,7 @@ func getPageIdByWebUrl(webUrl string) string {
 }
 
 func constructMainContentJsonBodyFromId(id string) *[]byte {
-	url := "http://api.ft.com/site/v1/pages/" + id + "/main-content"
+	url := "https://api.ft.com/site/v1/pages/" + id + "/main-content"
 	return constructGetResponseJsonBody(url)
 }
 
